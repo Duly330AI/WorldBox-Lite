@@ -1,0 +1,29 @@
+{
+  "spec_id": "state_definition_v1",
+  "version": "1.1",
+  "memory_layout": {
+    "terrain_buffer": { "type": "Uint8Array", "bytes_per_tile": 1 },
+    "feature_buffer": { "type": "Uint8Array", "bytes_per_tile": 1 },
+    "building_buffer": { "type": "Uint16Array", "bytes_per_tile": 2, "description": "Building IDs 300-399" },
+    "height_buffer": { "type": "Int8Array", "bytes_per_tile": 1 }
+  },
+  "entity_state": {
+    "max_entities": 1000,
+    "properties_per_entity": {
+      "id": "uint32",
+      "type": "uint8",
+      "faction_id": "uint8",
+      "x": "uint16",
+      "y": "uint16",
+      "health": "uint8",
+      "energy": "uint8",
+      "inventory_wood": "uint8",
+      "inventory_food": "uint8",
+      "target_x": "uint16",
+      "target_y": "uint16",
+      "current_action_id": "uint8",
+      "action_progress": "uint8",
+      "plan_lock_ticks": "uint8"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "unit_behavior_spec.schema.json",
+  "title": "Unit Behavior Spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_id", "version", "schema_version", "goal_definitions", "actions", "utility_formulas"],
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "goal_definitions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["priority", "utility_curve", "target_effect"],
+        "properties": {
+          "priority": { "type": "integer", "minimum": 1 },
+          "utility_curve": { "type": "string" },
+          "target_effect": { "type": "string" }
+        }
+      }
+    },
+    "actions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cost", "pre", "eff"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 0 },
+          "cost": { "type": "integer", "minimum": 0 },
+          "progress_step": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "pre": { "type": "array", "items": { "type": "string" } },
+          "eff": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "utility_formulas": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}

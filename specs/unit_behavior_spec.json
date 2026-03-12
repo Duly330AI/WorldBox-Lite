@@ -1,0 +1,54 @@
+{
+  "spec_id": "unit_behavior_v1",
+  "version": "1.2",
+  "schema_version": "1.0.0",
+  "goal_definitions": {
+    "SURVIVE": {
+      "priority": 1,
+      "utility_curve": "danger_curve",
+      "target_effect": "safety_increased"
+    },
+    "RECOVER": {
+      "priority": 2,
+      "utility_curve": "health_curve",
+      "target_effect": "health_increased"
+    },
+    "NUTRITION": {
+      "priority": 3,
+      "utility_curve": "hunger_curve",
+      "target_effect": "inventory_food_increased"
+    },
+    "GATHERING": {
+      "priority": 4,
+      "utility_curve": "wood_curve",
+      "target_effect": "inventory_wood_increased"
+    },
+    "EXPANSION": {
+      "priority": 5,
+      "utility_curve": "expansion_curve",
+      "target_effect": "house_created"
+    },
+    "EXPLORATION": {
+      "priority": 6,
+      "utility_curve": "exploration_curve",
+      "target_effect": "explored_area"
+    }
+  },
+  "actions": {
+    "WANDER": { "id": 0, "cost": 1, "progress_step": 100, "pre": [], "eff": ["explored_area"] },
+    "CHOP_WOOD": { "id": 1, "cost": 5, "progress_step": 20, "pre": ["is_on_forest_tile"], "eff": ["inventory_wood_increased"] },
+    "GATHER_FOOD": { "id": 2, "cost": 3, "progress_step": 34, "pre": ["is_on_food_tile"], "eff": ["inventory_food_increased"] },
+    "BUILD_HOUSE": { "id": 3, "cost": 20, "progress_step": 10, "pre": ["has_wood_3", "is_on_grass_tile"], "eff": ["house_created"] },
+    "ATTACK": { "id": 4, "cost": 10, "progress_step": 100, "pre": ["enemy_in_range"], "eff": ["enemy_health_reduced", "safety_increased"] },
+    "FLEE": { "id": 5, "cost": 2, "progress_step": 100, "pre": ["enemy_nearby"], "eff": ["safety_increased"] },
+    "HEAL": { "id": 6, "cost": 5, "progress_step": 20, "pre": ["is_at_home"], "eff": ["health_increased"] }
+  },
+  "utility_formulas": {
+    "danger_curve": "enemy_nearby ? 100 : 0",
+    "health_curve": "(100 - health)^2 / 100",
+    "hunger_curve": "hunger > 50 ? (hunger^2 / 100) : 0",
+    "wood_curve": "wood < 3 ? 60 : 0",
+    "expansion_curve": "wood >= 3 ? 80 : 0",
+    "exploration_curve": "100 / (tiles_explored + 1)"
+  }
+}

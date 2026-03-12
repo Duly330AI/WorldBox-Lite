@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "state_spec.schema.json",
+  "title": "State Spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_id", "version", "memory_layout", "entity_state"],
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "memory_layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["terrain_buffer", "feature_buffer", "building_buffer", "height_buffer"],
+      "properties": {
+        "terrain_buffer": { "$ref": "#/definitions/bufferDef" },
+        "feature_buffer": { "$ref": "#/definitions/bufferDef" },
+        "building_buffer": { "$ref": "#/definitions/bufferDef" },
+        "height_buffer": { "$ref": "#/definitions/bufferDef" }
+      }
+    },
+    "entity_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_entities", "properties_per_entity"],
+      "properties": {
+        "max_entities": { "type": "integer", "minimum": 1 },
+        "properties_per_entity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "faction_id",
+            "x",
+            "y",
+            "health",
+            "energy",
+            "inventory_wood",
+            "inventory_food",
+            "current_plan_step"
+          ],
+          "properties": {
+            "id": { "$ref": "#/definitions/entityType" },
+            "type": { "$ref": "#/definitions/entityType" },
+            "faction_id": { "$ref": "#/definitions/entityType" },
+            "x": { "$ref": "#/definitions/entityType" },
+            "y": { "$ref": "#/definitions/entityType" },
+            "health": { "$ref": "#/definitions/entityType" },
+            "energy": { "$ref": "#/definitions/entityType" },
+            "inventory_wood": { "$ref": "#/definitions/entityType" },
+            "inventory_food": { "$ref": "#/definitions/entityType" },
+            "current_plan_step": { "$ref": "#/definitions/entityType" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "bufferDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "bytes_per_tile", "description"],
+      "properties": {
+        "type": { "type": "string" },
+        "bytes_per_tile": { "type": "integer", "minimum": 1 },
+        "description": { "type": "string" }
+      }
+    },
+    "entityType": {
+      "type": "string",
+      "enum": ["uint8", "uint16", "uint32"]
+    }
+  }
+}

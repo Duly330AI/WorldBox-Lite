@@ -1,0 +1,22 @@
+{
+  "spec_id": "tech_tree_v1",
+  "version": "1.1",
+  "schema_version": "1.0.0",
+  "techs": {
+    "mining": { "id": 0, "cost": 50, "prerequisites": [], "unlocks": ["improvement_mine"] },
+    "agriculture": { "id": 1, "cost": 60, "prerequisites": [], "unlocks": ["improvement_farm"] },
+    "hunting": { "id": 2, "cost": 40, "prerequisites": [], "unlocks": ["unit_scout"] },
+    "mysticism": { "id": 3, "cost": 50, "prerequisites": [], "unlocks": ["building_obelisk"] },
+    "the_wheel": { "id": 4, "cost": 60, "prerequisites": [], "unlocks": ["road"] },
+    "pottery": { "id": 5, "cost": 80, "prerequisites": ["agriculture", "the_wheel"], "unlocks": ["building_granary"] },
+    "archery": { "id": 6, "cost": 60, "prerequisites": ["hunting"], "unlocks": ["unit_archer"] },
+    "bronze_working": { "id": 7, "cost": 120, "prerequisites": ["mining"], "unlocks": ["unit_axeman", "ability_clear_forest"] },
+    "writing": { "id": 8, "cost": 120, "prerequisites": ["pottery"], "unlocks": ["building_library"] },
+    "alphabet": { "id": 9, "cost": 300, "prerequisites": ["writing"], "unlocks": ["ability_tech_trading"] },
+    "mathematics": { "id": 10, "cost": 250, "prerequisites": ["writing"], "unlocks": ["unit_catapult"] },
+    "iron_working": { "id": 11, "cost": 200, "prerequisites": ["bronze_working"], "unlocks": ["unit_swordsman", "ability_reveal_iron"] },
+    "code_of_laws": { "id": 12, "cost": 350, "prerequisites": ["writing"], "unlocks": ["building_courthouse"] },
+    "currency": { "id": 13, "cost": 400, "prerequisites": ["mathematics", "alphabet"], "unlocks": ["building_market"] },
+    "civil_service": { "id": 14, "cost": 800, "prerequisites": ["mathematics", "code_of_laws"], "unlocks": ["unit_maceman"] }
+  }
+}

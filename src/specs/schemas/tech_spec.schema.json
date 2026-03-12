@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tech_spec.schema.json",
+  "title": "Tech Spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_id", "version", "schema_version", "techs"],
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "techs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "cost", "prerequisites", "unlocks"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 0 },
+          "cost": { "type": "integer", "minimum": 0 },
+          "prerequisites": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "unlocks": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
