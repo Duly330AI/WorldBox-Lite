@@ -22,6 +22,7 @@ import { StateView } from "./state/StateView";
 import { spawnUnit } from "./systems/spawn";
 import { stepFire, stepLavaHeat, stepTreeGrowth } from "./systems/nature";
 import { buildTerrain } from "./systems/terrain";
+import { Random } from "./math/Random";
 
 type InitMessage = {
   type: "init";
@@ -114,10 +115,9 @@ function lcg(seed: number) {
   };
 }
 
-function seedForests(view: StateView, worldSpec: WorldSpec, seed: number) {
+function seedForests(view: StateView, worldSpec: WorldSpec, rng: () => number) {
   const width = view.width;
   const height = view.height;
-  const rng = lcg(seed ^ 0x9e3779b9);
   const grassId = Object.values(worldSpec.terrain_types).find((t) => t.id === 0)?.id ?? 0;
   const tileCount = width * height;
   const avgClusterSize = 7;
@@ -168,9 +168,9 @@ function spawnInitialUnits() {
   ];
 
   for (const spawn of spawns) {
-    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction, spawn.x, spawn.y);
-    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction, spawn.x + 1, spawn.y);
-    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, scoutId, spawn.faction, spawn.x, spawn.y + 1);
+    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction, spawn.x, spawn.y, randomFn);
+    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction, spawn.x + 1, spawn.y, randomFn);
+    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, scoutId, spawn.faction, spawn.x, spawn.y + 1, randomFn);
   }
 }
 
@@ -408,6 +408,31 @@ function ensureChronicle(factionId: number) {
   return chroniclesByFaction[factionId];
 }
 
+function ensureBlackboard(factionId: number) {
+  if (!blackboardByFaction.has(factionId)) {
+    blackboardByFaction.set(factionId, { forests: new Set(), food: new Set() });
+  }
+  return blackboardByFaction.get(factionId)!;
+}
+
+function findNearestKnown(
+  factionId: number,
+  x: number,
+  y: number,
+  set: Set<number>,
+  isValid: (idx: number) => boolean
+) {
+  let best: { x: number; y: number; dist: number } | null = null;
+  for (const idx of set) {
+    if (!isValid(idx)) continue;
+    const tx = idx % stateViewRef!.width;
+    const ty = Math.floor(idx / stateViewRef!.width);
+    const dist = Math.abs(tx - x) + Math.abs(ty - y);
+    if (!best || dist < best.dist) best = { x: tx, y: ty, dist };
+  }
+  return best ? { x: best.x, y: best.y } : null;
+}
+
 function trackEventStream(entry: Record<string, unknown>) {
   const type = String(entry.event_type ?? "");
   if (type === "AI_PLAN_CHANGE" || type === "UNIT_ACTION") {
@@ -497,6 +522,9 @@ let entitySpecRef: EntitySpec | null = null;
 let simulationSpecRef: SimulationSpec | null = null;
 let exportSpecRef: ExportSpec | null = null;
 let seedRef = 0;
+let randomRef: Random | null = null;
+let randomFn: () => number = Math.random;
+let maxVisionRef = 3;
 let pathfindingCalls = 0;
 let matchOverSent = false;
 
@@ -515,6 +543,60 @@ const lastFactionEnemyMilitary: Map<number, number> = new Map();
 const lastExploredCount: Map<number, number> = new Map();
 const perfSamples: number[] = [];
 const lastAttackerByEntity: Map<number, number> = new Map();
+const blackboardByFaction: Map<number, { forests: Set<number>; food: Set<number> }> = new Map();
+let foodTerrainIds: Set<number> = new Set();
+type SpatialIndex = {
+  cellSize: number;
+  cols: number;
+  rows: number;
+  cells: number[][];
+};
+let spatialIndexRef: SpatialIndex | null = null;
+
+function createSpatialIndex(width: number, height: number, cellSize: number): SpatialIndex {
+  const cols = Math.ceil(width / cellSize);
+  const rows = Math.ceil(height / cellSize);
+  const cells = Array.from({ length: cols * rows }, () => [] as number[]);
+  return { cellSize, cols, rows, cells };
+}
+
+function rebuildSpatialIndex(view: StateView) {
+  if (!spatialIndexRef) return;
+  const { cellSize, cols, rows, cells } = spatialIndexRef;
+  for (const cell of cells) cell.length = 0;
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    const x = view.getEntityX(i);
+    const y = view.getEntityY(i);
+    const cx = Math.floor(x / cellSize);
+    const cy = Math.floor(y / cellSize);
+    if (cx < 0 || cy < 0 || cx >= cols || cy >= rows) continue;
+    cells[cy * cols + cx].push(i);
+  }
+}
+
+function forEachNearbyEntity(
+  x: number,
+  y: number,
+  range: number,
+  cb: (entityIndex: number) => boolean | void
+) {
+  if (!spatialIndexRef || !stateViewRef) return;
+  const { cellSize, cols, rows, cells } = spatialIndexRef;
+  const minCx = Math.max(0, Math.floor((x - range) / cellSize));
+  const maxCx = Math.min(cols - 1, Math.floor((x + range) / cellSize));
+  const minCy = Math.max(0, Math.floor((y - range) / cellSize));
+  const maxCy = Math.min(rows - 1, Math.floor((y + range) / cellSize));
+  for (let cy = minCy; cy <= maxCy; cy += 1) {
+    for (let cx = minCx; cx <= maxCx; cx += 1) {
+      const list = cells[cy * cols + cx];
+      for (let i = 0; i < list.length; i += 1) {
+        const stop = cb(list[i]);
+        if (stop) return;
+      }
+    }
+  }
+}
 
 function getUnitDefByType(typeId: number) {
   if (!entitySpecRef) return null;
@@ -562,17 +644,22 @@ function findEnemyInRange(entityIndex: number, range: number) {
   const selfFaction = view.getEntityFaction(entityIndex);
   const sx = view.getEntityX(entityIndex);
   const sy = view.getEntityY(entityIndex);
-  for (let i = 0; i < view.entityCount; i += 1) {
-    if (view.getEntityId(i) === 0) continue;
-    if (view.getEntityFaction(i) === selfFaction) continue;
+  let found: number | null = null;
+  forEachNearbyEntity(sx, sy, range, (i) => {
+    if (view.getEntityId(i) === 0) return;
+    if (view.getEntityFaction(i) === selfFaction) return;
     const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
-    if ((view.getExplored(enemyIdx) & (1 << selfFaction)) === 0) continue;
+    if ((view.getExplored(enemyIdx) & (1 << selfFaction)) === 0) return;
     const ex = view.getEntityX(i);
     const ey = view.getEntityY(i);
     const dx = Math.abs(ex - sx);
     const dy = Math.abs(ey - sy);
-    if (dx <= range && dy <= range) return i;
-  }
+    if (dx <= range && dy <= range) {
+      found = i;
+      return true;
+    }
+  });
+  if (found !== null) return found;
   return null;
 }
 
@@ -583,17 +670,22 @@ function isEnemyInVision(entityIndex: number) {
   const sx = view.getEntityX(entityIndex);
   const sy = view.getEntityY(entityIndex);
   const vision = getUnitVision(view.getEntityType(entityIndex));
-  for (let i = 0; i < view.entityCount; i += 1) {
-    if (view.getEntityId(i) === 0) continue;
-    if (view.getEntityFaction(i) === selfFaction) continue;
+  let seen = false;
+  forEachNearbyEntity(sx, sy, vision, (i) => {
+    if (view.getEntityId(i) === 0) return;
+    if (view.getEntityFaction(i) === selfFaction) return;
     const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
-    if ((view.getExplored(enemyIdx) & (1 << selfFaction)) === 0) continue;
+    if ((view.getExplored(enemyIdx) & (1 << selfFaction)) === 0) return;
     const ex = view.getEntityX(i);
     const ey = view.getEntityY(i);
     const dx = Math.abs(ex - sx);
     const dy = Math.abs(ey - sy);
-    if (dx <= vision && dy <= vision) return true;
-  }
+    if (dx <= vision && dy <= vision) {
+      seen = true;
+      return true;
+    }
+  });
+  if (seen) return true;
   return false;
 }
 
@@ -602,16 +694,22 @@ function enemyThreatCost(tx: number, ty: number, factionId: number) {
   const view = stateViewRef;
   const idx = view.tileIndex(tx, ty);
   if ((view.getExplored(idx) & (1 << factionId)) === 0) return 0;
-  for (let i = 0; i < view.entityCount; i += 1) {
-    if (view.getEntityId(i) === 0) continue;
+  const maxVision = maxVisionRef;
+  let cost = 0;
+  forEachNearbyEntity(tx, ty, maxVision, (i) => {
+    if (view.getEntityId(i) === 0) return;
     const enemyFaction = view.getEntityFaction(i);
-    if (enemyFaction === factionId) continue;
-    if ((hateMatrix[factionId]?.[enemyFaction] ?? 0) <= 0) continue;
+    if (enemyFaction === factionId) return;
+    if ((hateMatrix[factionId]?.[enemyFaction] ?? 0) <= 0) return;
     const vision = getUnitVision(view.getEntityType(i));
     const dx = Math.abs(view.getEntityX(i) - tx);
     const dy = Math.abs(view.getEntityY(i) - ty);
-    if (dx <= vision && dy <= vision) return 20;
-  }
+    if (dx <= vision && dy <= vision) {
+      cost = 20;
+      return true;
+    }
+  });
+  if (cost > 0) return cost;
   return 0;
 }
 
@@ -780,7 +878,7 @@ function tickAction(entityIndex: number) {
       [x, y - 1]
     ].filter(([nx, ny]) => nx >= 0 && ny >= 0 && nx < width && ny < height && isWalkable(nx, ny));
     if (options.length > 0) {
-      const pick = options[Math.floor(Math.random() * options.length)];
+      const pick = options[Math.floor(randomFn() * options.length)];
       view.setEntityX(entityIndex, pick[0]);
       view.setEntityY(entityIndex, pick[1]);
     }
@@ -789,7 +887,21 @@ function tickAction(entityIndex: number) {
   }
 
   if (actionMeta?.name === "CHOP_WOOD") {
-    ensureTarget((tx, ty) => view.getFeature(ty * width + tx) === 100);
+    const faction = view.getEntityFaction(entityIndex);
+    const board = ensureBlackboard(faction);
+    const known = findNearestKnown(
+      faction,
+      x,
+      y,
+      board.forests,
+      (idx) => view.getFeature(idx) === 100
+    );
+    if (known) {
+      view.setEntityTargetX(entityIndex, known.x);
+      view.setEntityTargetY(entityIndex, known.y);
+    } else {
+      ensureTarget((tx, ty) => view.getFeature(ty * width + tx) === 100);
+    }
     if (!atTarget()) {
       moveTowardTarget();
       return;
@@ -801,7 +913,6 @@ function tickAction(entityIndex: number) {
     if (next >= 100) {
       view.setFeature(ty * width + tx, 0);
       view.setEntityWood(entityIndex, Math.min(255, view.getEntityWood(entityIndex) + 1));
-      const faction = view.getEntityFaction(entityIndex);
       ensureChronicle(faction).total_resources_gathered.wood += 1;
       view.setEntityActionProgress(entityIndex, 0);
       logEvent({ event_type: "UNIT_ACTION", level: "INFO", action: "CHOP_WOOD", entity_id: entityIndex });
@@ -817,13 +928,21 @@ function tickAction(entityIndex: number) {
   }
 
   if (actionMeta?.name === "GATHER_FOOD") {
-    ensureTarget((tx, ty) => {
-      const terrainId = view.getTerrain(ty * width + tx);
-      for (const def of Object.values(worldSpecRef!.terrain_types)) {
-        if (def.id === terrainId) return (def.yield?.food ?? 0) > 0;
-      }
-      return false;
-    });
+    const faction = view.getEntityFaction(entityIndex);
+    const board = ensureBlackboard(faction);
+    const known = findNearestKnown(
+      faction,
+      x,
+      y,
+      board.food,
+      (idx) => foodTerrainIds.has(view.getTerrain(idx))
+    );
+    if (known) {
+      view.setEntityTargetX(entityIndex, known.x);
+      view.setEntityTargetY(entityIndex, known.y);
+    } else {
+      ensureTarget((tx, ty) => foodTerrainIds.has(view.getTerrain(ty * width + tx)));
+    }
     if (!atTarget()) {
       moveTowardTarget();
       return;
@@ -834,7 +953,6 @@ function tickAction(entityIndex: number) {
     view.setEntityActionProgress(entityIndex, next);
     if (next >= 100) {
       view.setEntityFood(entityIndex, Math.min(255, view.getEntityFood(entityIndex) + 1));
-      const faction = view.getEntityFaction(entityIndex);
       ensureChronicle(faction).total_resources_gathered.food += 1;
       view.setEntityActionProgress(entityIndex, 0);
       logEvent({ event_type: "UNIT_ACTION", level: "INFO", action: "GATHER_FOOD", entity_id: entityIndex });
@@ -956,6 +1074,7 @@ function updateExploration(entityIndex: number, width: number) {
   const vision = getUnitVision(view.getEntityType(entityIndex));
   const ex = view.getEntityX(entityIndex);
   const ey = view.getEntityY(entityIndex);
+  const board = ensureBlackboard(faction);
   for (let dy = -vision; dy <= vision; dy += 1) {
     for (let dx = -vision; dx <= vision; dx += 1) {
       const x = ex + dx;
@@ -963,6 +1082,12 @@ function updateExploration(entityIndex: number, width: number) {
       if (x < 0 || y < 0 || x >= view.width || y >= view.height) continue;
       const idx = view.tileIndex(x, y);
       view.setExploredBit(idx, faction);
+      if (view.getFeature(idx) === 100) {
+        board.forests.add(idx);
+      }
+      if (foodTerrainIds.has(view.getTerrain(idx))) {
+        board.food.add(idx);
+      }
     }
   }
 }
@@ -1002,17 +1127,17 @@ function computeInputs(entityIndex: number, width: number) {
   const home = homeByFaction.get(faction);
   let enemyNearHome = 0;
   if (home) {
-    for (let i = 0; i < view.entityCount; i += 1) {
-      if (view.getEntityId(i) === 0) continue;
-      if (view.getEntityFaction(i) === faction) continue;
+    forEachNearbyEntity(home.x, home.y, 10, (i) => {
+      if (view.getEntityId(i) === 0) return;
+      if (view.getEntityFaction(i) === faction) return;
       const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
-      if ((view.getExplored(enemyIdx) & (1 << faction)) === 0) continue;
+      if ((view.getExplored(enemyIdx) & (1 << faction)) === 0) return;
       const dist = Math.abs(view.getEntityX(i) - home.x) + Math.abs(view.getEntityY(i) - home.y);
       if (dist <= 10) {
         enemyNearHome = 1;
-        break;
+        return true;
       }
-    }
+    });
   }
   const ownMil = (lastFactionMilitary.get(faction) ?? 0);
   const enemyMil = (lastFactionEnemyMilitary.get(faction) ?? 1);
@@ -1116,12 +1241,13 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       entityIndices && entityIndices.length > 0
         ? entityIndices
         : Array.from({ length: count }, (_, i) => i);
+    rebuildSpatialIndex(view);
 
     if (simTick % 2 === 0) {
       stepFire(view, {
         logEvent,
         buildingOwner,
-        rng: Math.random
+        rng: randomFn
       });
     }
 
@@ -1130,7 +1256,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     }
 
     if (simTick % 100 === 0) {
-      stepTreeGrowth(view, { rng: Math.random });
+      stepTreeGrowth(view, { rng: randomFn });
     }
 
     if (simTick % 5 === 0) {
@@ -1184,7 +1310,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
           entitySpecRef.units.worker.type_id,
           faction,
           x,
-          y
+          y,
+          randomFn
         );
         if (result.success) {
           logEvent({ event_type: "UNIT_SPAWN", level: "INFO", entity_id: result.entityIndex, unit_type: 201 });
@@ -1202,6 +1329,19 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         const inputs = computeInputs(idx, width);
         const utilities = computeUtilities(unitBehaviorSpecRef!, inputs);
         const { goalKey, goalEffect } = pickTopGoal(unitBehaviorSpecRef!, utilities);
+        const topScore =
+          unitBehaviorSpecRef!.goal_definitions[goalKey]?.utility_curve
+            ? utilities[unitBehaviorSpecRef!.goal_definitions[goalKey].utility_curve] ?? 0
+            : 0;
+        const prev = lastDecision.get(idx);
+        if (prev?.goal) {
+          const prevCurve = unitBehaviorSpecRef!.goal_definitions[prev.goal]?.utility_curve;
+          const prevScore = prevCurve ? utilities[prevCurve] ?? 0 : 0;
+          if (prevScore + 10 >= topScore && view.getEntityActionId(idx) !== 0) {
+            view.setEntityPlanLock(idx, 5);
+            continue;
+          }
+        }
         const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef!.actions).map(
           ([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff })
         );
@@ -1314,7 +1454,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         entity_count: count,
         pathfinding_calls_per_tick: pathfindingCalls,
         knowledge: snapshotKnowledge(),
-        research
+        research,
+        chronicles: snapshotChronicles()
       });
     }
     if (simulationSpecRef?.victory_conditions?.conquest?.active) {
@@ -1370,7 +1511,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       req.unitType,
       req.factionId,
       req.x,
-      req.y
+      req.y,
+      randomFn
     );
     if (result.success) {
       logEvent({ event_type: "UNIT_SPAWN", level: "INFO", entity_id: result.entityIndex, unit_type: req.unitType });
@@ -1403,14 +1545,21 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       loadSimulationSpec(ev.data.simulationSpecUrl),
       loadExportSpec(ev.data.exportSpecUrl)
     ]);
-    const seed = ev.data.seed ?? 1337;
+    const seed =
+      worldSpec.generation_params?.seed ??
+      ev.data.seed ??
+      1337;
+    const deterministic = worldSpec.generation_params?.use_deterministic_simulation ?? false;
     seedRef = seed;
+    randomRef = deterministic ? new Random(seed) : null;
+    randomFn = deterministic ? () => randomRef!.nextFloat() : Math.random;
     const useShared = typeof SharedArrayBuffer !== "undefined";
     const buffers = makeStateBuffers(stateSpec, worldSpec, useShared);
     buildTerrain(worldSpec, seed, buffers.terrain.buffer);
     const localView = new StateView(buffers, worldSpec, stateSpec);
     stateViewRef = localView;
-    seedForests(localView, worldSpec, seed);
+    spatialIndexRef = createSpatialIndex(worldSpec.config.dimensions.width, worldSpec.config.dimensions.height, 4);
+    seedForests(localView, worldSpec, randomFn);
 
     const techManager = new TechManager(techSpec);
     techManager.addFaction(0);
@@ -1428,6 +1577,12 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     entitySpecRef = entitySpec;
     simulationSpecRef = simulationSpec;
     exportSpecRef = exportSpec;
+    maxVisionRef = Math.max(1, ...Object.values(entitySpec.units).map((u) => u.vision));
+    foodTerrainIds = new Set(
+      Object.values(worldSpec.terrain_types)
+        .filter((t) => (t.yield?.food ?? 0) > 0)
+        .map((t) => t.id)
+    );
     matchOverSent = false;
     perfSamples.length = 0;
     for (const key of Object.keys(knowledgeByFaction)) delete knowledgeByFaction[Number(key)];
@@ -1435,6 +1590,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     eventStream.decisions.length = 0;
     eventStream.combat.length = 0;
     eventStream.victory_milestones.length = 0;
+    blackboardByFaction.clear();
     spawnInitialUnits();
 
     logEvent({ kind: "init", message: "world/state/tech loaded" });

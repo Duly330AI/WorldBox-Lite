@@ -20,6 +20,7 @@ export type WorldState = {
   matchOver: { winnerFactionId: number; winnerName: string; tick: number; knowledge: Record<number, Record<string, number>> } | null;
   knowledge: Record<number, Record<string, number>>;
   research: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>;
+  chronicles: Record<number, { battle_win_loss_ratio: number }>;
   godTool: { tool: "lava" | "forest" | "water" | "ignite" | null; brushSize: number };
   worker: Worker | null;
   error: string | null;
@@ -44,6 +45,7 @@ export type WorldState = {
   setMatchOver: (data: { winnerFactionId: number; winnerName: string; tick: number; knowledge: Record<number, Record<string, number>> }) => void;
   setKnowledge: (data: Record<number, Record<string, number>>) => void;
   setResearch: (data: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>) => void;
+  setChronicles: (data: Record<number, { battle_win_loss_ratio: number }>) => void;
   setGodTool: (tool: "lava" | "forest" | "water" | "ignite" | null) => void;
   setBrushSize: (size: number) => void;
   setWorker: (worker: Worker | null) => void;
@@ -68,6 +70,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   matchOver: null,
   knowledge: {},
   research: {},
+  chronicles: {},
   godTool: { tool: null, brushSize: 1 },
   worker: null,
   error: null,
@@ -88,6 +91,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   setMatchOver: (data) => set({ matchOver: data }),
   setKnowledge: (data) => set({ knowledge: data }),
   setResearch: (data) => set({ research: data }),
+  setChronicles: (data) => set({ chronicles: data }),
   setGodTool: (tool) => set((state) => ({ godTool: { ...state.godTool, tool } })),
   setBrushSize: (size) => set((state) => ({ godTool: { ...state.godTool, brushSize: size } })),
   setWorker: (worker) => set({ worker }),

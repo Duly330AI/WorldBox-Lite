@@ -27,6 +27,15 @@
         "chunk_size": { "type": "integer", "minimum": 1 }
       }
     },
+    "generation_params": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seed", "use_deterministic_simulation"],
+      "properties": {
+        "seed": { "type": "integer" },
+        "use_deterministic_simulation": { "type": "boolean" }
+      }
+    },
     "terrain_types": {
       "type": "object",
       "additionalProperties": {

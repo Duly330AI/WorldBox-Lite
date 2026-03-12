@@ -13,7 +13,8 @@ export function spawnUnit(
   unitType: number,
   factionId: number,
   x?: number,
-  y?: number
+  y?: number,
+  rng: () => number = Math.random
 ): SpawnResult {
   const { width, height } = worldSpec.config.dimensions;
   const ids = buffers.entities.id as Uint32Array;
@@ -42,13 +43,13 @@ export function spawnUnit(
 
   for (let i = 0; i < ids.length; i += 1) {
     if (ids[i] !== 0) continue;
-    let px = x ?? Math.floor(Math.random() * width);
-    let py = y ?? Math.floor(Math.random() * height);
+    let px = x ?? Math.floor(rng() * width);
+    let py = y ?? Math.floor(rng() * height);
     if (!tryPlaceAt(px, py)) {
       let placed = false;
       for (let attempts = 0; attempts < 500; attempts += 1) {
-        px = Math.floor(Math.random() * width);
-        py = Math.floor(Math.random() * height);
+        px = Math.floor(rng() * width);
+        py = Math.floor(rng() * height);
         if (tryPlaceAt(px, py)) {
           placed = true;
           break;

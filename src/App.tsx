@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { WorldCanvas } from "./ui/canvas/WorldCanvas";
 import { EventLog } from "./ui/components/EventLog";
+import { Minimap } from "./ui/components/Minimap";
 import { TechTree } from "./ui/components/TechTree";
 import { UnitInspector } from "./ui/components/UnitInspector";
 import { useWorldStore } from "./ui/store";
@@ -19,11 +20,14 @@ export function App() {
   const setMatchOver = useWorldStore((s) => s.setMatchOver);
   const setKnowledge = useWorldStore((s) => s.setKnowledge);
   const setResearch = useWorldStore((s) => s.setResearch);
+  const setChronicles = useWorldStore((s) => s.setChronicles);
   const stats = useWorldStore((s) => s.stats);
   const perfStats = useWorldStore((s) => s.perfStats);
   const simulationSpec = useWorldStore((s) => s.simulationSpec);
   const matchOver = useWorldStore((s) => s.matchOver);
   const knowledge = useWorldStore((s) => s.knowledge);
+  const research = useWorldStore((s) => s.research);
+  const chronicles = useWorldStore((s) => s.chronicles);
   const godTool = useWorldStore((s) => s.godTool);
   const setGodTool = useWorldStore((s) => s.setGodTool);
   const setBrushSize = useWorldStore((s) => s.setBrushSize);
@@ -85,6 +89,9 @@ export function App() {
         if (ev.data.research) {
           setResearch(ev.data.research);
         }
+        if (ev.data.chronicles) {
+          setChronicles(ev.data.chronicles);
+        }
       }
       if (ev.data.type === "match_over") {
         setMatchOver(ev.data);
@@ -122,7 +129,7 @@ export function App() {
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -179,7 +186,9 @@ export function App() {
         {factionIds.map((id) => (
           <div key={id} style={{ color: factionColors[id % factionColors.length] }}>
             Faktion {id}: {stats?.population?.[id] ?? 0} Menschen, {stats?.houses?.[id] ?? 0} Häuser,{" "}
-            {stats?.wood?.[id] ?? 0} Holz, Militär {stats?.military?.[id] ?? 0}
+            {stats?.wood?.[id] ?? 0} Holz, Militär {stats?.military?.[id] ?? 0},{" "}
+            K/D {chronicles?.[id]?.battle_win_loss_ratio ?? 0},{" "}
+            Research {research?.[id]?.current ? "1/tick" : "0/tick"}
           </div>
         ))}
         <div style={{ color: perfColor }}>
@@ -280,6 +289,8 @@ export function App() {
         </div>
         <div style={{ width: 280 }}>
           <EventLog />
+          <div style={{ height: 12 }} />
+          <Minimap />
           <div style={{ height: 12 }} />
           <UnitInspector />
           <div style={{ height: 12 }} />

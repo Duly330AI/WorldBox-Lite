@@ -18,6 +18,10 @@ export type WorldSpec = {
     tile_size: number;
     chunk_size: number;
   };
+  generation_params?: {
+    seed: number;
+    use_deterministic_simulation: boolean;
+  };
   terrain_types: Record<
     string,
     {

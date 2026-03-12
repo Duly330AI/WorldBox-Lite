@@ -58,5 +58,15 @@
 - [x] Dashboard dynamisch für 8 Factions
 - [x] A* Max-Iterations Limit (Stress Safety)
 
+## Phase 25-27 – Refactoring & Evolution
+- [x] Legacy-Dateien archiviert (`docs/archive/legacy`)
+- [x] Spec-Sync Build-Step (specs → public/specs)
+- [x] Seeded RNG (deterministische Simulation via world_spec)
+- [x] Spatial Indexing für Enemy/Nearby Lookups
+- [x] GOAP Blackboard (shared resource knowledge)
+- [x] Commitment/Hysteresis gegen Ziel-Flapping
+- [x] Minimap (64x64)
+- [x] Dashboard: K/D Ratio + Research Speed
+
 ## Notes
 - combat_spec wird geladen und verwendet.
