@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["spec_id", "version", "format", "sections", "post_processing"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "format": { "type": "string" },
+    "sections": {
+      "type": "object",
+      "required": ["world_metadata", "faction_chronicles", "event_stream"],
+      "additionalProperties": false,
+      "properties": {
+        "world_metadata": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "faction_chronicles": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "event_stream": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    },
+    "post_processing": {
+      "type": "object",
+      "required": ["compress_identical_wander_events", "include_final_knowledge_state"],
+      "additionalProperties": false,
+      "properties": {
+        "compress_identical_wander_events": { "type": "boolean" },
+        "include_final_knowledge_state": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWorldStore } from "../store";
 
 const ID_COLORS: Record<number, string> = {
@@ -22,8 +22,11 @@ export function WorldCanvas() {
   const setSelectedEntityId = useWorldStore((s) => s.setSelectedEntityId);
   const godTool = useWorldStore((s) => s.godTool);
   const worker = useWorldStore((s) => s.worker);
+  const entityDebug = useWorldStore((s) => s.entityDebug);
+  const [hover, setHover] = useState<{ x: number; y: number; px: number; py: number; entityId: number | null } | null>(null);
   const isPaintingRef = useRef(false);
   const lastPaintRef = useRef<string | null>(null);
+  const teamColors = ["#ef4444", "#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#eab308", "#64748b"];
 
   useEffect(() => {
     if (!spec || !terrain) return;
@@ -86,7 +89,7 @@ export function WorldCanvas() {
           const idx = y * width + x;
           if (buffers.building[idx] === 300) {
             const owner = buildingOwners[idx] ?? 0;
-            const teamColor = owner === 1 ? "#3b82f6" : "#ef4444";
+            const teamColor = teamColors[owner % teamColors.length];
             ctx.fillStyle = "#8b5a2b";
             ctx.fillRect(x * tileSize + 4, y * tileSize + 4, tileSize - 8, tileSize - 8);
             ctx.fillStyle = teamColor;
@@ -132,7 +135,7 @@ export function WorldCanvas() {
           const px = x * tileSize;
           const py = y * tileSize;
           const faction = buffers.entities.faction_id as Uint8Array | undefined;
-          const teamColor = faction ? (faction[i] === 1 ? "#3b82f6" : "#ef4444") : "#ffffff";
+          const teamColor = faction ? teamColors[faction[i] % teamColors.length] : "#ffffff";
           if (types && (types[i] === 201 || types[i] === 200 || types[i] === 202 || types[i] === 203 || types[i] === 204)) {
             ctx.fillStyle = "#7c4a2d";
             ctx.beginPath();
@@ -169,7 +172,18 @@ export function WorldCanvas() {
         }
       }
     }
-  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners]);
+
+    if (godTool.tool && hover) {
+      ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      ctx.setLineDash([4, 2]);
+      const size = godTool.brushSize;
+      const half = Math.floor(size / 2);
+      const px = (hover.x - half) * tileSize;
+      const py = (hover.y - half) * tileSize;
+      ctx.strokeRect(px, py, size * tileSize, size * tileSize);
+      ctx.setLineDash([]);
+    }
+  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, godTool, hover]);
 
   const tileFromEvent = (event: MouseEvent<HTMLCanvasElement>) => {
     if (!spec || !buffers) return;
@@ -180,7 +194,7 @@ export function WorldCanvas() {
     const scaleY = canvas.height / rect.height;
     const x = Math.floor(((event.clientX - rect.left) * scaleX) / spec.config.tile_size);
     const y = Math.floor(((event.clientY - rect.top) * scaleY) / spec.config.tile_size);
-    return { x, y };
+    return { x, y, px: event.clientX - rect.left, py: event.clientY - rect.top };
   };
 
   const sendBrushMutation = (x: number, y: number) => {
@@ -227,6 +241,24 @@ export function WorldCanvas() {
     setSelectedEntityId(null);
   };
 
+  const updateHover = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!spec || !buffers) return;
+    const tile = tileFromEvent(event);
+    if (!tile) return;
+    const ids = buffers.entities.id as Uint32Array;
+    const xs = buffers.entities.x as Uint16Array;
+    const ys = buffers.entities.y as Uint16Array;
+    let found: number | null = null;
+    for (let i = 0; i < ids.length; i += 1) {
+      if (ids[i] === 0) continue;
+      if (xs[i] === tile.x && ys[i] === tile.y) {
+        found = i;
+        break;
+      }
+    }
+    setHover({ x: tile.x, y: tile.y, px: tile.px, py: tile.py, entityId: found });
+  };
+
   const handleMouseDown = (event: MouseEvent<HTMLCanvasElement>) => {
     if (!godTool.tool) return;
     isPaintingRef.current = true;
@@ -240,6 +272,7 @@ export function WorldCanvas() {
   };
 
   const handleMouseMove = (event: MouseEvent<HTMLCanvasElement>) => {
+    updateHover(event);
     if (!isPaintingRef.current || !godTool.tool) return;
     const tile = tileFromEvent(event);
     if (!tile) return;
@@ -251,26 +284,48 @@ export function WorldCanvas() {
   };
 
   return (
-    <canvas
-      ref={canvasRef}
-      onClick={handleClick}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={() => {
-        isPaintingRef.current = false;
-        lastPaintRef.current = null;
-      }}
-      onMouseLeave={() => {
-        isPaintingRef.current = false;
-        lastPaintRef.current = null;
-      }}
-      style={{
-        width: "100%",
-        maxWidth: 900,
-        height: "auto",
-        imageRendering: "pixelated",
-        border: "1px solid #1c1c1c"
-      }}
-    />
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <canvas
+        ref={canvasRef}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={() => {
+          isPaintingRef.current = false;
+          lastPaintRef.current = null;
+        }}
+        onMouseLeave={() => {
+          isPaintingRef.current = false;
+          lastPaintRef.current = null;
+          setHover(null);
+        }}
+        style={{
+          width: "100%",
+          maxWidth: 900,
+          height: "auto",
+          imageRendering: "pixelated",
+          border: "1px solid #1c1c1c"
+        }}
+      />
+      {hover && hover.entityId !== null ? (
+        <div
+          style={{
+            position: "absolute",
+            left: hover.px + 12,
+            top: hover.py + 12,
+            background: "rgba(0,0,0,0.7)",
+            color: "#fff",
+            padding: "4px 6px",
+            borderRadius: 4,
+            fontSize: 11,
+            pointerEvents: "none",
+            maxWidth: 160
+          }}
+        >
+          <div>Unit #{hover.entityId}</div>
+          <div>Goal: {entityDebug[hover.entityId]?.goal ?? "?"}</div>
+        </div>
+      ) : null}
+    </div>
   );
 }

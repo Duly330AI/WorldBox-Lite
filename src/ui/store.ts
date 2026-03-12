@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { LoggingSpec, SimulationSpec, UnitBehaviorSpec, WorldSpec } from "../engine/io/specLoader";
+import type { LoggingSpec, SimulationSpec, TechSpec, UnitBehaviorSpec, WorldSpec } from "../engine/io/specLoader";
 import type { StateBuffers } from "../engine/worker";
 
 export type WorldState = {
@@ -7,6 +7,7 @@ export type WorldState = {
   unitBehaviorSpec: UnitBehaviorSpec | null;
   loggingSpec: LoggingSpec | null;
   simulationSpec: SimulationSpec | null;
+  techSpec: TechSpec | null;
   terrain: Uint8Array | null;
   buffers: StateBuffers | null;
   paths: Array<{ entity_id: number; path: Array<[number, number]> }>;
@@ -18,6 +19,7 @@ export type WorldState = {
   perfStats: { avg_tick_ms: number; entity_count: number; pathfinding_calls_per_tick: number } | null;
   matchOver: { winnerFactionId: number; winnerName: string; tick: number; knowledge: Record<number, Record<string, number>> } | null;
   knowledge: Record<number, Record<string, number>>;
+  research: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>;
   godTool: { tool: "lava" | "forest" | "water" | "ignite" | null; brushSize: number };
   worker: Worker | null;
   error: string | null;
@@ -27,7 +29,8 @@ export type WorldState = {
     buffers: StateBuffers | null,
     unitBehaviorSpec: UnitBehaviorSpec | null,
     loggingSpec: LoggingSpec | null,
-    simulationSpec: SimulationSpec | null
+    simulationSpec: SimulationSpec | null,
+    techSpec: TechSpec | null
   ) => void;
   addEvents: (entries: Array<Record<string, unknown>>) => void;
   setPaths: (paths: Array<{ entity_id: number; path: Array<[number, number]> }>) => void;
@@ -40,6 +43,7 @@ export type WorldState = {
   setPerfStats: (perf: { avg_tick_ms: number; entity_count: number; pathfinding_calls_per_tick: number }) => void;
   setMatchOver: (data: { winnerFactionId: number; winnerName: string; tick: number; knowledge: Record<number, Record<string, number>> }) => void;
   setKnowledge: (data: Record<number, Record<string, number>>) => void;
+  setResearch: (data: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>) => void;
   setGodTool: (tool: "lava" | "forest" | "water" | "ignite" | null) => void;
   setBrushSize: (size: number) => void;
   setWorker: (worker: Worker | null) => void;
@@ -51,6 +55,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   unitBehaviorSpec: null,
   loggingSpec: null,
   simulationSpec: null,
+  techSpec: null,
   terrain: null,
   buffers: null,
   paths: [],
@@ -62,11 +67,12 @@ export const useWorldStore = create<WorldState>((set) => ({
   perfStats: null,
   matchOver: null,
   knowledge: {},
+  research: {},
   godTool: { tool: null, brushSize: 1 },
   worker: null,
   error: null,
-  setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec) =>
-    set({ spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, error: null }),
+  setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec) =>
+    set({ spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, error: null }),
   addEvents: (entries) =>
     set((state) => {
       const merged = [...state.events, ...entries];
@@ -81,6 +87,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   setPerfStats: (perf) => set({ perfStats: perf }),
   setMatchOver: (data) => set({ matchOver: data }),
   setKnowledge: (data) => set({ knowledge: data }),
+  setResearch: (data) => set({ research: data }),
   setGodTool: (tool) => set((state) => ({ godTool: { ...state.godTool, tool } })),
   setBrushSize: (size) => set((state) => ({ godTool: { ...state.godTool, brushSize: size } })),
   setWorker: (worker) => set({ worker }),

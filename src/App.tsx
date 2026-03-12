@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { WorldCanvas } from "./ui/canvas/WorldCanvas";
 import { EventLog } from "./ui/components/EventLog";
+import { TechTree } from "./ui/components/TechTree";
 import { UnitInspector } from "./ui/components/UnitInspector";
 import { useWorldStore } from "./ui/store";
 
@@ -17,6 +18,7 @@ export function App() {
   const setPerfStats = useWorldStore((s) => s.setPerfStats);
   const setMatchOver = useWorldStore((s) => s.setMatchOver);
   const setKnowledge = useWorldStore((s) => s.setKnowledge);
+  const setResearch = useWorldStore((s) => s.setResearch);
   const stats = useWorldStore((s) => s.stats);
   const perfStats = useWorldStore((s) => s.perfStats);
   const simulationSpec = useWorldStore((s) => s.simulationSpec);
@@ -41,7 +43,7 @@ export function App() {
     worker.onmessage = (ev) => {
       if (ev.data.type === "world") {
         const terrain = new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.spec, terrain, null, null, null, null);
+        setWorld(ev.data.spec, terrain, null, null, null, null, null);
       }
       if (ev.data.type === "state") {
         const terrain = ev.data.buffers?.terrain
@@ -53,7 +55,8 @@ export function App() {
           ev.data.buffers ?? null,
           ev.data.unitBehaviorSpec ?? null,
           ev.data.loggingSpec ?? null,
-          ev.data.simulationSpec ?? null
+          ev.data.simulationSpec ?? null,
+          ev.data.techSpec ?? null
         );
       }
       if (ev.data.type === "error") {
@@ -79,10 +82,24 @@ export function App() {
         if (ev.data.knowledge) {
           setKnowledge(ev.data.knowledge);
         }
+        if (ev.data.research) {
+          setResearch(ev.data.research);
+        }
       }
       if (ev.data.type === "match_over") {
         setMatchOver(ev.data);
         setIsPlaying(false);
+      }
+      if (ev.data.type === "export_data") {
+        const blob = new Blob([JSON.stringify(ev.data.payload, null, 2)], {
+          type: "application/json"
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "ai_chronicle.json";
+        link.click();
+        URL.revokeObjectURL(url);
       }
       if (ev.data.type === "log") {
         console.debug("telemetry", ev.data.entries);
@@ -100,11 +117,12 @@ export function App() {
       combatSpecUrl: "/specs/combat_spec.json",
       entitySpecUrl: "/specs/entity_spec.json",
       simulationSpecUrl: "/specs/simulation_spec.json",
+      exportSpecUrl: "/specs/export_spec.json",
       seed: 1337
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -139,20 +157,31 @@ export function App() {
   const topKnowledge = Object.entries(leaderKnowledge)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3);
+  const factionIds = stats
+    ? Array.from(
+        new Set([
+          ...Object.keys(stats.population),
+          ...Object.keys(stats.houses),
+          ...Object.keys(stats.wood),
+          ...Object.keys(stats.military)
+        ])
+      )
+        .map((id) => Number(id))
+        .sort((a, b) => a - b)
+    : [];
+  const factionColors = ["#ef4444", "#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#eab308", "#64748b"];
 
   return (
     <div style={{ padding: 16, fontFamily: "'IBM Plex Sans', sans-serif" }}>
       <h1 style={{ marginBottom: 8 }}>CivWorldBox</h1>
       <p style={{ marginTop: 0, color: "#555" }}>World generation preview (Canvas 2D)</p>
-      <div style={{ display: "flex", gap: 16, marginBottom: 12, fontSize: 12 }}>
-        <div>
-          Faktion Rot: {stats?.population?.[0] ?? 0} Menschen, {stats?.houses?.[0] ?? 0} Häuser,{" "}
-          {stats?.wood?.[0] ?? 0} Holz, Militär {stats?.military?.[0] ?? 0}
-        </div>
-        <div>
-          Faktion Blau: {stats?.population?.[1] ?? 0} Menschen, {stats?.houses?.[1] ?? 0} Häuser,{" "}
-          {stats?.wood?.[1] ?? 0} Holz, Militär {stats?.military?.[1] ?? 0}
-        </div>
+      <div style={{ display: "flex", gap: 16, marginBottom: 12, fontSize: 12, flexWrap: "wrap" }}>
+        {factionIds.map((id) => (
+          <div key={id} style={{ color: factionColors[id % factionColors.length] }}>
+            Faktion {id}: {stats?.population?.[id] ?? 0} Menschen, {stats?.houses?.[id] ?? 0} Häuser,{" "}
+            {stats?.wood?.[id] ?? 0} Holz, Militär {stats?.military?.[id] ?? 0}
+          </div>
+        ))}
         <div style={{ color: perfColor }}>
           Tick: {avgTickMs.toFixed(1)}ms • Entities: {perfStats?.entity_count ?? 0} • Pathfinding:{" "}
           {perfStats?.pathfinding_calls_per_tick ?? 0}
@@ -195,6 +224,18 @@ export function App() {
           }}
         >
           Spawn Test-Worker
+        </button>
+        <button
+          onClick={() => workerRef.current?.postMessage({ type: "export_chronicle" })}
+          style={{
+            padding: "6px 12px",
+            border: "1px solid #333",
+            background: "#f5f5f5",
+            color: "#222",
+            borderRadius: 6
+          }}
+        >
+          Export AI Chronicle
         </button>
         <div style={{ marginLeft: 12, display: "flex", gap: 8, alignItems: "center" }}>
           <span style={{ fontSize: 12, color: "#555" }}>God Tools</span>
@@ -261,6 +302,8 @@ export function App() {
               ))
             )}
           </div>
+          <div style={{ height: 12 }} />
+          <TechTree />
         </div>
       </div>
       {matchOver ? (

@@ -7,6 +7,7 @@ import loggingSchema from "../../specs/schemas/logging_spec.schema.json";
 import combatSchema from "../../specs/schemas/combat_spec.schema.json";
 import entitySchema from "../../specs/schemas/entity_spec.schema.json";
 import simulationSchema from "../../specs/schemas/simulation_spec.schema.json";
+import exportSchema from "../../specs/schemas/export_spec.schema.json";
 
 export type WorldSpec = {
   spec_id: string;
@@ -159,6 +160,21 @@ export type SimulationSpec = {
   };
 };
 
+export type ExportSpec = {
+  spec_id: string;
+  version: string;
+  format: string;
+  sections: {
+    world_metadata: string[];
+    faction_chronicles: string[];
+    event_stream: string[];
+  };
+  post_processing: {
+    compress_identical_wander_events: boolean;
+    include_final_knowledge_state: boolean;
+  };
+};
+
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateWorld = ajv.compile(worldSchema);
 const validateState = ajv.compile(stateSchema);
@@ -168,6 +184,7 @@ const validateLogging = ajv.compile(loggingSchema);
 const validateCombat = ajv.compile(combatSchema);
 const validateEntity = ajv.compile(entitySchema);
 const validateSimulation = ajv.compile(simulationSchema);
+const validateExport = ajv.compile(exportSchema);
 
 export function assertWorldSpec(data: unknown): WorldSpec {
   if (!validateWorld(data)) {
@@ -257,6 +274,17 @@ export function assertSimulationSpec(data: unknown): SimulationSpec {
   return data as SimulationSpec;
 }
 
+export function assertExportSpec(data: unknown): ExportSpec {
+  if (!validateExport(data)) {
+    const errors = (validateExport.errors || []) as DefinedError[];
+    const message = errors
+      .map((e) => `${e.instancePath || "(root)"} ${e.message}`)
+      .join("; ");
+    throw new Error(`export_spec validation failed: ${message}`);
+  }
+  return data as ExportSpec;
+}
+
 export async function loadWorldSpec(url: string): Promise<WorldSpec> {
   const res = await fetch(url);
   if (!res.ok) {
@@ -327,4 +355,13 @@ export async function loadSimulationSpec(url: string): Promise<SimulationSpec> {
   }
   const json = (await res.json()) as unknown;
   return assertSimulationSpec(json);
+}
+
+export async function loadExportSpec(url: string): Promise<ExportSpec> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to load export_spec: ${res.status}`);
+  }
+  const json = (await res.json()) as unknown;
+  return assertExportSpec(json);
 }

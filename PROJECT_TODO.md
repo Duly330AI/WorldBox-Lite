@@ -49,5 +49,14 @@
 - [x] PERF_STATS (avg_tick_ms, entity_count, pathfinding_calls)
 - [x] Natur-Tests (fire, lava, treeGrowth)
 
+## Phase 22, 23 & 24 – Analyse, Forschung & Weltschöpfung
+- [x] export_spec.json + Schema + Export-Button
+- [x] AI-Chronicle Export (World metadata, Faction Chronicles, Event Stream)
+- [x] Tech-Tree Panel + SET_RESEARCH_TARGET
+- [x] Perlin/Value-Noise Terrain Generation
+- [x] Brush Preview + Unit Tooltips
+- [x] Dashboard dynamisch für 8 Factions
+- [x] A* Max-Iterations Limit (Stress Safety)
+
 ## Notes
 - combat_spec wird geladen und verwendet.

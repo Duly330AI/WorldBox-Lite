@@ -1,0 +1,14 @@
+{
+  "spec_id": "export_v1",
+  "version": "1.0",
+  "format": "json_structured",
+  "sections": {
+    "world_metadata": ["dimensions", "seed", "tech_tree_version"],
+    "faction_chronicles": ["tech_order", "total_resources_gathered", "battle_win_loss_ratio"],
+    "event_stream": ["decisions", "combat", "victory_milestones"]
+  },
+  "post_processing": {
+    "compress_identical_wander_events": true,
+    "include_final_knowledge_state": true
+  }
+}
