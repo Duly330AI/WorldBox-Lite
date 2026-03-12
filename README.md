@@ -1,20 +1,36 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# CivWorldBox (WorldBox-Lite)
 
-# Run and deploy your AI Studio app
+CivWorldBox combines WorldBox-style cellular dynamics with Civilization-style faction strategy. The simulation runs in a Web Worker, rendering is Canvas 2D, and all rules are driven by JSON Specs validated with AJV.
 
-This contains everything you need to run your app locally.
+## Vision
+- Emergent simulation: fire, lava, forests, neutral predators, and evolving factions.
+- Spec-driven engine: change JSON, behavior changes immediately.
+- AI autonomy: GOAP + Utility for intent → plan → action.
 
-View your app in AI Studio: https://ai.studio/apps/8214a725-de37-448c-9561-0fa9fc0f26e3
+## Tech Stack
+- Vite + React + TypeScript
+- Web Worker for simulation loop
+- Canvas 2D for rendering
+- AJV for JSON Schema validation
+- Zustand for UI state
 
-## Run Locally
+## Architecture (Short)
+- `specs/` holds the single source of truth.
+- `public/specs/` mirrors specs for runtime loading.
+- Worker validates specs, builds typed buffers, runs AI + simulation.
+- UI renders snapshots and shows telemetry.
 
-**Prerequisites:**  Node.js
+## Key Specs
+- `specs/world_spec.json`
+- `specs/state_spec.json`
+- `specs/tech_spec.json`
+- `specs/unit_behavior_spec.json`
 
+## Getting Started (once Node is available)
+```bash
+npm install
+npm run dev
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Docs
+See `docs/README.md` for the full docbase.

@@ -27,7 +27,7 @@
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["cost", "pre", "eff"],
+        "required": ["id", "cost", "progress_step", "pre", "eff"],
         "properties": {
           "id": { "type": "integer", "minimum": 0 },
           "cost": { "type": "integer", "minimum": 0 },

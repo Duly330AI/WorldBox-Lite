@@ -106,6 +106,7 @@ function spawnInitialUnits() {
   const food = buffers.entities.inventory_food as Uint8Array;
   const actionId = buffers.entities.current_action_id as Uint8Array;
   const progress = buffers.entities.action_progress as Uint8Array;
+  const planLock = buffers.entities.plan_lock_ticks as Uint8Array;
 
   let spawned = 0;
   for (let i = 0; i < ids.length && spawned < 2; i += 1) {
@@ -132,8 +133,9 @@ function spawnInitialUnits() {
         ys[i] = spot[1];
         wood[i] = 0;
         food[i] = 0;
-        actionId[i] = 1;
+        actionId[i] = 0;
         progress[i] = 0;
+        planLock[i] = 0;
         spawned += 1;
         break;
       }
@@ -310,13 +312,18 @@ let techManagerRef: TechManager | null = null;
 let worldSpecRef: WorldSpec | null = null;
 let stateSpecRef: StateSpec | null = null;
 let buffersRef: StateBuffers | null = null;
+let simTick = 0;
 
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
+let actionIdByName: Map<string, number> = new Map();
+const exploredTiles: Map<number, Set<number>> = new Map();
 
 function buildActionIdMap(spec: UnitBehaviorSpec) {
   actionById = new Map();
+  actionIdByName = new Map();
   for (const [name, def] of Object.entries(spec.actions)) {
     actionById.set(def.id, { name, progress_step: def.progress_step });
+    actionIdByName.set(name, def.id);
   }
 }
 
@@ -447,9 +454,9 @@ function tickAction(entityIndex: number) {
   const x = xs[entityIndex];
   const y = ys[entityIndex];
   const actionId = actionIds[entityIndex];
-  if (actionId === 0) return;
   const actionMeta = actionById.get(actionId);
   const progressStep = actionMeta?.progress_step ?? 0;
+  if (!actionMeta) return;
 
   const isWalkable = (tx: number, ty: number) => {
     const terrainId = buffers.terrain[ty * width + tx];
@@ -482,6 +489,22 @@ function tickAction(entityIndex: number) {
       ys[entityIndex] = next.y;
     }
   };
+
+  if (actionMeta.name === "WANDER") {
+    const options = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1]
+    ].filter(([nx, ny]) => nx >= 0 && ny >= 0 && nx < width && ny < height && isWalkable(nx, ny));
+    if (options.length > 0) {
+      const pick = options[Math.floor(Math.random() * options.length)];
+      xs[entityIndex] = pick[0];
+      ys[entityIndex] = pick[1];
+    }
+    progress[entityIndex] = 0;
+    return;
+  }
 
   if (actionMeta?.name === "CHOP_WOOD") {
     ensureTarget((tx, ty) => buffers.feature[ty * width + tx] === 100);
@@ -545,6 +568,57 @@ function tickAction(entityIndex: number) {
   }
 }
 
+function updateExploration(entityIndex: number, width: number) {
+  const buffers = buffersRef!;
+  const xs = buffers.entities.x as Uint16Array;
+  const ys = buffers.entities.y as Uint16Array;
+  const idx = ys[entityIndex] * width + xs[entityIndex];
+  let set = exploredTiles.get(entityIndex);
+  if (!set) {
+    set = new Set<number>();
+    exploredTiles.set(entityIndex, set);
+  }
+  set.add(idx);
+}
+
+function getTilesExplored(entityIndex: number) {
+  return exploredTiles.get(entityIndex)?.size ?? 1;
+}
+
+function buildStateFacts(entityIndex: number, width: number, height: number) {
+  const buffers = buffersRef!;
+  const xs = buffers.entities.x as Uint16Array;
+  const ys = buffers.entities.y as Uint16Array;
+  const wood = buffers.entities.inventory_wood as Uint8Array;
+  const x = xs[entityIndex];
+  const y = ys[entityIndex];
+  const idx = y * width + x;
+  const facts: string[] = [];
+  if (buffers.feature[idx] === 100) facts.push("is_on_forest_tile");
+  const terrainId = buffers.terrain[idx];
+  for (const def of Object.values(worldSpecRef!.terrain_types)) {
+    if (def.id === terrainId && (def.yield?.food ?? 0) > 0) {
+      facts.push("is_on_food_tile");
+      break;
+    }
+  }
+  if (wood[entityIndex] >= 3) facts.push("has_wood_3");
+  return facts;
+}
+
+function computeInputs(entityIndex: number, width: number) {
+  const buffers = buffersRef!;
+  const health = buffers.entities.health as Uint8Array;
+  const wood = buffers.entities.inventory_wood as Uint8Array;
+  return {
+    enemy_nearby: 0,
+    health: health[entityIndex],
+    hunger: 0,
+    wood: wood[entityIndex],
+    tiles_explored: getTilesExplored(entityIndex)
+  };
+}
+
 self.onmessage = async (ev: MessageEvent<InitMessage>) => {
   if (ev.data.type === "ai_tick") {
     if (!unitBehaviorSpecRef) return;
@@ -569,9 +643,39 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
   if (ev.data.type === "sim_tick") {
     const { entityIndices } = ev.data as SimTickMessage;
     if (!buffersRef) return;
+    const { width, height } = worldSpecRef!.config.dimensions;
+    const ids = buffersRef.entities.id as Uint32Array;
+    const planLock = buffersRef.entities.plan_lock_ticks as Uint8Array;
+    const currentAction = buffersRef.entities.current_action_id as Uint8Array;
     for (const idx of entityIndices) {
+      if (ids[idx] === 0) continue;
+      if (planLock[idx] > 0) planLock[idx] -= 1;
+      updateExploration(idx, width);
+      if (planLock[idx] === 0 || currentAction[idx] === 0) {
+        const inputs = computeInputs(idx, width);
+        const utilities = computeUtilities(unitBehaviorSpecRef!, inputs);
+        const { goalKey, goalEffect } = pickTopGoal(unitBehaviorSpecRef!, utilities);
+        const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef!.actions).map(
+          ([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff })
+        );
+        const plan = buildPlan(actions, goalEffect, new Set(buildStateFacts(idx, width, height)));
+        const nextAction = plan[0]?.name;
+        const nextId = nextAction ? actionIdByName.get(nextAction) ?? 0 : 0;
+        currentAction[idx] = nextId;
+        planLock[idx] = 10;
+        logEvent({
+          event_type: "AI_PLAN_CHANGE",
+          entity_id: idx,
+          goal: goalKey,
+          utilities,
+          plan: plan.map((p) => p.name),
+          reason: "utility_top_goal"
+        });
+      }
       tickAction(idx);
     }
+    simTick += 1;
+    self.postMessage({ type: "tick", tick: simTick });
     flushLogs();
     return;
   }
