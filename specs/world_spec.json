@@ -15,12 +15,14 @@
     "snow": { "id": 4, "walkable": true, "cost": 1, "yield": { "food": 0, "prod": 0, "comm": 0 } },
     "water": { "id": 5, "walkable": false, "cost": 99, "yield": { "food": 1, "prod": 0, "comm": 1 } },
     "ocean": { "id": 6, "walkable": false, "cost": 99, "yield": { "food": 1, "prod": 0, "comm": 1 } },
-    "peak": { "id": 7, "walkable": false, "cost": 99, "yield": { "food": 0, "prod": 0, "comm": 0 } }
+    "peak": { "id": 7, "walkable": false, "cost": 99, "yield": { "food": 0, "prod": 0, "comm": 0 } },
+    "lava": { "id": 8, "walkable": false, "cost": 99, "yield": { "food": 0, "prod": 0, "comm": 0 } }
   },
   "features": {
     "forest": { "id": 100, "prod_mod": 1, "health_mod": 0.4, "defense_mod": 0.5 },
     "jungle": { "id": 101, "prod_mod": 0, "health_mod": -0.25, "defense_mod": 0.5 },
     "hills": { "id": 102, "prod_mod": 1, "food_mod": -1, "defense_mod": 0.25 },
-    "floodplains": { "id": 103, "food_mod": 3, "health_mod": -0.4, "defense_mod": 0 }
+    "floodplains": { "id": 103, "food_mod": 3, "health_mod": -0.4, "defense_mod": 0 },
+    "fire": { "id": 110 }
   }
 }

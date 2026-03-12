@@ -34,6 +34,7 @@ export type StateBuffers = {
   feature: Uint8Array;
   building: Uint16Array;
   height: Int8Array;
+  explored: Uint8Array;
   entities: Record<string, Uint8Array | Uint16Array | Uint32Array>;
 };
 
@@ -158,8 +159,8 @@ function spawnInitialUnits() {
 
   for (const spawn of spawns) {
     spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction, spawn.x, spawn.y);
-    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction);
-    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, scoutId, spawn.faction);
+    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction, spawn.x + 1, spawn.y);
+    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, scoutId, spawn.faction, spawn.x, spawn.y + 1);
   }
 }
 
@@ -188,6 +189,7 @@ function makeStateBuffers(stateSpec: StateSpec, worldSpec: WorldSpec, useShared:
   const feature = makeTileBuffer(stateSpec.memory_layout.feature_buffer.type, tileCount, useShared) as Uint8Array;
   const building = makeTileBuffer(stateSpec.memory_layout.building_buffer.type, tileCount, useShared) as Uint16Array;
   const heightBuf = makeTileBuffer(stateSpec.memory_layout.height_buffer.type, tileCount, useShared) as Int8Array;
+  const explored = makeTileBuffer(stateSpec.memory_layout.explored_buffer.type, tileCount, useShared) as Uint8Array;
 
   const entities: StateBuffers["entities"] = {};
   const maxEntities = stateSpec.entity_state.max_entities;
@@ -201,7 +203,7 @@ function makeStateBuffers(stateSpec: StateSpec, worldSpec: WorldSpec, useShared:
     }
   }
 
-  return { terrain, feature, building, height: heightBuf, entities };
+  return { terrain, feature, building, height: heightBuf, explored, entities };
 }
 
 class TechManager {
@@ -349,6 +351,9 @@ const buildingOwner: Map<number, number> = new Map();
 const hateMatrix: number[][] = Array.from({ length: 8 }, (_, i) =>
   Array.from({ length: 8 }, (_, j) => (i === j ? 0 : 100))
 );
+const lastFactionMilitary: Map<number, number> = new Map();
+const lastFactionEnemyMilitary: Map<number, number> = new Map();
+const lastExploredCount: Map<number, number> = new Map();
 
 function getUnitDefByType(typeId: number) {
   if (!entitySpecRef) return null;
@@ -399,6 +404,8 @@ function findEnemyInRange(entityIndex: number, range: number) {
   for (let i = 0; i < view.entityCount; i += 1) {
     if (view.getEntityId(i) === 0) continue;
     if (view.getEntityFaction(i) === selfFaction) continue;
+    const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
+    if ((view.getExplored(enemyIdx) & (1 << selfFaction)) === 0) continue;
     const ex = view.getEntityX(i);
     const ey = view.getEntityY(i);
     const dx = Math.abs(ex - sx);
@@ -418,6 +425,8 @@ function isEnemyInVision(entityIndex: number) {
   for (let i = 0; i < view.entityCount; i += 1) {
     if (view.getEntityId(i) === 0) continue;
     if (view.getEntityFaction(i) === selfFaction) continue;
+    const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
+    if ((view.getExplored(enemyIdx) & (1 << selfFaction)) === 0) continue;
     const ex = view.getEntityX(i);
     const ey = view.getEntityY(i);
     const dx = Math.abs(ex - sx);
@@ -430,6 +439,8 @@ function isEnemyInVision(entityIndex: number) {
 function enemyThreatCost(tx: number, ty: number, factionId: number) {
   if (!stateViewRef) return 0;
   const view = stateViewRef;
+  const idx = view.tileIndex(tx, ty);
+  if ((view.getExplored(idx) & (1 << factionId)) === 0) return 0;
   for (let i = 0; i < view.entityCount; i += 1) {
     if (view.getEntityId(i) === 0) continue;
     const enemyFaction = view.getEntityFaction(i);
@@ -678,7 +689,20 @@ function tickAction(entityIndex: number) {
     if (featureId === 102) defense = combatSpecRef?.rules.defense_multiplier_hills ?? 1.25;
     if (featureId === 100) defense = combatSpecRef?.rules.defense_multiplier_forest ?? 1.5;
     const baseDamage = combatSpecRef?.rules.base_damage ?? 10;
-    const damage = baseDamage / defense;
+    const attackerType = view.getEntityType(entityIndex);
+    const defenderType = view.getEntityType(enemyIndex);
+    const attackerName = Object.keys(entitySpecRef!.units).find(
+      (k) => entitySpecRef!.units[k].type_id === attackerType
+    );
+    const defenderName = Object.keys(entitySpecRef!.units).find(
+      (k) => entitySpecRef!.units[k].type_id === defenderType
+    );
+    let counter = 1;
+    if (attackerName && defenderName) {
+      const key = `${attackerName}_vs_${defenderName}`;
+      counter = combatSpecRef?.unit_counters[key] ?? 1;
+    }
+    const damage = (baseDamage * counter) / defense;
     const newHealth = view.getEntityHealth(enemyIndex) - damage;
     view.setEntityHealth(enemyIndex, Math.max(0, Math.floor(newHealth)));
     logEvent({ event_type: "COMBAT_HIT", level: "COMBAT", attacker: entityIndex, target: enemyIndex, damage });
@@ -752,17 +776,25 @@ function tickAction(entityIndex: number) {
 
 function updateExploration(entityIndex: number, width: number) {
   const view = stateViewRef!;
-  const idx = view.getEntityY(entityIndex) * width + view.getEntityX(entityIndex);
-  let set = exploredTiles.get(entityIndex);
-  if (!set) {
-    set = new Set<number>();
-    exploredTiles.set(entityIndex, set);
+  const faction = view.getEntityFaction(entityIndex);
+  const vision = getUnitVision(view.getEntityType(entityIndex));
+  const ex = view.getEntityX(entityIndex);
+  const ey = view.getEntityY(entityIndex);
+  for (let dy = -vision; dy <= vision; dy += 1) {
+    for (let dx = -vision; dx <= vision; dx += 1) {
+      const x = ex + dx;
+      const y = ey + dy;
+      if (x < 0 || y < 0 || x >= view.width || y >= view.height) continue;
+      const idx = view.tileIndex(x, y);
+      view.setExploredBit(idx, faction);
+    }
   }
-  set.add(idx);
 }
 
 function getTilesExplored(entityIndex: number) {
-  return exploredTiles.get(entityIndex)?.size ?? 1;
+  const view = stateViewRef!;
+  const faction = view.getEntityFaction(entityIndex);
+  return lastExploredCount.get(faction) ?? 1;
 }
 
 function buildStateFacts(entityIndex: number, width: number, height: number) {
@@ -773,6 +805,7 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
   const idx = y * width + x;
   const facts: string[] = [];
   if (view.getFeature(idx) === 100) facts.push("is_on_forest_tile");
+  if (view.getFeature(idx) === 110) facts.push("is_on_fire_tile");
   const terrainId = view.getTerrain(idx);
   for (const def of Object.values(worldSpecRef!.terrain_types)) {
     if (def.id === terrainId && (def.yield?.food ?? 0) > 0) {
@@ -789,12 +822,33 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
 
 function computeInputs(entityIndex: number, width: number) {
   const view = stateViewRef!;
+  const faction = view.getEntityFaction(entityIndex);
+  const home = homeByFaction.get(faction);
+  let enemyNearHome = 0;
+  if (home) {
+    for (let i = 0; i < view.entityCount; i += 1) {
+      if (view.getEntityId(i) === 0) continue;
+      if (view.getEntityFaction(i) === faction) continue;
+      const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
+      if ((view.getExplored(enemyIdx) & (1 << faction)) === 0) continue;
+      const dist = Math.abs(view.getEntityX(i) - home.x) + Math.abs(view.getEntityY(i) - home.y);
+      if (dist <= 10) {
+        enemyNearHome = 1;
+        break;
+      }
+    }
+  }
+  const ownMil = (lastFactionMilitary.get(faction) ?? 0);
+  const enemyMil = (lastFactionEnemyMilitary.get(faction) ?? 1);
+  const ratio = enemyMil > 0 ? ownMil / enemyMil : ownMil;
   return {
     enemy_nearby: isEnemyInVision(entityIndex) ? 1 : 0,
     health: view.getEntityHealth(entityIndex),
     hunger: view.getEntityHunger(entityIndex),
     wood: view.getEntityWood(entityIndex),
-    tiles_explored: getTilesExplored(entityIndex)
+    tiles_explored: getTilesExplored(entityIndex),
+    enemy_near_home: enemyNearHome,
+    military_strength_ratio: ratio
   };
 }
 
@@ -829,6 +883,82 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       entityIndices && entityIndices.length > 0
         ? entityIndices
         : Array.from({ length: count }, (_, i) => i);
+
+    if (simTick % 2 === 0) {
+      const fireToSpread: Array<[number, number]> = [];
+      for (let i = 0; i < view.width * view.height; i += 1) {
+        if (view.getFeature(i) === 110) {
+          fireToSpread.push([i % width, Math.floor(i / width)]);
+        }
+        if (view.getFeature(i) === 100 && Math.random() < 0.001) {
+          view.setFeature(i, 110);
+        }
+      }
+      const burnTargets: number[] = [];
+      for (const [fx, fy] of fireToSpread) {
+        const neighbors = [
+          [fx + 1, fy],
+          [fx - 1, fy],
+          [fx, fy + 1],
+          [fx, fy - 1]
+        ];
+        for (const [nx, ny] of neighbors) {
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const idx = view.tileIndex(nx, ny);
+          if (view.getFeature(idx) === 100 || view.getBuilding(idx) === 300) {
+            view.setFeature(idx, 110);
+            view.setBuilding(idx, 0);
+            burnTargets.push(idx);
+          }
+        }
+      }
+      for (const [fx, fy] of fireToSpread) {
+        const idx = view.tileIndex(fx, fy);
+        view.setFeature(idx, 0);
+        view.setTerrain(idx, 2);
+        buildingOwner.delete(idx);
+        logEvent({ event_type: "WORLD_EVENT", level: "INFO", event: "fire_burnout", x: fx, y: fy });
+      }
+      for (const idx of burnTargets) {
+        view.setTerrain(idx, 2);
+        if (view.getBuilding(idx) === 0) {
+          buildingOwner.delete(idx);
+        }
+        logEvent({ event_type: "WORLD_EVENT", level: "INFO", event: "fire_spread", idx });
+      }
+    }
+
+    if (simTick % 20 === 0) {
+      for (let i = 0; i < view.width * view.height; i += 1) {
+        if (view.getTerrain(i) !== 8) continue;
+        const x = i % width;
+        const y = Math.floor(i / width);
+        const neighbors = [
+          [x + 1, y],
+          [x - 1, y],
+          [x, y + 1],
+          [x, y - 1]
+        ];
+        for (const [nx, ny] of neighbors) {
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const idx = view.tileIndex(nx, ny);
+          if (view.getTerrain(idx) === 0) {
+            view.setTerrain(idx, 2);
+            logEvent({ event_type: "WORLD_EVENT", level: "INFO", event: "lava_heat", x: nx, y: ny });
+          }
+        }
+      }
+    }
+
+    if (simTick % 100 === 0) {
+      for (let i = 0; i < view.width * view.height; i += 1) {
+        if (view.getTerrain(i) !== 0) continue;
+        if (view.getFeature(i) !== 0) continue;
+        if (Math.random() < 0.005) {
+          view.setFeature(i, 100);
+        }
+      }
+    }
 
     if (simTick % 5 === 0) {
       for (let i = 0; i < count; i += 1) {
@@ -952,7 +1082,36 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         stats.houses[faction] = (stats.houses[faction] ?? 0) + 1;
       }
     }
-    self.postMessage({ type: "tick", tick: simTick, paths, entityDebug, stats });
+    lastFactionMilitary.clear();
+    lastFactionEnemyMilitary.clear();
+    lastExploredCount.clear();
+    for (const [factionStr, mil] of Object.entries(stats.military)) {
+      lastFactionMilitary.set(Number(factionStr), mil);
+    }
+    for (const [factionStr, mil] of Object.entries(stats.military)) {
+      const faction = Number(factionStr);
+      let enemySum = 0;
+      for (let i = 0; i < count; i += 1) {
+        if (view.getEntityId(i) === 0) continue;
+        const enemyFaction = view.getEntityFaction(i);
+        if (enemyFaction === faction) continue;
+        const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
+        if ((view.getExplored(enemyIdx) & (1 << faction)) === 0) continue;
+        const strength = getUnitStrength(view.getEntityType(i));
+        enemySum += view.getEntityHealth(i) * strength;
+      }
+      lastFactionEnemyMilitary.set(faction, enemySum);
+      let exploredCount = 0;
+      for (let i = 0; i < view.width * view.height; i += 1) {
+        if (view.getExplored(i) & (1 << faction)) exploredCount += 1;
+      }
+      lastExploredCount.set(faction, exploredCount);
+    }
+    const buildingOwners: Record<number, number> = {};
+    for (const [idx, faction] of buildingOwner.entries()) {
+      buildingOwners[idx] = faction;
+    }
+    self.postMessage({ type: "tick", tick: simTick, paths, entityDebug, stats, buildingOwners });
     const flushInterval = loggingSpecRef?.config.flush_interval_ticks ?? 10;
     const maxBuffer = loggingSpecRef?.config.max_buffer_worker ?? 1000;
     if (simTick % flushInterval === 0 || logBuffer.length >= maxBuffer) {
@@ -1040,6 +1199,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         buffers.feature.buffer,
         buffers.building.buffer,
         buffers.height.buffer,
+        buffers.explored.buffer,
         ...Object.values(buffers.entities).map((arr) => arr.buffer)
       ];
       self.postMessage(payload, transferables);

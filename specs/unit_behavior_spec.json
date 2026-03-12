@@ -1,38 +1,16 @@
 {
   "spec_id": "unit_behavior_v1",
-  "version": "1.2",
+  "version": "1.3",
   "schema_version": "1.0.0",
   "goal_definitions": {
-    "SURVIVE": {
-      "priority": 1,
-      "utility_curve": "danger_curve",
-      "target_effect": "safety_increased"
-    },
-    "RECOVER": {
-      "priority": 2,
-      "utility_curve": "health_curve",
-      "target_effect": "health_increased"
-    },
-    "NUTRITION": {
-      "priority": 3,
-      "utility_curve": "hunger_curve",
-      "target_effect": "inventory_food_increased"
-    },
-    "GATHERING": {
-      "priority": 4,
-      "utility_curve": "wood_curve",
-      "target_effect": "inventory_wood_increased"
-    },
-    "EXPANSION": {
-      "priority": 5,
-      "utility_curve": "expansion_curve",
-      "target_effect": "house_created"
-    },
-    "EXPLORATION": {
-      "priority": 6,
-      "utility_curve": "exploration_curve",
-      "target_effect": "explored_area"
-    }
+    "DEFEND": { "priority": 1, "utility_curve": "defense_curve", "target_effect": "enemy_health_reduced" },
+    "SURVIVE": { "priority": 2, "utility_curve": "danger_curve", "target_effect": "safety_increased" },
+    "RECOVER": { "priority": 3, "utility_curve": "health_curve", "target_effect": "health_increased" },
+    "NUTRITION": { "priority": 4, "utility_curve": "hunger_curve", "target_effect": "inventory_food_increased" },
+    "ATTACK_ORDER": { "priority": 4, "utility_curve": "aggression_curve", "target_effect": "enemy_health_reduced" },
+    "GATHERING": { "priority": 5, "utility_curve": "wood_curve", "target_effect": "inventory_wood_increased" },
+    "EXPANSION": { "priority": 6, "utility_curve": "expansion_curve", "target_effect": "house_created" },
+    "EXPLORATION": { "priority": 7, "utility_curve": "exploration_curve", "target_effect": "explored_area" }
   },
   "actions": {
     "WANDER": { "id": 0, "cost": 1, "progress_step": 100, "pre": [], "eff": ["explored_area"] },
@@ -49,6 +27,8 @@
     "hunger_curve": "hunger > 50 ? (hunger^2 / 100) : 0",
     "wood_curve": "wood < 3 ? 60 : 0",
     "expansion_curve": "wood >= 3 ? 80 : 0",
-    "exploration_curve": "100 / (tiles_explored + 1)"
+    "exploration_curve": "100 / (tiles_explored + 1)",
+    "defense_curve": "enemy_near_home ? 100 : 0",
+    "aggression_curve": "(military_strength_ratio > 1.5) ? 70 : 0"
   }
 }

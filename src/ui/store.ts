@@ -9,6 +9,7 @@ export type WorldState = {
   terrain: Uint8Array | null;
   buffers: StateBuffers | null;
   paths: Array<{ entity_id: number; path: Array<[number, number]> }>;
+  buildingOwners: Record<number, number>;
   events: Array<Record<string, unknown>>;
   selectedEntityId: number | null;
   entityDebug: Record<number, { goal?: string; plan?: string[]; utilities?: Record<string, number> }>;
@@ -23,6 +24,7 @@ export type WorldState = {
   ) => void;
   addEvents: (entries: Array<Record<string, unknown>>) => void;
   setPaths: (paths: Array<{ entity_id: number; path: Array<[number, number]> }>) => void;
+  setBuildingOwners: (owners: Record<number, number>) => void;
   setSelectedEntityId: (id: number | null) => void;
   setEntityDebug: (
     data: Record<number, { goal?: string; plan?: string[]; utilities?: Record<string, number> }>
@@ -38,6 +40,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   terrain: null,
   buffers: null,
   paths: [],
+  buildingOwners: {},
   events: [],
   selectedEntityId: null,
   entityDebug: {},
@@ -52,6 +55,7 @@ export const useWorldStore = create<WorldState>((set) => ({
       return { events: merged.slice(-limit) };
     }),
   setPaths: (paths) => set({ paths }),
+  setBuildingOwners: (owners) => set({ buildingOwners: owners }),
   setSelectedEntityId: (id) => set({ selectedEntityId: id }),
   setEntityDebug: (data) => set({ entityDebug: data }),
   setStats: (stats) => set({ stats }),

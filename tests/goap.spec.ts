@@ -38,7 +38,15 @@ function pickGoal(utilities: Record<string, number>) {
 
 describe("GOAP utility", () => {
   it("wood shortage prioritizes GATHERING", () => {
-    const utilities = computeUtilities({ wood: 0, health: 100, hunger: 0, tiles_explored: 1, enemy_nearby: 0 });
+    const utilities = computeUtilities({
+      wood: 0,
+      health: 100,
+      hunger: 0,
+      tiles_explored: 1,
+      enemy_nearby: 0,
+      enemy_near_home: 0,
+      military_strength_ratio: 1
+    });
     const goal = pickGoal(utilities);
     expect(goal).toBe("GATHERING");
   });

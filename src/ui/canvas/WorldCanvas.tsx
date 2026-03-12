@@ -5,8 +5,10 @@ import { useWorldStore } from "../store";
 const ID_COLORS: Record<number, string> = {
   0: "#4ade80",
   1: "#fbbf24",
+  2: "#f59e0b",
   5: "#3b82f6",
-  7: "#4b5563"
+  7: "#4b5563",
+  8: "#ef4444"
 };
 
 export function WorldCanvas() {
@@ -16,6 +18,7 @@ export function WorldCanvas() {
   const buffers = useWorldStore((s) => s.buffers);
   const unitBehaviorSpec = useWorldStore((s) => s.unitBehaviorSpec);
   const paths = useWorldStore((s) => s.paths);
+  const buildingOwners = useWorldStore((s) => s.buildingOwners);
   const setSelectedEntityId = useWorldStore((s) => s.setSelectedEntityId);
 
   useEffect(() => {
@@ -56,6 +59,19 @@ export function WorldCanvas() {
             );
             ctx.fill();
           }
+          if (buffers.feature[idx] === 110) {
+            const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 200);
+            ctx.fillStyle = `rgba(255, 140, 0, ${pulse})`;
+            ctx.beginPath();
+            ctx.arc(
+              x * tileSize + tileSize / 2,
+              y * tileSize + tileSize / 2,
+              tileSize / 3,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+          }
         }
       }
     }
@@ -65,9 +81,11 @@ export function WorldCanvas() {
         for (let x = 0; x < width; x += 1) {
           const idx = y * width + x;
           if (buffers.building[idx] === 300) {
+            const owner = buildingOwners[idx] ?? 0;
+            const teamColor = owner === 1 ? "#3b82f6" : "#ef4444";
             ctx.fillStyle = "#8b5a2b";
             ctx.fillRect(x * tileSize + 4, y * tileSize + 4, tileSize - 8, tileSize - 8);
-            ctx.fillStyle = "#fff";
+            ctx.fillStyle = teamColor;
             ctx.font = "10px sans-serif";
             ctx.fillText("H", x * tileSize + tileSize / 2 - 3, y * tileSize + tileSize / 2 + 3);
           }
@@ -109,7 +127,9 @@ export function WorldCanvas() {
           const y = ys[i];
           const px = x * tileSize;
           const py = y * tileSize;
-          if (types && types[i] === 201) {
+          const faction = buffers.entities.faction_id as Uint8Array | undefined;
+          const teamColor = faction ? (faction[i] === 1 ? "#3b82f6" : "#ef4444") : "#ffffff";
+          if (types && (types[i] === 201 || types[i] === 200 || types[i] === 202 || types[i] === 203 || types[i] === 204)) {
             ctx.fillStyle = "#7c4a2d";
             ctx.beginPath();
             ctx.arc(
@@ -120,7 +140,7 @@ export function WorldCanvas() {
               Math.PI * 2
             );
             ctx.fill();
-            ctx.strokeStyle = "#ffffff";
+            ctx.strokeStyle = teamColor;
             ctx.lineWidth = 1;
             ctx.stroke();
           }
@@ -134,6 +154,13 @@ export function WorldCanvas() {
             ctx.fillStyle = "#fff";
             ctx.font = "10px sans-serif";
             ctx.fillText(label, px + tileSize - 10, py + 12);
+          }
+
+          const health = (buffers.entities.health as Uint8Array)[i] ?? 0;
+          if (health < 100) {
+            ctx.fillStyle = "#ef4444";
+            const pct = Math.max(0, Math.min(1, health / 100));
+            ctx.fillRect(px + 2, py + tileSize - 4, (tileSize - 4) * pct, 3);
           }
         }
       }

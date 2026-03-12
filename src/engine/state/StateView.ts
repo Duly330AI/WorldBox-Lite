@@ -57,6 +57,19 @@ export class StateView {
     this.buffers.building[idx] = value;
   }
 
+  getExplored(idx: number) {
+    return this.buffers.explored[idx];
+  }
+
+  setExplored(idx: number, value: number) {
+    this.buffers.explored[idx] = value;
+  }
+
+  setExploredBit(idx: number, factionId: number) {
+    const mask = 1 << factionId;
+    this.buffers.explored[idx] = this.buffers.explored[idx] | mask;
+  }
+
   getEntityField<T extends number>(index: number, field: string): T {
     const arr = this.entityMap[field];
     if (!arr) return 0 as T;

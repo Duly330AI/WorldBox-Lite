@@ -12,6 +12,7 @@ export function App() {
   const setPaths = useWorldStore((s) => s.setPaths);
   const setEntityDebug = useWorldStore((s) => s.setEntityDebug);
   const setStats = useWorldStore((s) => s.setStats);
+  const setBuildingOwners = useWorldStore((s) => s.setBuildingOwners);
   const stats = useWorldStore((s) => s.stats);
   const [isPlaying, setIsPlaying] = useState(true);
   const [tick, setTick] = useState(0);
@@ -56,6 +57,9 @@ export function App() {
         if (ev.data.stats) {
           setStats(ev.data.stats);
         }
+        if (ev.data.buildingOwners) {
+          setBuildingOwners(ev.data.buildingOwners);
+        }
       }
       if (ev.data.type === "log") {
         console.debug("telemetry", ev.data.entries);
@@ -76,7 +80,7 @@ export function App() {
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners]);
 
   useEffect(() => {
     const worker = workerRef.current;
