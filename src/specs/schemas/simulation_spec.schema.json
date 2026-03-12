@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["spec_id", "version", "schema_version", "game_loop_config", "victory_conditions", "god_tools", "performance_targets"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "description": { "type": "string" },
+    "game_loop_config": {
+      "type": "object",
+      "required": ["mode", "ticks_per_turn", "max_turns", "simulation_speed_multiplier"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "type": "string" },
+        "ticks_per_turn": { "type": "number" },
+        "max_turns": { "type": "number" },
+        "simulation_speed_multiplier": { "type": "number" }
+      }
+    },
+    "victory_conditions": {
+      "type": "object",
+      "required": ["conquest"],
+      "additionalProperties": true,
+      "properties": {
+        "conquest": {
+          "type": "object",
+          "required": ["active", "requirement"],
+          "additionalProperties": false,
+          "properties": {
+            "active": { "type": "boolean" },
+            "requirement": { "type": "string" }
+          }
+        }
+      }
+    },
+    "god_tools": {
+      "type": "object",
+      "required": ["brush_sizes", "allowed_mutations"],
+      "additionalProperties": false,
+      "properties": {
+        "brush_sizes": { "type": "array", "items": { "type": "number" }, "minItems": 1 },
+        "allowed_mutations": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    },
+    "performance_targets": {
+      "type": "object",
+      "required": ["target_tick_ms", "warning_threshold_ms"],
+      "additionalProperties": false,
+      "properties": {
+        "target_tick_ms": { "type": "number" },
+        "warning_threshold_ms": { "type": "number" }
+      }
+    }
+  }
+}

@@ -13,7 +13,18 @@ export function App() {
   const setEntityDebug = useWorldStore((s) => s.setEntityDebug);
   const setStats = useWorldStore((s) => s.setStats);
   const setBuildingOwners = useWorldStore((s) => s.setBuildingOwners);
+  const setWorker = useWorldStore((s) => s.setWorker);
+  const setPerfStats = useWorldStore((s) => s.setPerfStats);
+  const setMatchOver = useWorldStore((s) => s.setMatchOver);
+  const setKnowledge = useWorldStore((s) => s.setKnowledge);
   const stats = useWorldStore((s) => s.stats);
+  const perfStats = useWorldStore((s) => s.perfStats);
+  const simulationSpec = useWorldStore((s) => s.simulationSpec);
+  const matchOver = useWorldStore((s) => s.matchOver);
+  const knowledge = useWorldStore((s) => s.knowledge);
+  const godTool = useWorldStore((s) => s.godTool);
+  const setGodTool = useWorldStore((s) => s.setGodTool);
+  const setBrushSize = useWorldStore((s) => s.setBrushSize);
   const [isPlaying, setIsPlaying] = useState(true);
   const [tick, setTick] = useState(0);
   const [speed, setSpeed] = useState(500);
@@ -25,11 +36,12 @@ export function App() {
       type: "module"
     });
     workerRef.current = worker;
+    setWorker(worker);
 
     worker.onmessage = (ev) => {
       if (ev.data.type === "world") {
         const terrain = new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.spec, terrain, null, null, null);
+        setWorld(ev.data.spec, terrain, null, null, null, null);
       }
       if (ev.data.type === "state") {
         const terrain = ev.data.buffers?.terrain
@@ -40,7 +52,8 @@ export function App() {
           terrain,
           ev.data.buffers ?? null,
           ev.data.unitBehaviorSpec ?? null,
-          ev.data.loggingSpec ?? null
+          ev.data.loggingSpec ?? null,
+          ev.data.simulationSpec ?? null
         );
       }
       if (ev.data.type === "error") {
@@ -61,6 +74,16 @@ export function App() {
           setBuildingOwners(ev.data.buildingOwners);
         }
       }
+      if (ev.data.type === "perf_stats") {
+        setPerfStats(ev.data);
+        if (ev.data.knowledge) {
+          setKnowledge(ev.data.knowledge);
+        }
+      }
+      if (ev.data.type === "match_over") {
+        setMatchOver(ev.data);
+        setIsPlaying(false);
+      }
       if (ev.data.type === "log") {
         console.debug("telemetry", ev.data.entries);
         addEvents(ev.data.entries ?? []);
@@ -76,11 +99,12 @@ export function App() {
       loggingSpecUrl: "/specs/logging_spec.json",
       combatSpecUrl: "/specs/combat_spec.json",
       entitySpecUrl: "/specs/entity_spec.json",
+      simulationSpecUrl: "/specs/simulation_spec.json",
       seed: 1337
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -105,6 +129,17 @@ export function App() {
     };
   }, [isPlaying, speed]);
 
+  const warningMs = simulationSpec?.performance_targets.warning_threshold_ms ?? 100;
+  const avgTickMs = perfStats?.avg_tick_ms ?? 0;
+  const perfColor = avgTickMs > warningMs ? "#b00020" : "#222";
+  const leadingFaction = stats
+    ? Object.entries(stats.military).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0]
+    : null;
+  const leaderKnowledge = leadingFaction ? knowledge[Number(leadingFaction)] ?? {} : {};
+  const topKnowledge = Object.entries(leaderKnowledge)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+
   return (
     <div style={{ padding: 16, fontFamily: "'IBM Plex Sans', sans-serif" }}>
       <h1 style={{ marginBottom: 8 }}>CivWorldBox</h1>
@@ -117,6 +152,10 @@ export function App() {
         <div>
           Faktion Blau: {stats?.population?.[1] ?? 0} Menschen, {stats?.houses?.[1] ?? 0} Häuser,{" "}
           {stats?.wood?.[1] ?? 0} Holz, Militär {stats?.military?.[1] ?? 0}
+        </div>
+        <div style={{ color: perfColor }}>
+          Tick: {avgTickMs.toFixed(1)}ms • Entities: {perfStats?.entity_count ?? 0} • Pathfinding:{" "}
+          {perfStats?.pathfinding_calls_per_tick ?? 0}
         </div>
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
@@ -157,6 +196,38 @@ export function App() {
         >
           Spawn Test-Worker
         </button>
+        <div style={{ marginLeft: 12, display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{ fontSize: 12, color: "#555" }}>God Tools</span>
+          {["lava", "forest", "water", "ignite"].map((tool) => (
+            <button
+              key={tool}
+              onClick={() => setGodTool(godTool.tool === tool ? null : (tool as "lava" | "forest" | "water" | "ignite"))}
+              style={{
+                padding: "4px 10px",
+                border: "1px solid #333",
+                background: godTool.tool === tool ? "#222" : "#f5f5f5",
+                color: godTool.tool === tool ? "#fff" : "#222",
+                borderRadius: 6,
+                fontSize: 12
+              }}
+            >
+              {tool}
+            </button>
+          ))}
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+            Brush
+            <select
+              value={godTool.brushSize}
+              onChange={(e) => setBrushSize(Number(e.target.value))}
+            >
+              {(simulationSpec?.god_tools.brush_sizes ?? [1, 3, 5]).map((size) => (
+                <option key={size} value={size}>
+                  {size}x{size}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
       <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
@@ -170,8 +241,57 @@ export function App() {
           <EventLog />
           <div style={{ height: 12 }} />
           <UnitInspector />
+          <div style={{ height: 12 }} />
+          <div
+            style={{
+              border: "1px solid #222",
+              borderRadius: 8,
+              padding: 12,
+              background: "#fafafa"
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Knowledge Viewer</div>
+            {topKnowledge.length === 0 ? (
+              <div style={{ fontSize: 12, color: "#666" }}>No knowledge yet.</div>
+            ) : (
+              topKnowledge.map(([key, value]) => (
+                <div key={key} style={{ fontSize: 12 }}>
+                  {key}: {value}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
+      {matchOver ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 24,
+              borderRadius: 12,
+              minWidth: 320,
+              textAlign: "center"
+            }}
+          >
+            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Match Over</div>
+            <div style={{ fontSize: 14, marginBottom: 8 }}>
+              Sieger: {matchOver.winnerName} (Faktion {matchOver.winnerFactionId})
+            </div>
+            <div style={{ fontSize: 12, color: "#666" }}>Dauer: {matchOver.tick} Ticks</div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

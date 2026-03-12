@@ -6,6 +6,7 @@ import unitBehaviorSchema from "../../specs/schemas/unit_behavior_spec.schema.js
 import loggingSchema from "../../specs/schemas/logging_spec.schema.json";
 import combatSchema from "../../specs/schemas/combat_spec.schema.json";
 import entitySchema from "../../specs/schemas/entity_spec.schema.json";
+import simulationSchema from "../../specs/schemas/simulation_spec.schema.json";
 
 export type WorldSpec = {
   spec_id: string;
@@ -45,6 +46,7 @@ export type StateSpec = {
     feature_buffer: { type: string; bytes_per_tile: number; description?: string };
     building_buffer: { type: string; bytes_per_tile: number; description?: string };
     height_buffer: { type: string; bytes_per_tile: number; description?: string };
+    explored_buffer: { type: string; bytes_per_tile: number; description?: string };
   };
   entity_state: {
     max_entities: number;
@@ -133,6 +135,30 @@ export type EntitySpec = {
   >;
 };
 
+export type SimulationSpec = {
+  spec_id: string;
+  version: string;
+  schema_version: string;
+  description?: string;
+  game_loop_config: {
+    mode: string;
+    ticks_per_turn: number;
+    max_turns: number;
+    simulation_speed_multiplier: number;
+  };
+  victory_conditions: {
+    conquest?: { active: boolean; requirement: string };
+  };
+  god_tools: {
+    brush_sizes: number[];
+    allowed_mutations: string[];
+  };
+  performance_targets: {
+    target_tick_ms: number;
+    warning_threshold_ms: number;
+  };
+};
+
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateWorld = ajv.compile(worldSchema);
 const validateState = ajv.compile(stateSchema);
@@ -141,6 +167,7 @@ const validateUnitBehavior = ajv.compile(unitBehaviorSchema);
 const validateLogging = ajv.compile(loggingSchema);
 const validateCombat = ajv.compile(combatSchema);
 const validateEntity = ajv.compile(entitySchema);
+const validateSimulation = ajv.compile(simulationSchema);
 
 export function assertWorldSpec(data: unknown): WorldSpec {
   if (!validateWorld(data)) {
@@ -219,6 +246,17 @@ export function assertEntitySpec(data: unknown): EntitySpec {
   return data as EntitySpec;
 }
 
+export function assertSimulationSpec(data: unknown): SimulationSpec {
+  if (!validateSimulation(data)) {
+    const errors = (validateSimulation.errors || []) as DefinedError[];
+    const message = errors
+      .map((e) => `${e.instancePath || "(root)"} ${e.message}`)
+      .join("; ");
+    throw new Error(`simulation_spec validation failed: ${message}`);
+  }
+  return data as SimulationSpec;
+}
+
 export async function loadWorldSpec(url: string): Promise<WorldSpec> {
   const res = await fetch(url);
   if (!res.ok) {
@@ -280,4 +318,13 @@ export async function loadEntitySpec(url: string): Promise<EntitySpec> {
   }
   const json = (await res.json()) as unknown;
   return assertEntitySpec(json);
+}
+
+export async function loadSimulationSpec(url: string): Promise<SimulationSpec> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to load simulation_spec: ${res.status}`);
+  }
+  const json = (await res.json()) as unknown;
+  return assertSimulationSpec(json);
 }

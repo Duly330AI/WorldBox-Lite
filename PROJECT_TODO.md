@@ -34,5 +34,20 @@
 - [x] EventLog Filter nach Leveln (INFO/DECISION/COMBAT)
 - [x] CI Workflow (GitHub Actions: npm test)
 
+## Phase 16, 17 & 18 – Natur, Taktik & Aggression
+- [x] Combat-Counters in Schadensformel integriert
+- [x] Waldwachstum, Feuer-Ausbreitung, Lava-Hitze im World-Loop
+- [x] explored_buffer (Bitmask) + Fog-of-War Basis
+- [x] Aggressions-Goals (DEFEND, ATTACK_ORDER) + Utility-Formeln
+- [x] Team-Farben für Einheiten/Häuser, Health-Bars, Feuer-Rendering
+
+## Phase 19, 20 & 21 – Gott-Modus, Sieg & Profiling
+- [x] simulation_spec.json + Schema + Loader
+- [x] Victory-System (Conquest) + MATCH_OVER Event
+- [x] Final Knowledge Snapshot + Knowledge Viewer (Top-3)
+- [x] God-Tools Brush-System (Lava/Forest/Water/Ignite)
+- [x] PERF_STATS (avg_tick_ms, entity_count, pathfinding_calls)
+- [x] Natur-Tests (fire, lava, treeGrowth)
+
 ## Notes
 - combat_spec wird geladen und verwendet.

@@ -20,6 +20,10 @@ export function WorldCanvas() {
   const paths = useWorldStore((s) => s.paths);
   const buildingOwners = useWorldStore((s) => s.buildingOwners);
   const setSelectedEntityId = useWorldStore((s) => s.setSelectedEntityId);
+  const godTool = useWorldStore((s) => s.godTool);
+  const worker = useWorldStore((s) => s.worker);
+  const isPaintingRef = useRef(false);
+  const lastPaintRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!spec || !terrain) return;
@@ -165,17 +169,51 @@ export function WorldCanvas() {
         }
       }
     }
-  }, [spec, terrain, buffers, unitBehaviorSpec, paths]);
+  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners]);
 
-  const handleClick = (event: MouseEvent<HTMLCanvasElement>) => {
+  const tileFromEvent = (event: MouseEvent<HTMLCanvasElement>) => {
     if (!spec || !buffers) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const x = Math.floor((event.clientX - rect.left) * scaleX / spec.config.tile_size);
-    const y = Math.floor((event.clientY - rect.top) * scaleY / spec.config.tile_size);
+    const x = Math.floor(((event.clientX - rect.left) * scaleX) / spec.config.tile_size);
+    const y = Math.floor(((event.clientY - rect.top) * scaleY) / spec.config.tile_size);
+    return { x, y };
+  };
+
+  const sendBrushMutation = (x: number, y: number) => {
+    if (!spec || !worker || !godTool.tool) return;
+    const size = godTool.brushSize;
+    const half = Math.floor(size / 2);
+    const mutations: Array<{ x: number; y: number; terrain?: number; feature?: number; building?: number }> = [];
+    for (let dy = -half; dy <= half; dy += 1) {
+      for (let dx = -half; dx <= half; dx += 1) {
+        const tx = x + dx;
+        const ty = y + dy;
+        if (tx < 0 || ty < 0 || tx >= spec.config.dimensions.width || ty >= spec.config.dimensions.height) continue;
+        if (godTool.tool === "lava") {
+          mutations.push({ x: tx, y: ty, terrain: 8, feature: 0, building: 0 });
+        } else if (godTool.tool === "water") {
+          mutations.push({ x: tx, y: ty, terrain: 5, feature: 0, building: 0 });
+        } else if (godTool.tool === "forest") {
+          mutations.push({ x: tx, y: ty, feature: 100 });
+        } else if (godTool.tool === "ignite") {
+          mutations.push({ x: tx, y: ty, feature: 110 });
+        }
+      }
+    }
+    if (mutations.length > 0) {
+      worker.postMessage({ type: "world_mutation", mutations });
+    }
+  };
+
+  const handleClick = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (godTool.tool) return;
+    const tile = tileFromEvent(event);
+    if (!tile || !buffers) return;
+    const { x, y } = tile;
     const ids = buffers.entities.id as Uint32Array;
     const xs = buffers.entities.x as Uint16Array;
     const ys = buffers.entities.y as Uint16Array;
@@ -189,10 +227,43 @@ export function WorldCanvas() {
     setSelectedEntityId(null);
   };
 
+  const handleMouseDown = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!godTool.tool) return;
+    isPaintingRef.current = true;
+    const tile = tileFromEvent(event);
+    if (!tile) return;
+    const key = `${tile.x},${tile.y},${godTool.tool},${godTool.brushSize}`;
+    if (lastPaintRef.current !== key) {
+      lastPaintRef.current = key;
+      sendBrushMutation(tile.x, tile.y);
+    }
+  };
+
+  const handleMouseMove = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!isPaintingRef.current || !godTool.tool) return;
+    const tile = tileFromEvent(event);
+    if (!tile) return;
+    const key = `${tile.x},${tile.y},${godTool.tool},${godTool.brushSize}`;
+    if (lastPaintRef.current !== key) {
+      lastPaintRef.current = key;
+      sendBrushMutation(tile.x, tile.y);
+    }
+  };
+
   return (
     <canvas
       ref={canvasRef}
       onClick={handleClick}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={() => {
+        isPaintingRef.current = false;
+        lastPaintRef.current = null;
+      }}
+      onMouseLeave={() => {
+        isPaintingRef.current = false;
+        lastPaintRef.current = null;
+      }}
       style={{
         width: "100%",
         maxWidth: 900,

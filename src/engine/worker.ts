@@ -5,10 +5,12 @@ import {
   loadTechSpec,
   loadUnitBehaviorSpec,
   loadLoggingSpec,
+  loadSimulationSpec,
   loadWorldSpec,
   type CombatSpec,
   type EntitySpec,
   type LoggingSpec,
+  type SimulationSpec,
   type StateSpec,
   type TechSpec,
   type UnitBehaviorSpec,
@@ -16,6 +18,7 @@ import {
 } from "./io/specLoader";
 import { StateView } from "./state/StateView";
 import { spawnUnit } from "./systems/spawn";
+import { stepFire, stepLavaHeat, stepTreeGrowth } from "./systems/nature";
 
 type InitMessage = {
   type: "init";
@@ -26,6 +29,7 @@ type InitMessage = {
   loggingSpecUrl: string;
   combatSpecUrl: string;
   entitySpecUrl: string;
+  simulationSpecUrl: string;
   seed?: number;
 };
 
@@ -47,6 +51,7 @@ type GenerateResult = {
   loggingSpec: LoggingSpec;
   combatSpec: CombatSpec;
   entitySpec: EntitySpec;
+  simulationSpec: SimulationSpec;
   buffers: StateBuffers;
   shared: boolean;
 };
@@ -74,6 +79,11 @@ type SpawnUnitMessage = {
   factionId: number;
   x?: number;
   y?: number;
+};
+
+type WorldMutationMessage = {
+  type: "world_mutation";
+  mutations: Array<{ x: number; y: number; terrain?: number; feature?: number; building?: number }>;
 };
 
 type ErrorMessage = {
@@ -319,8 +329,10 @@ function buildPlan(actions: ActionDef[], goalEffect: string, stateFacts: Set<str
 }
 
 const logBuffer: Array<Record<string, unknown>> = [];
+const knowledgeByFaction: Record<number, Record<string, number>> = {};
 function logEvent(entry: Record<string, unknown>) {
   logBuffer.push({ ts: Date.now(), tick: simTick, ...entry });
+  trackKnowledge(entry);
 }
 function flushLogs() {
   if (logBuffer.length === 0) return;
@@ -328,6 +340,29 @@ function flushLogs() {
   const payload: LogMessage = { type: "log", entries: logBuffer.splice(0, logBuffer.length) };
   payload.entries = payload.entries.slice(-limit);
   self.postMessage(payload);
+}
+
+function trackKnowledge(entry: Record<string, unknown>) {
+  if (!stateViewRef) return;
+  let factionId: number | null = null;
+  if (typeof entry.faction_id === "number") factionId = entry.faction_id;
+  if (factionId === null && typeof entry.entity_id === "number") {
+    factionId = stateViewRef.getEntityFaction(entry.entity_id);
+  }
+  if (factionId === null || Number.isNaN(factionId)) return;
+  if (!knowledgeByFaction[factionId]) knowledgeByFaction[factionId] = {};
+  const baseType = entry.event_type ? String(entry.event_type) : "event";
+  const action = entry.action ? String(entry.action) : null;
+  const key = action ? `${baseType}:${action}` : baseType;
+  knowledgeByFaction[factionId][key] = (knowledgeByFaction[factionId][key] ?? 0) + 1;
+}
+
+function snapshotKnowledge() {
+  const snapshot: Record<number, Record<string, number>> = {};
+  for (const [factionStr, data] of Object.entries(knowledgeByFaction)) {
+    snapshot[Number(factionStr)] = { ...data };
+  }
+  return snapshot;
 }
 
 let unitBehaviorSpecRef: UnitBehaviorSpec | null = null;
@@ -340,6 +375,9 @@ let loggingSpecRef: LoggingSpec | null = null;
 let stateViewRef: StateView | null = null;
 let combatSpecRef: CombatSpec | null = null;
 let entitySpecRef: EntitySpec | null = null;
+let simulationSpecRef: SimulationSpec | null = null;
+let pathfindingCalls = 0;
+let matchOverSent = false;
 
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
 let actionIdByName: Map<string, number> = new Map();
@@ -354,6 +392,7 @@ const hateMatrix: number[][] = Array.from({ length: 8 }, (_, i) =>
 const lastFactionMilitary: Map<number, number> = new Map();
 const lastFactionEnemyMilitary: Map<number, number> = new Map();
 const lastExploredCount: Map<number, number> = new Map();
+const perfSamples: number[] = [];
 
 function getUnitDefByType(typeId: number) {
   if (!entitySpecRef) return null;
@@ -499,6 +538,7 @@ function aStarPath(
   occupied: Set<number>,
   extraCost?: (x: number, y: number) => number
 ) {
+  pathfindingCalls += 1;
   const startIdx = startY * width + startX;
   const goalIdx = goalY * width + goalX;
   const open: number[] = [startIdx];
@@ -873,9 +913,46 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     flushLogs();
     return;
   }
+  if (ev.data.type === "world_mutation") {
+    if (!stateViewRef || !worldSpecRef) return;
+    const view = stateViewRef;
+    const { width, height } = worldSpecRef.config.dimensions;
+    const req = ev.data as WorldMutationMessage;
+    for (const mutation of req.mutations) {
+      const x = mutation.x;
+      const y = mutation.y;
+      if (x < 0 || y < 0 || x >= width || y >= height) continue;
+      const idx = view.tileIndex(x, y);
+      if (typeof mutation.terrain === "number") {
+        view.setTerrain(idx, mutation.terrain);
+        if (mutation.terrain === 8 || mutation.terrain === 5) {
+          view.setFeature(idx, 0);
+          view.setBuilding(idx, 0);
+          buildingOwner.delete(idx);
+        }
+      }
+      if (typeof mutation.feature === "number") {
+        view.setFeature(idx, mutation.feature);
+      }
+      if (typeof mutation.building === "number") {
+        view.setBuilding(idx, mutation.building);
+        if (mutation.building === 300) {
+          buildingOwner.set(idx, 0);
+        } else if (mutation.building === 0) {
+          buildingOwner.delete(idx);
+        }
+      }
+      logEvent({ event_type: "WORLD_MUTATION", level: "INFO", x, y, ...mutation });
+    }
+    flushLogs();
+    return;
+  }
   if (ev.data.type === "sim_tick") {
     const { entityIndices } = ev.data as SimTickMessage;
     if (!buffersRef || !stateViewRef || !entitySpecRef) return;
+    if (matchOverSent) return;
+    const tickStart = performance.now();
+    pathfindingCalls = 0;
     const view = stateViewRef;
     const { width, height } = worldSpecRef!.config.dimensions;
     const count = view.entityCount;
@@ -885,79 +962,19 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         : Array.from({ length: count }, (_, i) => i);
 
     if (simTick % 2 === 0) {
-      const fireToSpread: Array<[number, number]> = [];
-      for (let i = 0; i < view.width * view.height; i += 1) {
-        if (view.getFeature(i) === 110) {
-          fireToSpread.push([i % width, Math.floor(i / width)]);
-        }
-        if (view.getFeature(i) === 100 && Math.random() < 0.001) {
-          view.setFeature(i, 110);
-        }
-      }
-      const burnTargets: number[] = [];
-      for (const [fx, fy] of fireToSpread) {
-        const neighbors = [
-          [fx + 1, fy],
-          [fx - 1, fy],
-          [fx, fy + 1],
-          [fx, fy - 1]
-        ];
-        for (const [nx, ny] of neighbors) {
-          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-          const idx = view.tileIndex(nx, ny);
-          if (view.getFeature(idx) === 100 || view.getBuilding(idx) === 300) {
-            view.setFeature(idx, 110);
-            view.setBuilding(idx, 0);
-            burnTargets.push(idx);
-          }
-        }
-      }
-      for (const [fx, fy] of fireToSpread) {
-        const idx = view.tileIndex(fx, fy);
-        view.setFeature(idx, 0);
-        view.setTerrain(idx, 2);
-        buildingOwner.delete(idx);
-        logEvent({ event_type: "WORLD_EVENT", level: "INFO", event: "fire_burnout", x: fx, y: fy });
-      }
-      for (const idx of burnTargets) {
-        view.setTerrain(idx, 2);
-        if (view.getBuilding(idx) === 0) {
-          buildingOwner.delete(idx);
-        }
-        logEvent({ event_type: "WORLD_EVENT", level: "INFO", event: "fire_spread", idx });
-      }
+      stepFire(view, {
+        logEvent,
+        buildingOwner,
+        rng: Math.random
+      });
     }
 
     if (simTick % 20 === 0) {
-      for (let i = 0; i < view.width * view.height; i += 1) {
-        if (view.getTerrain(i) !== 8) continue;
-        const x = i % width;
-        const y = Math.floor(i / width);
-        const neighbors = [
-          [x + 1, y],
-          [x - 1, y],
-          [x, y + 1],
-          [x, y - 1]
-        ];
-        for (const [nx, ny] of neighbors) {
-          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-          const idx = view.tileIndex(nx, ny);
-          if (view.getTerrain(idx) === 0) {
-            view.setTerrain(idx, 2);
-            logEvent({ event_type: "WORLD_EVENT", level: "INFO", event: "lava_heat", x: nx, y: ny });
-          }
-        }
-      }
+      stepLavaHeat(view, { logEvent });
     }
 
     if (simTick % 100 === 0) {
-      for (let i = 0; i < view.width * view.height; i += 1) {
-        if (view.getTerrain(i) !== 0) continue;
-        if (view.getFeature(i) !== 0) continue;
-        if (Math.random() < 0.005) {
-          view.setFeature(i, 100);
-        }
-      }
+      stepTreeGrowth(view, { rng: Math.random });
     }
 
     if (simTick % 5 === 0) {
@@ -1112,6 +1129,54 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       buildingOwners[idx] = faction;
     }
     self.postMessage({ type: "tick", tick: simTick, paths, entityDebug, stats, buildingOwners });
+    const tickDuration = performance.now() - tickStart;
+    perfSamples.push(tickDuration);
+    if (perfSamples.length > 30) perfSamples.shift();
+    if (simTick % 10 === 0) {
+      const avg =
+        perfSamples.reduce((sum, value) => sum + value, 0) / Math.max(1, perfSamples.length);
+      self.postMessage({
+        type: "perf_stats",
+        avg_tick_ms: avg,
+        entity_count: count,
+        pathfinding_calls_per_tick: pathfindingCalls,
+        knowledge: snapshotKnowledge()
+      });
+    }
+    if (simulationSpecRef?.victory_conditions?.conquest?.active) {
+      const alive = new Set<number>();
+      for (const [faction, pop] of Object.entries(stats.population)) {
+        if ((pop ?? 0) > 0) alive.add(Number(faction));
+      }
+      for (const [faction, houses] of Object.entries(stats.houses)) {
+        if ((houses ?? 0) > 0) alive.add(Number(faction));
+      }
+      if (alive.size <= 1 && simTick > 0) {
+        matchOverSent = true;
+        const winnerFactionId = alive.size === 1 ? Array.from(alive)[0] : -1;
+        const winnerName =
+          winnerFactionId === 0
+            ? "Red"
+            : winnerFactionId === 1
+              ? "Blue"
+              : `Faction ${winnerFactionId}`;
+        logEvent({
+          event_type: "MATCH_OVER",
+          level: "INFO",
+          winner: winnerName,
+          winner_faction: winnerFactionId,
+          duration_ticks: simTick
+        });
+        flushLogs();
+        self.postMessage({
+          type: "match_over",
+          winnerFactionId,
+          winnerName,
+          tick: simTick,
+          knowledge: snapshotKnowledge()
+        });
+      }
+    }
     const flushInterval = loggingSpecRef?.config.flush_interval_ticks ?? 10;
     const maxBuffer = loggingSpecRef?.config.max_buffer_worker ?? 1000;
     if (simTick % flushInterval === 0 || logBuffer.length >= maxBuffer) {
@@ -1143,16 +1208,25 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
   }
   if (ev.data.type !== "init") return;
   try {
-    const [worldSpec, stateSpec, techSpec, unitBehaviorSpec, loggingSpec, combatSpec, entitySpec] =
-      await Promise.all([
-        loadWorldSpec(ev.data.worldSpecUrl),
-        loadStateSpec(ev.data.stateSpecUrl),
-        loadTechSpec(ev.data.techSpecUrl),
-        loadUnitBehaviorSpec(ev.data.unitBehaviorSpecUrl),
-        loadLoggingSpec(ev.data.loggingSpecUrl),
-        loadCombatSpec(ev.data.combatSpecUrl),
-        loadEntitySpec(ev.data.entitySpecUrl)
-      ]);
+    const [
+      worldSpec,
+      stateSpec,
+      techSpec,
+      unitBehaviorSpec,
+      loggingSpec,
+      combatSpec,
+      entitySpec,
+      simulationSpec
+    ] = await Promise.all([
+      loadWorldSpec(ev.data.worldSpecUrl),
+      loadStateSpec(ev.data.stateSpecUrl),
+      loadTechSpec(ev.data.techSpecUrl),
+      loadUnitBehaviorSpec(ev.data.unitBehaviorSpecUrl),
+      loadLoggingSpec(ev.data.loggingSpecUrl),
+      loadCombatSpec(ev.data.combatSpecUrl),
+      loadEntitySpec(ev.data.entitySpecUrl),
+      loadSimulationSpec(ev.data.simulationSpecUrl)
+    ]);
     const seed = ev.data.seed ?? 1337;
     const useShared = typeof SharedArrayBuffer !== "undefined";
     const buffers = makeStateBuffers(stateSpec, worldSpec, useShared);
@@ -1174,6 +1248,10 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     loggingSpecRef = loggingSpec;
     combatSpecRef = combatSpec;
     entitySpecRef = entitySpec;
+    simulationSpecRef = simulationSpec;
+    matchOverSent = false;
+    perfSamples.length = 0;
+    for (const key of Object.keys(knowledgeByFaction)) delete knowledgeByFaction[Number(key)];
     spawnInitialUnits();
 
     logEvent({ kind: "init", message: "world/state/tech loaded" });
@@ -1187,6 +1265,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       loggingSpec,
       combatSpec,
       entitySpec,
+      simulationSpec,
       buffers,
       shared: useShared
     };
