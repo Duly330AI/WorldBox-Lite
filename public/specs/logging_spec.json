@@ -1,0 +1,11 @@
+{
+  "spec_id": "logging_v1",
+  "version": "1.0",
+  "schema_version": "1.0.0",
+  "config": {
+    "flush_interval_ticks": 10,
+    "max_buffer_worker": 1000,
+    "ui_log_limit": 50,
+    "levels": ["DEBUG", "INFO", "DECISION", "ECONOMY", "COMBAT"]
+  }
+}

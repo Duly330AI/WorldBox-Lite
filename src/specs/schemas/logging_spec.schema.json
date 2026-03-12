@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "logging_spec.schema.json",
+  "title": "Logging Spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_id", "version", "schema_version", "config"],
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["flush_interval_ticks", "max_buffer_worker", "ui_log_limit", "levels"],
+      "properties": {
+        "flush_interval_ticks": { "type": "integer", "minimum": 1 },
+        "max_buffer_worker": { "type": "integer", "minimum": 1 },
+        "ui_log_limit": { "type": "integer", "minimum": 1 },
+        "levels": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

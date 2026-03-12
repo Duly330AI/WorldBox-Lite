@@ -3,6 +3,7 @@ import worldSchema from "../../specs/schemas/world_spec.schema.json";
 import stateSchema from "../../specs/schemas/state_spec.schema.json";
 import techSchema from "../../specs/schemas/tech_spec.schema.json";
 import unitBehaviorSchema from "../../specs/schemas/unit_behavior_spec.schema.json";
+import loggingSchema from "../../specs/schemas/logging_spec.schema.json";
 
 export type WorldSpec = {
   spec_id: string;
@@ -74,11 +75,24 @@ export type UnitBehaviorSpec = {
   utility_formulas: Record<string, string>;
 };
 
+export type LoggingSpec = {
+  spec_id: string;
+  version: string;
+  schema_version: string;
+  config: {
+    flush_interval_ticks: number;
+    max_buffer_worker: number;
+    ui_log_limit: number;
+    levels: string[];
+  };
+};
+
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateWorld = ajv.compile(worldSchema);
 const validateState = ajv.compile(stateSchema);
 const validateTech = ajv.compile(techSchema);
 const validateUnitBehavior = ajv.compile(unitBehaviorSchema);
+const validateLogging = ajv.compile(loggingSchema);
 
 export function assertWorldSpec(data: unknown): WorldSpec {
   if (!validateWorld(data)) {
@@ -124,6 +138,17 @@ export function assertUnitBehaviorSpec(data: unknown): UnitBehaviorSpec {
   return data as UnitBehaviorSpec;
 }
 
+export function assertLoggingSpec(data: unknown): LoggingSpec {
+  if (!validateLogging(data)) {
+    const errors = (validateLogging.errors || []) as DefinedError[];
+    const message = errors
+      .map((e) => `${e.instancePath || "(root)"} ${e.message}`)
+      .join("; ");
+    throw new Error(`logging_spec validation failed: ${message}`);
+  }
+  return data as LoggingSpec;
+}
+
 export async function loadWorldSpec(url: string): Promise<WorldSpec> {
   const res = await fetch(url);
   if (!res.ok) {
@@ -158,4 +183,13 @@ export async function loadUnitBehaviorSpec(url: string): Promise<UnitBehaviorSpe
   }
   const json = (await res.json()) as unknown;
   return assertUnitBehaviorSpec(json);
+}
+
+export async function loadLoggingSpec(url: string): Promise<LoggingSpec> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to load logging_spec: ${res.status}`);
+  }
+  const json = (await res.json()) as unknown;
+  return assertLoggingSpec(json);
 }

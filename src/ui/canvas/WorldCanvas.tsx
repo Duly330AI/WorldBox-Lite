@@ -60,6 +60,21 @@ export function WorldCanvas() {
       }
     }
 
+    if (buffers) {
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const idx = y * width + x;
+          if (buffers.building[idx] === 300) {
+            ctx.fillStyle = "#8b5a2b";
+            ctx.fillRect(x * tileSize + 4, y * tileSize + 4, tileSize - 8, tileSize - 8);
+            ctx.fillStyle = "#fff";
+            ctx.font = "10px sans-serif";
+            ctx.fillText("H", x * tileSize + tileSize / 2 - 3, y * tileSize + tileSize / 2 + 3);
+          }
+        }
+      }
+    }
+
     if (paths.length > 0) {
       ctx.strokeStyle = "rgba(0,0,0,0.5)";
       ctx.lineWidth = 1;

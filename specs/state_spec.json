@@ -17,6 +17,7 @@
       "y": "uint16",
       "health": "uint8",
       "energy": "uint8",
+      "hunger": "uint8",
       "inventory_wood": "uint8",
       "inventory_food": "uint8",
       "target_x": "uint16",

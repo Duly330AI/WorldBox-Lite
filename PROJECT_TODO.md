@@ -6,14 +6,23 @@
 - [x] Entity-Rendering: Worker (Type 201) als brauner Kreis mit weißem Rahmen
 - [x] Seeding-Update: Forest-Cluster (Gruppen 5–10 Tiles)
 - [x] Debug-Overlay: Progress-Bar + Action-Kürzel über der Einheit
-- [x] Event-Log-Panel (letzte 20 Events, AI_PLAN_CHANGE/UNIT_ACTION hervorgehoben)
+- [x] Event-Log-Panel (letzte 20 Events, AI_PLAN_CHANGE/UNIT_ACTION/ECONOMY_UPDATE hervorgehoben)
 - [x] Manual Spawning: Button "Spawn Test-Worker"
 - [x] Path-Visualisierung als dünne Linien
 - [x] Unit Inspector (Stats, Goal/Plan, Action-Progress)
 - [x] Home-Base Logic (home_x/home_y pro Faktion, Build-House nahe Home)
 - [x] Resource Exhaustion: nächste Wald-Cluster werden gesucht
-- [ ] Logging-Flush-Intervall aus `logging_spec.json` beziehen
-- [ ] Buffer-Access über definierte Offsets (state_spec-konform, explizite Access-API)
+
+## Phase 11 & 12 – Zivilisation & Kreislauf
+- [x] logging_spec.json + Schema + AJV Integration
+- [x] StateView Access-Layer (StateView.ts)
+- [x] Hunger-Tick (alle 5 Ticks +1)
+- [x] Nutrition-Goal treibt GATHER_FOOD (Utility via hunger)
+- [x] BUILD_HOUSE: nahe Home-Base, Holzverbrauch, building_buffer=300
+- [x] House-Logic: alle 50 Ticks Worker-Spawn bis Limit
+- [x] Building-Rendering (H-Symbol)
+- [x] Global Dashboard (Faktion Rot: Menschen/Häuser/Holz)
+- [ ] Buffer-Zugriffe vollständig über StateView abstrahieren
 
 ## Notes
-- `logging_spec.json` fehlt noch, um `flush_interval_ticks` zu nutzen.
+- logging_spec steuert `flush_interval_ticks` und Log-Limit.

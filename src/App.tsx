@@ -11,6 +11,8 @@ export function App() {
   const addEvents = useWorldStore((s) => s.addEvents);
   const setPaths = useWorldStore((s) => s.setPaths);
   const setEntityDebug = useWorldStore((s) => s.setEntityDebug);
+  const setStats = useWorldStore((s) => s.setStats);
+  const stats = useWorldStore((s) => s.stats);
   const [isPlaying, setIsPlaying] = useState(true);
   const [tick, setTick] = useState(0);
   const [speed, setSpeed] = useState(500);
@@ -26,13 +28,19 @@ export function App() {
     worker.onmessage = (ev) => {
       if (ev.data.type === "world") {
         const terrain = new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.spec, terrain, null, null);
+        setWorld(ev.data.spec, terrain, null, null, null);
       }
       if (ev.data.type === "state") {
         const terrain = ev.data.buffers?.terrain
           ? new Uint8Array(ev.data.buffers.terrain.buffer)
           : new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.worldSpec, terrain, ev.data.buffers ?? null, ev.data.unitBehaviorSpec ?? null);
+        setWorld(
+          ev.data.worldSpec,
+          terrain,
+          ev.data.buffers ?? null,
+          ev.data.unitBehaviorSpec ?? null,
+          ev.data.loggingSpec ?? null
+        );
       }
       if (ev.data.type === "error") {
         setError(ev.data.message);
@@ -44,6 +52,9 @@ export function App() {
         }
         if (ev.data.entityDebug) {
           setEntityDebug(ev.data.entityDebug);
+        }
+        if (ev.data.stats) {
+          setStats(ev.data.stats);
         }
       }
       if (ev.data.type === "log") {
@@ -58,11 +69,12 @@ export function App() {
       stateSpecUrl: "/specs/state_spec.json",
       techSpecUrl: "/specs/tech_spec.json",
       unitBehaviorSpecUrl: "/specs/unit_behavior_spec.json",
+      loggingSpecUrl: "/specs/logging_spec.json",
       seed: 1337
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -91,6 +103,12 @@ export function App() {
     <div style={{ padding: 16, fontFamily: "'IBM Plex Sans', sans-serif" }}>
       <h1 style={{ marginBottom: 8 }}>CivWorldBox</h1>
       <p style={{ marginTop: 0, color: "#555" }}>World generation preview (Canvas 2D)</p>
+      <div style={{ display: "flex", gap: 16, marginBottom: 12, fontSize: 12 }}>
+        <div>
+          Faktion Rot: {stats?.population?.[0] ?? 0} Menschen, {stats?.houses?.[0] ?? 0} Häuser,{" "}
+          {stats?.wood?.[0] ?? 0} Holz gesamt
+        </div>
+      </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
         <button
           onClick={() => setIsPlaying((v) => !v)}
