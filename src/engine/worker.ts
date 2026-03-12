@@ -11,6 +11,7 @@ import {
   type WorldSpec
 } from "./io/specLoader";
 import { StateView } from "./state/StateView";
+import { spawnUnit } from "./systems/spawn";
 
 type InitMessage = {
   type: "init";
@@ -364,8 +365,6 @@ let buffersRef: StateBuffers | null = null;
 let simTick = 0;
 let loggingSpecRef: LoggingSpec | null = null;
 let stateViewRef: StateView | null = null;
-let loggingSpecRef: LoggingSpec | null = null;
-let stateViewRef: StateView | null = null;
 
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
 let actionIdByName: Map<string, number> = new Map();
@@ -373,7 +372,6 @@ const exploredTiles: Map<number, Set<number>> = new Map();
 const lastPaths: Map<number, Array<[number, number]>> = new Map();
 const lastDecision: Map<number, { goal: string; plan: string[]; utilities: Record<string, number> }> = new Map();
 const homeByFaction: Map<number, { x: number; y: number }> = new Map();
-const buildingOwner: Map<number, number> = new Map();
 const buildingOwner: Map<number, number> = new Map();
 
 function buildActionIdMap(spec: UnitBehaviorSpec) {
@@ -888,65 +886,14 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
   }
   if (ev.data.type === "spawn_unit") {
     if (!buffersRef || !worldSpecRef) return;
-    const { width, height } = worldSpecRef.config.dimensions;
-    const ids = buffersRef.entities.id as Uint32Array;
-    const types = buffersRef.entities.type as Uint8Array;
-    const factions = buffersRef.entities.faction_id as Uint8Array;
-    const xs = buffersRef.entities.x as Uint16Array;
-    const ys = buffersRef.entities.y as Uint16Array;
-    const wood = buffersRef.entities.inventory_wood as Uint8Array;
-    const food = buffersRef.entities.inventory_food as Uint8Array;
-    const hunger = buffersRef.entities.hunger as Uint8Array;
-    const actionId = buffersRef.entities.current_action_id as Uint8Array;
-    const progress = buffersRef.entities.action_progress as Uint8Array;
-    const planLock = buffersRef.entities.plan_lock_ticks as Uint8Array;
-
     const req = ev.data as SpawnUnitMessage;
-    const tryPlaceAt = (x: number, y: number) => {
-      if (x < 0 || y < 0 || x >= width || y >= height) return false;
-      const idx = y * width + x;
-      const terrainId = buffersRef!.terrain[idx];
-      const walkable = Object.values(worldSpecRef!.terrain_types).some(
-        (t) => t.id === terrainId && t.walkable
-      );
-      if (!walkable) return false;
-      return true;
-    };
-
-    for (let i = 0; i < ids.length; i += 1) {
-      if (ids[i] !== 0) continue;
-      let x = req.x ?? Math.floor(Math.random() * width);
-      let y = req.y ?? Math.floor(Math.random() * height);
-      if (!tryPlaceAt(x, y)) {
-        let placed = false;
-        for (let attempts = 0; attempts < 500; attempts += 1) {
-          x = Math.floor(Math.random() * width);
-          y = Math.floor(Math.random() * height);
-          if (tryPlaceAt(x, y)) {
-            placed = true;
-            break;
-          }
-        }
-        if (!placed) return;
-      }
-      ids[i] = i + 1;
-      types[i] = req.unitType;
-      factions[i] = req.factionId;
-      if (!homeByFaction.has(req.factionId)) {
-        homeByFaction.set(req.factionId, { x, y });
-      }
-      xs[i] = x;
-      ys[i] = y;
-      wood[i] = 0;
-      food[i] = 0;
-      hunger[i] = 0;
-      actionId[i] = 0;
-      progress[i] = 0;
-      planLock[i] = 0;
-      logEvent({ event_type: "UNIT_SPAWN", entity_id: i, unit_type: req.unitType });
-      flushLogs();
-      return;
+    const result = spawnUnit(buffersRef, worldSpecRef, homeByFaction, req.unitType, req.factionId, req.x, req.y);
+    if (result.success) {
+      logEvent({ event_type: "UNIT_SPAWN", entity_id: result.entityIndex, unit_type: req.unitType });
+    } else {
+      logEvent({ event_type: "UNIT_SPAWN_FAILED", reason: result.reason });
     }
+    flushLogs();
     return;
   }
   if (ev.data.type !== "init") return;
