@@ -24,5 +24,15 @@
 - [x] Global Dashboard (Faktion Rot: Menschen/Häuser/Holz)
 - [ ] Buffer-Zugriffe vollständig über StateView abstrahieren
 
+## Phase 13, 14 & 15 – Krieg, Tod & Konsolidierung
+- [x] combat_spec.json + Schema + AJV Integration
+- [ ] Vollständige StateView-Migration (kein direkter TypedArray-Zugriff)
+- [ ] Multi-Fraktions-Setup (2 Factions, 2 Worker + 1 Scout je Faction)
+- [ ] Kampfsystem (ATTACK, Schaden, UNIT_DIED)
+- [ ] Hate-Matrix + Gefahrenzonen im Pathfinding
+- [ ] Dashboard: Population & Militärstärke für beide Factions
+- [ ] EventLog Filter nach Leveln (INFO/DECISION/COMBAT)
+- [x] CI Workflow (GitHub Actions: npm test)
+
 ## Notes
-- logging_spec steuert `flush_interval_ticks` und Log-Limit.
+- combat_spec wird geladen, Logik fehlt noch.

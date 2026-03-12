@@ -70,6 +70,7 @@ export function App() {
       techSpecUrl: "/specs/tech_spec.json",
       unitBehaviorSpecUrl: "/specs/unit_behavior_spec.json",
       loggingSpecUrl: "/specs/logging_spec.json",
+      combatSpecUrl: "/specs/combat_spec.json",
       seed: 1337
     });
 

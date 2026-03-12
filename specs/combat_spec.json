@@ -1,0 +1,17 @@
+{
+  "spec_id": "combat_v1",
+  "version": "1.0",
+  "schema_version": "1.0.0",
+  "rules": {
+    "base_damage": 10,
+    "defense_multiplier_hills": 1.25,
+    "defense_multiplier_forest": 1.5,
+    "recovery_rate_at_home": 5,
+    "death_threshold": 0
+  },
+  "unit_counters": {
+    "archer_vs_worker": 2.0,
+    "axeman_vs_archer": 1.5,
+    "swordsman_vs_axeman": 1.5
+  }
+}

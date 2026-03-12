@@ -1,9 +1,11 @@
 import {
+  loadCombatSpec,
   loadStateSpec,
   loadTechSpec,
   loadUnitBehaviorSpec,
   loadLoggingSpec,
   loadWorldSpec,
+  type CombatSpec,
   type LoggingSpec,
   type StateSpec,
   type TechSpec,
@@ -20,6 +22,7 @@ type InitMessage = {
   techSpecUrl: string;
   unitBehaviorSpecUrl: string;
   loggingSpecUrl: string;
+  combatSpecUrl: string;
   seed?: number;
 };
 
@@ -38,6 +41,7 @@ type GenerateResult = {
   techSpec: TechSpec;
   unitBehaviorSpec: UnitBehaviorSpec;
   loggingSpec: LoggingSpec;
+  combatSpec: CombatSpec;
   buffers: StateBuffers;
   shared: boolean;
 };
@@ -365,6 +369,7 @@ let buffersRef: StateBuffers | null = null;
 let simTick = 0;
 let loggingSpecRef: LoggingSpec | null = null;
 let stateViewRef: StateView | null = null;
+let combatSpecRef: CombatSpec | null = null;
 
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
 let actionIdByName: Map<string, number> = new Map();
@@ -898,12 +903,14 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
   }
   if (ev.data.type !== "init") return;
   try {
-    const [worldSpec, stateSpec, techSpec, unitBehaviorSpec, loggingSpec] = await Promise.all([
+    const [worldSpec, stateSpec, techSpec, unitBehaviorSpec, loggingSpec, combatSpec] =
+      await Promise.all([
       loadWorldSpec(ev.data.worldSpecUrl),
       loadStateSpec(ev.data.stateSpecUrl),
       loadTechSpec(ev.data.techSpecUrl),
       loadUnitBehaviorSpec(ev.data.unitBehaviorSpecUrl),
-      loadLoggingSpec(ev.data.loggingSpecUrl)
+      loadLoggingSpec(ev.data.loggingSpecUrl),
+      loadCombatSpec(ev.data.combatSpecUrl)
     ]);
     const seed = ev.data.seed ?? 1337;
     const useShared = typeof SharedArrayBuffer !== "undefined";
@@ -922,6 +929,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     buffersRef = buffers;
     loggingSpecRef = loggingSpec;
     stateViewRef = new StateView(buffers, worldSpec, stateSpec);
+    combatSpecRef = combatSpec;
     spawnInitialUnits();
 
     logEvent({ kind: "init", message: "world/state/tech loaded" });
@@ -933,6 +941,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       techSpec,
       unitBehaviorSpec,
       loggingSpec,
+      combatSpec,
       buffers,
       shared: useShared
     };

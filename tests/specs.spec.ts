@@ -5,11 +5,13 @@ import stateSchema from "../src/specs/schemas/state_spec.schema.json";
 import techSchema from "../src/specs/schemas/tech_spec.schema.json";
 import unitBehaviorSchema from "../src/specs/schemas/unit_behavior_spec.schema.json";
 import loggingSchema from "../src/specs/schemas/logging_spec.schema.json";
+import combatSchema from "../src/specs/schemas/combat_spec.schema.json";
 import worldSpec from "../specs/world_spec.json";
 import stateSpec from "../specs/state_spec.json";
 import techSpec from "../specs/tech_spec.json";
 import unitBehaviorSpec from "../specs/unit_behavior_spec.json";
 import loggingSpec from "../specs/logging_spec.json";
+import combatSpec from "../specs/combat_spec.json";
 
 const ajv = new Ajv({ allErrors: true, strict: true });
 
@@ -37,5 +39,10 @@ describe("Spec validation", () => {
   it("logging_spec validates", () => {
     const validate = ajv.compile(loggingSchema);
     expect(validate(loggingSpec)).toBe(true);
+  });
+
+  it("combat_spec validates", () => {
+    const validate = ajv.compile(combatSchema);
+    expect(validate(combatSpec)).toBe(true);
   });
 });

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "combat_spec.schema.json",
+  "title": "Combat Spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_id", "version", "schema_version", "rules", "unit_counters"],
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_damage",
+        "defense_multiplier_hills",
+        "defense_multiplier_forest",
+        "recovery_rate_at_home",
+        "death_threshold"
+      ],
+      "properties": {
+        "base_damage": { "type": "number", "minimum": 0 },
+        "defense_multiplier_hills": { "type": "number", "minimum": 0 },
+        "defense_multiplier_forest": { "type": "number", "minimum": 0 },
+        "recovery_rate_at_home": { "type": "number", "minimum": 0 },
+        "death_threshold": { "type": "number" }
+      }
+    },
+    "unit_counters": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    }
+  }
+}

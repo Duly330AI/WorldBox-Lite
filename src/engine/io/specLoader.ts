@@ -4,6 +4,7 @@ import stateSchema from "../../specs/schemas/state_spec.schema.json";
 import techSchema from "../../specs/schemas/tech_spec.schema.json";
 import unitBehaviorSchema from "../../specs/schemas/unit_behavior_spec.schema.json";
 import loggingSchema from "../../specs/schemas/logging_spec.schema.json";
+import combatSchema from "../../specs/schemas/combat_spec.schema.json";
 
 export type WorldSpec = {
   spec_id: string;
@@ -87,12 +88,27 @@ export type LoggingSpec = {
   };
 };
 
+export type CombatSpec = {
+  spec_id: string;
+  version: string;
+  schema_version: string;
+  rules: {
+    base_damage: number;
+    defense_multiplier_hills: number;
+    defense_multiplier_forest: number;
+    recovery_rate_at_home: number;
+    death_threshold: number;
+  };
+  unit_counters: Record<string, number>;
+};
+
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateWorld = ajv.compile(worldSchema);
 const validateState = ajv.compile(stateSchema);
 const validateTech = ajv.compile(techSchema);
 const validateUnitBehavior = ajv.compile(unitBehaviorSchema);
 const validateLogging = ajv.compile(loggingSchema);
+const validateCombat = ajv.compile(combatSchema);
 
 export function assertWorldSpec(data: unknown): WorldSpec {
   if (!validateWorld(data)) {
@@ -149,6 +165,17 @@ export function assertLoggingSpec(data: unknown): LoggingSpec {
   return data as LoggingSpec;
 }
 
+export function assertCombatSpec(data: unknown): CombatSpec {
+  if (!validateCombat(data)) {
+    const errors = (validateCombat.errors || []) as DefinedError[];
+    const message = errors
+      .map((e) => `${e.instancePath || "(root)"} ${e.message}`)
+      .join("; ");
+    throw new Error(`combat_spec validation failed: ${message}`);
+  }
+  return data as CombatSpec;
+}
+
 export async function loadWorldSpec(url: string): Promise<WorldSpec> {
   const res = await fetch(url);
   if (!res.ok) {
@@ -192,4 +219,13 @@ export async function loadLoggingSpec(url: string): Promise<LoggingSpec> {
   }
   const json = (await res.json()) as unknown;
   return assertLoggingSpec(json);
+}
+
+export async function loadCombatSpec(url: string): Promise<CombatSpec> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to load combat_spec: ${res.status}`);
+  }
+  const json = (await res.json()) as unknown;
+  return assertCombatSpec(json);
 }
