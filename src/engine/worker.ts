@@ -18,7 +18,7 @@ type InitMessage = {
   seed?: number;
 };
 
-type StateBuffers = {
+export type StateBuffers = {
   terrain: Uint8Array;
   feature: Uint8Array;
   building: Uint16Array;
@@ -50,7 +50,15 @@ type AiTickMessage = {
 
 type SimTickMessage = {
   type: "sim_tick";
-  entityIndices: number[];
+  entityIndices?: number[];
+};
+
+type SpawnUnitMessage = {
+  type: "spawn_unit";
+  unitType: number;
+  factionId: number;
+  x?: number;
+  y?: number;
 };
 
 type ErrorMessage = {
@@ -168,7 +176,7 @@ function makeStateBuffers(stateSpec: StateSpec, worldSpec: WorldSpec, useShared:
   const terrain = makeTileBuffer(stateSpec.memory_layout.terrain_buffer.type, tileCount, useShared) as Uint8Array;
   const feature = makeTileBuffer(stateSpec.memory_layout.feature_buffer.type, tileCount, useShared) as Uint8Array;
   const building = makeTileBuffer(stateSpec.memory_layout.building_buffer.type, tileCount, useShared) as Uint16Array;
-  const height = makeTileBuffer(stateSpec.memory_layout.height_buffer.type, tileCount, useShared) as Int8Array;
+  const heightBuf = makeTileBuffer(stateSpec.memory_layout.height_buffer.type, tileCount, useShared) as Int8Array;
 
   const entities: StateBuffers["entities"] = {};
   const maxEntities = stateSpec.entity_state.max_entities;
@@ -182,7 +190,7 @@ function makeStateBuffers(stateSpec: StateSpec, worldSpec: WorldSpec, useShared:
     }
   }
 
-  return { terrain, feature, building, height, entities };
+  return { terrain, feature, building, height: heightBuf, entities };
 }
 
 class TechManager {
@@ -317,6 +325,7 @@ let simTick = 0;
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
 let actionIdByName: Map<string, number> = new Map();
 const exploredTiles: Map<number, Set<number>> = new Map();
+const lastPaths: Map<number, Array<[number, number]>> = new Map();
 
 function buildActionIdMap(spec: UnitBehaviorSpec) {
   actionById = new Map();
@@ -377,7 +386,7 @@ function findNearestTile(
   return null;
 }
 
-function aStarStep(
+function aStarPath(
   startX: number,
   startY: number,
   goalX: number,
@@ -427,15 +436,19 @@ function aStarStep(
   }
 
   if (cameFrom[goalIdx] === -1) return null;
+  const path: Array<[number, number]> = [];
   let current = goalIdx;
-  let prev = cameFrom[current];
-  while (prev !== -1 && prev !== startIdx) {
+  path.push([goalX, goalY]);
+  while (current !== startIdx) {
+    const prev = cameFrom[current];
+    if (prev === -1) break;
+    const px = prev % width;
+    const py = Math.floor(prev / width);
+    path.push([px, py]);
     current = prev;
-    prev = cameFrom[current];
   }
-  const nextX = current % width;
-  const nextY = Math.floor(current / width);
-  return { x: nextX, y: nextY };
+  path.reverse();
+  return path;
 }
 
 function tickAction(entityIndex: number) {
@@ -483,10 +496,12 @@ function tickAction(entityIndex: number) {
     x === targetX[entityIndex] && y === targetY[entityIndex];
 
   const moveTowardTarget = () => {
-    const next = aStarStep(x, y, targetX[entityIndex], targetY[entityIndex], width, height, isWalkable, occupied);
-    if (next) {
-      xs[entityIndex] = next.x;
-      ys[entityIndex] = next.y;
+    const path = aStarPath(x, y, targetX[entityIndex], targetY[entityIndex], width, height, isWalkable, occupied);
+    if (path && path.length > 1) {
+      const [nx, ny] = path[1];
+      xs[entityIndex] = nx;
+      ys[entityIndex] = ny;
+      lastPaths.set(entityIndex, path);
     }
   };
 
@@ -647,11 +662,15 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     const ids = buffersRef.entities.id as Uint32Array;
     const planLock = buffersRef.entities.plan_lock_ticks as Uint8Array;
     const currentAction = buffersRef.entities.current_action_id as Uint8Array;
-    for (const idx of entityIndices) {
+    const indices =
+      entityIndices && entityIndices.length > 0
+        ? entityIndices
+        : Array.from({ length: ids.length }, (_, i) => i);
+    for (const idx of indices) {
       if (ids[idx] === 0) continue;
       if (planLock[idx] > 0) planLock[idx] -= 1;
       updateExploration(idx, width);
-      if (planLock[idx] === 0 || currentAction[idx] === 0) {
+      if (planLock[idx] === 0) {
         const inputs = computeInputs(idx, width);
         const utilities = computeUtilities(unitBehaviorSpecRef!, inputs);
         const { goalKey, goalEffect } = pickTopGoal(unitBehaviorSpecRef!, utilities);
@@ -675,8 +694,70 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       tickAction(idx);
     }
     simTick += 1;
-    self.postMessage({ type: "tick", tick: simTick });
+    const paths = Array.from(lastPaths.entries()).map(([entity_id, path]) => ({
+      entity_id,
+      path
+    }));
+    self.postMessage({ type: "tick", tick: simTick, paths });
     flushLogs();
+    return;
+  }
+  if (ev.data.type === "spawn_unit") {
+    if (!buffersRef || !worldSpecRef) return;
+    const { width, height } = worldSpecRef.config.dimensions;
+    const ids = buffersRef.entities.id as Uint32Array;
+    const types = buffersRef.entities.type as Uint8Array;
+    const factions = buffersRef.entities.faction_id as Uint8Array;
+    const xs = buffersRef.entities.x as Uint16Array;
+    const ys = buffersRef.entities.y as Uint16Array;
+    const wood = buffersRef.entities.inventory_wood as Uint8Array;
+    const food = buffersRef.entities.inventory_food as Uint8Array;
+    const actionId = buffersRef.entities.current_action_id as Uint8Array;
+    const progress = buffersRef.entities.action_progress as Uint8Array;
+    const planLock = buffersRef.entities.plan_lock_ticks as Uint8Array;
+
+    const req = ev.data as SpawnUnitMessage;
+    const tryPlaceAt = (x: number, y: number) => {
+      if (x < 0 || y < 0 || x >= width || y >= height) return false;
+      const idx = y * width + x;
+      const terrainId = buffersRef!.terrain[idx];
+      const walkable = Object.values(worldSpecRef!.terrain_types).some(
+        (t) => t.id === terrainId && t.walkable
+      );
+      if (!walkable) return false;
+      return true;
+    };
+
+    for (let i = 0; i < ids.length; i += 1) {
+      if (ids[i] !== 0) continue;
+      let x = req.x ?? Math.floor(Math.random() * width);
+      let y = req.y ?? Math.floor(Math.random() * height);
+      if (!tryPlaceAt(x, y)) {
+        let placed = false;
+        for (let attempts = 0; attempts < 500; attempts += 1) {
+          x = Math.floor(Math.random() * width);
+          y = Math.floor(Math.random() * height);
+          if (tryPlaceAt(x, y)) {
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) return;
+      }
+      ids[i] = i + 1;
+      types[i] = req.unitType;
+      factions[i] = req.factionId;
+      xs[i] = x;
+      ys[i] = y;
+      wood[i] = 0;
+      food[i] = 0;
+      actionId[i] = 0;
+      progress[i] = 0;
+      planLock[i] = 0;
+      logEvent({ event_type: "UNIT_SPAWN", entity_id: i, unit_type: req.unitType });
+      flushLogs();
+      return;
+    }
     return;
   }
   if (ev.data.type !== "init") return;

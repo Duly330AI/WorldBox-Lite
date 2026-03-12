@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { WorldCanvas } from "./ui/canvas/WorldCanvas";
+import { EventLog } from "./ui/components/EventLog";
 import { useWorldStore } from "./ui/store";
 
 export function App() {
   const setWorld = useWorldStore((s) => s.setWorld);
   const error = useWorldStore((s) => s.error);
   const setError = useWorldStore((s) => s.setError);
+  const addEvents = useWorldStore((s) => s.addEvents);
+  const setPaths = useWorldStore((s) => s.setPaths);
   const [isPlaying, setIsPlaying] = useState(true);
   const [tick, setTick] = useState(0);
   const [speed, setSpeed] = useState(500);
@@ -21,22 +24,26 @@ export function App() {
     worker.onmessage = (ev) => {
       if (ev.data.type === "world") {
         const terrain = new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.spec, terrain);
+        setWorld(ev.data.spec, terrain, null, null);
       }
       if (ev.data.type === "state") {
         const terrain = ev.data.buffers?.terrain
           ? new Uint8Array(ev.data.buffers.terrain.buffer)
           : new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.worldSpec, terrain);
+        setWorld(ev.data.worldSpec, terrain, ev.data.buffers ?? null, ev.data.unitBehaviorSpec ?? null);
       }
       if (ev.data.type === "error") {
         setError(ev.data.message);
       }
       if (ev.data.type === "tick") {
         setTick(ev.data.tick);
+        if (ev.data.paths) {
+          setPaths(ev.data.paths);
+        }
       }
       if (ev.data.type === "log") {
         console.debug("telemetry", ev.data.entries);
+        addEvents(ev.data.entries ?? []);
       }
     };
 
@@ -50,7 +57,7 @@ export function App() {
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError]);
+  }, [setWorld, setError, addEvents, setPaths]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -63,7 +70,7 @@ export function App() {
 
     if (isPlaying) {
       timerRef.current = window.setInterval(() => {
-        worker.postMessage({ type: "sim_tick", entityIndices: [0, 1] });
+        worker.postMessage({ type: "sim_tick" });
       }, speed);
     }
 
@@ -105,12 +112,31 @@ export function App() {
           />
           <span>{speed}ms</span>
         </label>
+        <button
+          onClick={() => workerRef.current?.postMessage({ type: "spawn_unit", unitType: 201, factionId: 0 })}
+          style={{
+            padding: "6px 12px",
+            border: "1px solid #333",
+            background: "#f5f5f5",
+            color: "#222",
+            borderRadius: 6
+          }}
+        >
+          Spawn Test-Worker
+        </button>
       </div>
-      {error ? (
-        <div style={{ color: "#b00020" }}>{error}</div>
-      ) : (
-        <WorldCanvas />
-      )}
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+        <div style={{ flex: 1 }}>
+          {error ? (
+            <div style={{ color: "#b00020" }}>{error}</div>
+          ) : (
+            <WorldCanvas />
+          )}
+        </div>
+        <div style={{ width: 280 }}>
+          <EventLog />
+        </div>
+      </div>
     </div>
   );
 }
