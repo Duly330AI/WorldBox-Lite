@@ -15,6 +15,7 @@ export function Minimap() {
   const spec = useWorldStore((s) => s.spec);
   const terrain = useWorldStore((s) => s.terrain);
   const buffers = useWorldStore((s) => s.buffers);
+  const minimapBuffer = useWorldStore((s) => s.minimapBuffer);
 
   useEffect(() => {
     if (!spec || !terrain) return;
@@ -26,6 +27,11 @@ export function Minimap() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    if (minimapBuffer) {
+      const image = new ImageData(minimapBuffer, size, size);
+      ctx.putImageData(image, 0, 0);
+      return;
+    }
     const { width, height } = spec.config.dimensions;
     const stepX = width / size;
     const stepY = height / size;
@@ -41,7 +47,7 @@ export function Minimap() {
         ctx.fillRect(x, y, 1, 1);
       }
     }
-  }, [spec, terrain, buffers]);
+  }, [spec, terrain, buffers, minimapBuffer]);
 
   return (
     <div

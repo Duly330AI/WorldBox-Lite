@@ -164,6 +164,12 @@ export class StateView {
   setEntityPlanLock(index: number, value: number) {
     this.setEntityField(index, "plan_lock_ticks", value);
   }
+  getEntityAnimationFrame(index: number) {
+    return this.getEntityField<number>(index, "animation_frame");
+  }
+  setEntityAnimationFrame(index: number, value: number) {
+    this.setEntityField(index, "animation_frame", value);
+  }
   getEntityTargetX(index: number) {
     return this.getEntityField<number>(index, "target_x");
   }

@@ -10,6 +10,7 @@ export type WorldState = {
   techSpec: TechSpec | null;
   assetSpec: AssetSpec | null;
   tilesetImages: Record<string, HTMLImageElement>;
+  minimapBuffer: Uint8ClampedArray | null;
   terrain: Uint8Array | null;
   buffers: StateBuffers | null;
   paths: Array<{ entity_id: number; path: Array<[number, number]> }>;
@@ -25,6 +26,8 @@ export type WorldState = {
   chronicles: Record<number, { battle_win_loss_ratio: number }>;
   godTool: { tool: "lava" | "forest" | "water" | "ignite" | null; brushSize: number };
   worker: Worker | null;
+  tick: number;
+  tickIntervalMs: number;
   error: string | null;
   setWorld: (
     spec: WorldSpec,
@@ -51,6 +54,10 @@ export type WorldState = {
   setChronicles: (data: Record<number, { battle_win_loss_ratio: number }>) => void;
   setTilesetImages: (images: Record<string, HTMLImageElement>) => void;
   setAssetSpec: (spec: AssetSpec | null) => void;
+  setTick: (tick: number) => void;
+  setTickIntervalMs: (ms: number) => void;
+  setMinimapBuffer: (buf: Uint8ClampedArray | null) => void;
+  setMinimapBuffer: (buf: Uint8ClampedArray | null) => void;
   setGodTool: (tool: "lava" | "forest" | "water" | "ignite" | null) => void;
   setBrushSize: (size: number) => void;
   setWorker: (worker: Worker | null) => void;
@@ -65,6 +72,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   techSpec: null,
   assetSpec: null,
   tilesetImages: {},
+  minimapBuffer: null,
   terrain: null,
   buffers: null,
   paths: [],
@@ -80,6 +88,8 @@ export const useWorldStore = create<WorldState>((set) => ({
   chronicles: {},
   godTool: { tool: null, brushSize: 1 },
   worker: null,
+  tick: 0,
+  tickIntervalMs: 500,
   error: null,
   setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, assetSpec) =>
     set({ spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, assetSpec, error: null }),
@@ -101,6 +111,9 @@ export const useWorldStore = create<WorldState>((set) => ({
   setChronicles: (data) => set({ chronicles: data }),
   setTilesetImages: (images: Record<string, HTMLImageElement>) => set({ tilesetImages: images }),
   setAssetSpec: (spec) => set({ assetSpec: spec }),
+  setTick: (tick) => set({ tick }),
+  setTickIntervalMs: (ms) => set({ tickIntervalMs: ms }),
+  setMinimapBuffer: (buf) => set({ minimapBuffer: buf }),
   setGodTool: (tool) => set((state) => ({ godTool: { ...state.godTool, tool } })),
   setBrushSize: (size) => set((state) => ({ godTool: { ...state.godTool, brushSize: size } })),
   setWorker: (worker) => set({ worker }),

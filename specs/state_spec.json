@@ -25,7 +25,8 @@
       "target_y": "uint16",
       "current_action_id": "uint8",
       "action_progress": "uint8",
-      "plan_lock_ticks": "uint8"
+      "plan_lock_ticks": "uint8",
+      "animation_frame": "uint8"
     }
   }
 }

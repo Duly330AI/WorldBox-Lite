@@ -5,7 +5,7 @@
   "tilesets": [
     {
       "name": "kenney",
-      "image": "/assets/tilesets/kenney/tiles.png",
+      "image": "/assets/tilesets/kenney/tilesheet.png",
       "tile_size": 32,
       "columns": 16
     }

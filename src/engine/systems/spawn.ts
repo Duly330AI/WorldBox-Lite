@@ -29,6 +29,7 @@ export function spawnUnit(
   const actionId = buffers.entities.current_action_id as Uint8Array;
   const progress = buffers.entities.action_progress as Uint8Array;
   const planLock = buffers.entities.plan_lock_ticks as Uint8Array;
+  const animation = buffers.entities.animation_frame as Uint8Array | undefined;
 
   const tryPlaceAt = (tx: number, ty: number) => {
     if (tx < 0 || ty < 0 || tx >= width || ty >= height) return false;
@@ -72,6 +73,7 @@ export function spawnUnit(
     actionId[i] = 0;
     progress[i] = 0;
     planLock[i] = 0;
+    if (animation) animation[i] = 0;
     return { success: true, entityIndex: i };
   }
 

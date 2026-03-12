@@ -45,7 +45,8 @@
             "target_y",
             "current_action_id",
             "action_progress",
-            "plan_lock_ticks"
+            "plan_lock_ticks",
+            "animation_frame"
           ],
           "properties": {
             "id": { "$ref": "#/definitions/entityType" },
@@ -62,7 +63,8 @@
             "target_y": { "$ref": "#/definitions/entityType" },
             "current_action_id": { "$ref": "#/definitions/entityType" },
             "action_progress": { "$ref": "#/definitions/entityType" },
-            "plan_lock_ticks": { "$ref": "#/definitions/entityType" }
+            "plan_lock_ticks": { "$ref": "#/definitions/entityType" },
+            "animation_frame": { "$ref": "#/definitions/entityType" }
           }
         }
       }

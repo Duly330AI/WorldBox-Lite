@@ -75,5 +75,12 @@
 - [x] Camera Pan & Zoom
 - [x] Brush Preview bleibt kompatibel mit Kamera
 
+## Phase 30-31 – Asset Import & Animation
+- [x] setupAssets.ts (Kenney Download + Extract)
+- [x] postinstall Hook (tsx scripts/setupAssets.ts)
+- [x] Entity Movement Lerp
+- [x] animation_frame im State
+- [x] Minimap Buffer aus Worker (20 Ticks)
+
 ## Notes
 - combat_spec wird geladen und verwendet.

@@ -747,6 +747,54 @@ function findNearestTile(
   return null;
 }
 
+function buildMinimapBuffer(view: StateView, size = 80) {
+  const width = view.width;
+  const height = view.height;
+  const buffer = new Uint8ClampedArray(size * size * 4);
+  const stepX = width / size;
+  const stepY = height / size;
+  const terrainColors: Record<number, [number, number, number]> = {
+    0: [74, 222, 128],
+    1: [251, 191, 36],
+    2: [245, 158, 11],
+    5: [59, 130, 246],
+    7: [75, 85, 99],
+    8: [239, 68, 68]
+  };
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const tx = Math.min(width - 1, Math.floor(x * stepX));
+      const ty = Math.min(height - 1, Math.floor(y * stepY));
+      const idx = view.tileIndex(tx, ty);
+      const terrain = view.getTerrain(idx);
+      const feature = view.getFeature(idx);
+      let color = terrainColors[terrain] ?? [51, 51, 51];
+      if (feature === 100) color = [20, 83, 45];
+      if (feature === 110) color = [249, 115, 22];
+      const base = (y * size + x) * 4;
+      buffer[base] = color[0];
+      buffer[base + 1] = color[1];
+      buffer[base + 2] = color[2];
+      buffer[base + 3] = 255;
+    }
+  }
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    const ex = view.getEntityX(i);
+    const ey = view.getEntityY(i);
+    const mx = Math.floor((ex / width) * size);
+    const my = Math.floor((ey / height) * size);
+    const base = (my * size + mx) * 4;
+    const faction = view.getEntityFaction(i);
+    const color = faction === 1 ? [59, 130, 246] : [239, 68, 68];
+    buffer[base] = color[0];
+    buffer[base + 1] = color[1];
+    buffer[base + 2] = color[2];
+    buffer[base + 3] = 255;
+  }
+  return buffer;
+}
+
 function aStarPath(
   startX: number,
   startY: number,
@@ -866,7 +914,10 @@ function tickAction(entityIndex: number) {
       const [nx, ny] = path[1];
       view.setEntityX(entityIndex, nx);
       view.setEntityY(entityIndex, ny);
+      view.setEntityAnimationFrame(entityIndex, (view.getEntityAnimationFrame(entityIndex) + 1) % 2);
       lastPaths.set(entityIndex, path);
+    } else {
+      view.setEntityAnimationFrame(entityIndex, 0);
     }
   };
 
@@ -881,6 +932,9 @@ function tickAction(entityIndex: number) {
       const pick = options[Math.floor(randomFn() * options.length)];
       view.setEntityX(entityIndex, pick[0]);
       view.setEntityY(entityIndex, pick[1]);
+      view.setEntityAnimationFrame(entityIndex, (view.getEntityAnimationFrame(entityIndex) + 1) % 2);
+    } else {
+      view.setEntityAnimationFrame(entityIndex, 0);
     }
     view.setEntityActionProgress(entityIndex, 0);
     return;
@@ -1457,6 +1511,10 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         research,
         chronicles: snapshotChronicles()
       });
+    }
+    if (simTick % 20 === 0) {
+      const mini = buildMinimapBuffer(view, 80);
+      self.postMessage({ type: "minimap", buffer: mini.buffer }, [mini.buffer]);
     }
     if (simulationSpecRef?.victory_conditions?.conquest?.active) {
       const alive = new Set<number>();

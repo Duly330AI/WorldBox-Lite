@@ -24,6 +24,9 @@ export function App() {
   const setChronicles = useWorldStore((s) => s.setChronicles);
   const setTilesetImages = useWorldStore((s) => s.setTilesetImages);
   const setAssetSpec = useWorldStore((s) => s.setAssetSpec);
+  const setTickStore = useWorldStore((s) => s.setTick);
+  const setTickIntervalMs = useWorldStore((s) => s.setTickIntervalMs);
+  const setMinimapBuffer = useWorldStore((s) => s.setMinimapBuffer);
   const stats = useWorldStore((s) => s.stats);
   const perfStats = useWorldStore((s) => s.perfStats);
   const simulationSpec = useWorldStore((s) => s.simulationSpec);
@@ -72,6 +75,7 @@ export function App() {
       }
       if (ev.data.type === "tick") {
         setTick(ev.data.tick);
+        setTickStore(ev.data.tick);
         if (ev.data.paths) {
           setPaths(ev.data.paths);
         }
@@ -100,6 +104,10 @@ export function App() {
       if (ev.data.type === "match_over") {
         setMatchOver(ev.data);
         setIsPlaying(false);
+      }
+      if (ev.data.type === "minimap") {
+        const buf = new Uint8ClampedArray(ev.data.buffer);
+        setMinimapBuffer(buf);
       }
       if (ev.data.type === "export_data") {
         const blob = new Blob([JSON.stringify(ev.data.payload, null, 2)], {
@@ -133,7 +141,7 @@ export function App() {
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles, setTilesetImages]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles, setTilesetImages, setMinimapBuffer]);
 
   useEffect(() => {
     let cancelled = false;
@@ -188,6 +196,10 @@ export function App() {
       }
     };
   }, [isPlaying, speed]);
+
+  useEffect(() => {
+    setTickIntervalMs(speed);
+  }, [speed, setTickIntervalMs]);
 
   const warningMs = simulationSpec?.performance_targets.warning_threshold_ms ?? 100;
   const avgTickMs = perfStats?.avg_tick_ms ?? 0;
