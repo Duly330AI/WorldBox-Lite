@@ -1,15 +1,12 @@
+import type { MouseEvent } from "react";
 import { useEffect, useRef } from "react";
 import { useWorldStore } from "../store";
 
-const DEFAULT_COLORS: Record<string, string> = {
-  grass: "#6dbd45",
-  plains: "#a4c76a",
-  desert: "#d8c384",
-  tundra: "#a6bda8",
-  snow: "#e7eef3",
-  water: "#4aa3c7",
-  ocean: "#2e6fa1",
-  peak: "#88939c"
+const ID_COLORS: Record<number, string> = {
+  0: "#4ade80",
+  1: "#fbbf24",
+  5: "#3b82f6",
+  7: "#4b5563"
 };
 
 export function WorldCanvas() {
@@ -19,6 +16,7 @@ export function WorldCanvas() {
   const buffers = useWorldStore((s) => s.buffers);
   const unitBehaviorSpec = useWorldStore((s) => s.unitBehaviorSpec);
   const paths = useWorldStore((s) => s.paths);
+  const setSelectedEntityId = useWorldStore((s) => s.setSelectedEntityId);
 
   useEffect(() => {
     if (!spec || !terrain) return;
@@ -33,17 +31,32 @@ export function WorldCanvas() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const idToColor = new Map<number, string>();
-    for (const [name, def] of Object.entries(spec.terrain_types)) {
-      idToColor.set(def.id, DEFAULT_COLORS[name] ?? "#666666");
-    }
-
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
         const idx = y * width + x;
         const id = terrain[idx];
-        ctx.fillStyle = idToColor.get(id) ?? "#333333";
+        ctx.fillStyle = ID_COLORS[id] ?? "#333333";
         ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      }
+    }
+
+    if (buffers) {
+      ctx.fillStyle = "#064e3b";
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const idx = y * width + x;
+          if (buffers.feature[idx] === 100) {
+            ctx.beginPath();
+            ctx.arc(
+              x * tileSize + tileSize / 2,
+              y * tileSize + tileSize / 2,
+              tileSize / 4,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+          }
+        }
       }
     }
 
@@ -69,6 +82,7 @@ export function WorldCanvas() {
       const ys = buffers.entities.y as Uint16Array | undefined;
       const actionId = buffers.entities.current_action_id as Uint8Array | undefined;
       const progress = buffers.entities.action_progress as Uint8Array | undefined;
+      const types = buffers.entities.type as Uint8Array | undefined;
       if (ids && xs && ys && actionId && progress) {
         const actionNameById = new Map<number, string>();
         for (const [name, def] of Object.entries(unitBehaviorSpec.actions)) {
@@ -80,8 +94,21 @@ export function WorldCanvas() {
           const y = ys[i];
           const px = x * tileSize;
           const py = y * tileSize;
-          ctx.fillStyle = "#222";
-          ctx.fillRect(px + tileSize / 4, py + tileSize / 4, tileSize / 2, tileSize / 2);
+          if (types && types[i] === 201) {
+            ctx.fillStyle = "#7c4a2d";
+            ctx.beginPath();
+            ctx.arc(
+              px + tileSize / 2,
+              py + tileSize / 2,
+              tileSize / 4,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
 
           if (actionId[i] > 0) {
             const pct = Math.min(1, progress[i] / 100);
@@ -98,9 +125,32 @@ export function WorldCanvas() {
     }
   }, [spec, terrain, buffers, unitBehaviorSpec, paths]);
 
+  const handleClick = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!spec || !buffers) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = Math.floor((event.clientX - rect.left) * scaleX / spec.config.tile_size);
+    const y = Math.floor((event.clientY - rect.top) * scaleY / spec.config.tile_size);
+    const ids = buffers.entities.id as Uint32Array;
+    const xs = buffers.entities.x as Uint16Array;
+    const ys = buffers.entities.y as Uint16Array;
+    for (let i = 0; i < ids.length; i += 1) {
+      if (ids[i] === 0) continue;
+      if (xs[i] === x && ys[i] === y) {
+        setSelectedEntityId(i);
+        return;
+      }
+    }
+    setSelectedEntityId(null);
+  };
+
   return (
     <canvas
       ref={canvasRef}
+      onClick={handleClick}
       style={{
         width: "100%",
         maxWidth: 900,

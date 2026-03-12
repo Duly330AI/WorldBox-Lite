@@ -22,7 +22,8 @@ export function EventLog() {
           .reverse()
           .map((e, idx) => {
             const type = String(e.event_type ?? "event");
-            const highlight = type === "AI_PLAN_CHANGE" || type === "UNIT_ACTION";
+            const highlight =
+              type === "AI_PLAN_CHANGE" || type === "UNIT_ACTION" || type === "ECONOMY_UPDATE";
             return (
               <div
                 key={idx}
@@ -33,6 +34,7 @@ export function EventLog() {
                 }}
               >
                 <span style={{ fontWeight: 600 }}>{type}</span>
+                {typeof e.tick !== "undefined" ? ` • t:${String(e.tick)}` : ""}
                 {e.action ? ` • ${String(e.action)}` : ""}
                 {e.goal ? ` • ${String(e.goal)}` : ""}
                 {typeof e.entity_id !== "undefined" ? ` • ent:${String(e.entity_id)}` : ""}

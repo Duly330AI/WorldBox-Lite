@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { WorldCanvas } from "./ui/canvas/WorldCanvas";
 import { EventLog } from "./ui/components/EventLog";
+import { UnitInspector } from "./ui/components/UnitInspector";
 import { useWorldStore } from "./ui/store";
 
 export function App() {
@@ -9,6 +10,7 @@ export function App() {
   const setError = useWorldStore((s) => s.setError);
   const addEvents = useWorldStore((s) => s.addEvents);
   const setPaths = useWorldStore((s) => s.setPaths);
+  const setEntityDebug = useWorldStore((s) => s.setEntityDebug);
   const [isPlaying, setIsPlaying] = useState(true);
   const [tick, setTick] = useState(0);
   const [speed, setSpeed] = useState(500);
@@ -40,6 +42,9 @@ export function App() {
         if (ev.data.paths) {
           setPaths(ev.data.paths);
         }
+        if (ev.data.entityDebug) {
+          setEntityDebug(ev.data.entityDebug);
+        }
       }
       if (ev.data.type === "log") {
         console.debug("telemetry", ev.data.entries);
@@ -57,7 +62,7 @@ export function App() {
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -135,6 +140,8 @@ export function App() {
         </div>
         <div style={{ width: 280 }}>
           <EventLog />
+          <div style={{ height: 12 }} />
+          <UnitInspector />
         </div>
       </div>
     </div>

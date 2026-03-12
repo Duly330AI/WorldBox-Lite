@@ -1,4 +1,4 @@
-import Ajv, { type DefinedError } from "ajv";
+import Ajv, { type DefinedError } from "ajv/dist/2020";
 import worldSchema from "../../specs/schemas/world_spec.schema.json";
 import stateSchema from "../../specs/schemas/state_spec.schema.json";
 import techSchema from "../../specs/schemas/tech_spec.schema.json";

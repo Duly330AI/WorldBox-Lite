@@ -93,10 +93,39 @@ function seedForests(spec: WorldSpec, buffers: StateBuffers, seed: number) {
   const { width, height } = spec.config.dimensions;
   const rng = lcg(seed ^ 0x9e3779b9);
   const grassId = Object.values(spec.terrain_types).find((t) => t.id === 0)?.id ?? 0;
-  for (let i = 0; i < buffers.feature.length; i += 1) {
-    if (buffers.terrain[i] !== grassId) continue;
-    if (rng() < 0.08) {
-      buffers.feature[i] = 100;
+  const tileCount = width * height;
+  const avgClusterSize = 7;
+  const clusterCount = Math.max(1, Math.floor((tileCount * 0.08) / avgClusterSize));
+  const directions = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1]
+  ];
+
+  for (let c = 0; c < clusterCount; c += 1) {
+    let cx = Math.floor(rng() * width);
+    let cy = Math.floor(rng() * height);
+    let attempts = 0;
+    while (attempts < 50) {
+      const idx = cy * width + cx;
+      if (buffers.terrain[idx] === grassId) break;
+      cx = Math.floor(rng() * width);
+      cy = Math.floor(rng() * height);
+      attempts += 1;
+    }
+    const size = 5 + Math.floor(rng() * 6);
+    let x = cx;
+    let y = cy;
+    for (let i = 0; i < size; i += 1) {
+      if (x < 0 || y < 0 || x >= width || y >= height) break;
+      const idx = y * width + x;
+      if (buffers.terrain[idx] === grassId) {
+        buffers.feature[idx] = 100;
+      }
+      const [dx, dy] = directions[Math.floor(rng() * directions.length)];
+      x += dx;
+      y += dy;
     }
   }
 }
@@ -137,6 +166,9 @@ function spawnInitialUnits() {
         ids[i] = i + 1;
         types[i] = 201;
         factions[i] = 0;
+        if (!homeByFaction.has(0)) {
+          homeByFaction.set(0, { x: spot[0], y: spot[1] });
+        }
         xs[i] = spot[0];
         ys[i] = spot[1];
         wood[i] = 0;
@@ -307,7 +339,7 @@ function buildPlan(actions: ActionDef[], goalEffect: string, stateFacts: Set<str
 
 const logBuffer: Array<Record<string, unknown>> = [];
 function logEvent(entry: Record<string, unknown>) {
-  logBuffer.push({ ts: Date.now(), ...entry });
+  logBuffer.push({ ts: Date.now(), tick: simTick, ...entry });
 }
 function flushLogs() {
   if (logBuffer.length === 0) return;
@@ -326,6 +358,8 @@ let actionById: Map<number, { name: string; progress_step: number }> = new Map()
 let actionIdByName: Map<string, number> = new Map();
 const exploredTiles: Map<number, Set<number>> = new Map();
 const lastPaths: Map<number, Array<[number, number]>> = new Map();
+const lastDecision: Map<number, { goal: string; plan: string[]; utilities: Record<string, number> }> = new Map();
+const homeByFaction: Map<number, { x: number; y: number }> = new Map();
 
 function buildActionIdMap(spec: UnitBehaviorSpec) {
   actionById = new Map();
@@ -534,6 +568,12 @@ function tickAction(entityIndex: number) {
       inventoryWood[entityIndex] = Math.min(255, inventoryWood[entityIndex] + 1);
       progress[entityIndex] = 0;
       logEvent({ event_type: "UNIT_ACTION", action: "CHOP_WOOD", entity_id: entityIndex });
+      logEvent({
+        event_type: "ECONOMY_UPDATE",
+        entity_id: entityIndex,
+        wood: inventoryWood[entityIndex],
+        food: inventoryFood[entityIndex] ?? 0
+      });
     }
     return;
   }
@@ -556,18 +596,42 @@ function tickAction(entityIndex: number) {
       inventoryFood[entityIndex] = Math.min(255, inventoryFood[entityIndex] + 1);
       progress[entityIndex] = 0;
       logEvent({ event_type: "UNIT_ACTION", action: "GATHER_FOOD", entity_id: entityIndex });
+      logEvent({
+        event_type: "ECONOMY_UPDATE",
+        entity_id: entityIndex,
+        wood: inventoryWood[entityIndex] ?? 0,
+        food: inventoryFood[entityIndex]
+      });
     }
     return;
   }
 
   if (actionMeta?.name === "BUILD_HOUSE") {
-    ensureTarget((tx, ty) => {
-      const terrainId = buffers.terrain[ty * width + tx];
-      for (const def of Object.values(worldSpecRef!.terrain_types)) {
-        if (def.id === terrainId) return def.id === terrainId && def.walkable && def.yield.food >= 0;
+    const home = homeByFaction.get((buffers.entities.faction_id as Uint8Array)[entityIndex]);
+    const grassId = Object.values(worldSpecRef!.terrain_types).find((t) => t.id === 0)?.id ?? 0;
+    if (home) {
+      const found = findNearestTile(
+        home.x,
+        home.y,
+        width,
+        height,
+        isWalkable,
+        (tx, ty) => {
+          const idx = ty * width + tx;
+          return buffers.terrain[idx] === grassId && buffers.building[idx] === 0;
+        },
+        occupied
+      );
+      if (found) {
+        targetX[entityIndex] = found.x;
+        targetY[entityIndex] = found.y;
       }
-      return false;
-    });
+    } else {
+      ensureTarget((tx, ty) => {
+        const idx = ty * width + tx;
+        return buffers.terrain[idx] === grassId && buffers.building[idx] === 0;
+      });
+    }
     if (!atTarget()) {
       moveTowardTarget();
       return;
@@ -579,6 +643,12 @@ function tickAction(entityIndex: number) {
       inventoryWood[entityIndex] = Math.max(0, inventoryWood[entityIndex] - 3);
       progress[entityIndex] = 0;
       logEvent({ event_type: "UNIT_ACTION", action: "BUILD_HOUSE", entity_id: entityIndex });
+      logEvent({
+        event_type: "ECONOMY_UPDATE",
+        entity_id: entityIndex,
+        wood: inventoryWood[entityIndex],
+        food: inventoryFood[entityIndex] ?? 0
+      });
     }
   }
 }
@@ -610,6 +680,7 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
   const idx = y * width + x;
   const facts: string[] = [];
   if (buffers.feature[idx] === 100) facts.push("is_on_forest_tile");
+  if (buffers.feature.includes(100)) facts.push("is_on_forest_tile");
   const terrainId = buffers.terrain[idx];
   for (const def of Object.values(worldSpecRef!.terrain_types)) {
     if (def.id === terrainId && (def.yield?.food ?? 0) > 0) {
@@ -617,7 +688,11 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
       break;
     }
   }
+  if (Object.values(worldSpecRef!.terrain_types).some((def) => (def.yield?.food ?? 0) > 0)) {
+    facts.push("is_on_food_tile");
+  }
   if (wood[entityIndex] >= 3) facts.push("has_wood_3");
+  facts.push("is_on_grass_tile");
   return facts;
 }
 
@@ -690,6 +765,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
           plan: plan.map((p) => p.name),
           reason: "utility_top_goal"
         });
+        lastDecision.set(idx, { goal: goalKey, plan: plan.map((p) => p.name), utilities });
       }
       tickAction(idx);
     }
@@ -698,7 +774,12 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       entity_id,
       path
     }));
-    self.postMessage({ type: "tick", tick: simTick, paths });
+    const entityDebug: Record<number, { goal?: string; plan?: string[]; utilities?: Record<string, number> }> =
+      {};
+    for (const [id, meta] of lastDecision.entries()) {
+      entityDebug[id] = meta;
+    }
+    self.postMessage({ type: "tick", tick: simTick, paths, entityDebug });
     flushLogs();
     return;
   }
@@ -747,6 +828,9 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       ids[i] = i + 1;
       types[i] = req.unitType;
       factions[i] = req.factionId;
+      if (!homeByFaction.has(req.factionId)) {
+        homeByFaction.set(req.factionId, { x, y });
+      }
       xs[i] = x;
       ys[i] = y;
       wood[i] = 0;

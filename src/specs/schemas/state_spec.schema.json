@@ -39,7 +39,11 @@
             "energy",
             "inventory_wood",
             "inventory_food",
-            "current_plan_step"
+            "target_x",
+            "target_y",
+            "current_action_id",
+            "action_progress",
+            "plan_lock_ticks"
           ],
           "properties": {
             "id": { "$ref": "#/definitions/entityType" },
@@ -51,7 +55,11 @@
             "energy": { "$ref": "#/definitions/entityType" },
             "inventory_wood": { "$ref": "#/definitions/entityType" },
             "inventory_food": { "$ref": "#/definitions/entityType" },
-            "current_plan_step": { "$ref": "#/definitions/entityType" }
+            "target_x": { "$ref": "#/definitions/entityType" },
+            "target_y": { "$ref": "#/definitions/entityType" },
+            "current_action_id": { "$ref": "#/definitions/entityType" },
+            "action_progress": { "$ref": "#/definitions/entityType" },
+            "plan_lock_ticks": { "$ref": "#/definitions/entityType" }
           }
         }
       }
@@ -61,7 +69,7 @@
     "bufferDef": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "bytes_per_tile", "description"],
+      "required": ["type", "bytes_per_tile"],
       "properties": {
         "type": { "type": "string" },
         "bytes_per_tile": { "type": "integer", "minimum": 1 },
