@@ -1,11 +1,13 @@
 import {
   loadCombatSpec,
+  loadEntitySpec,
   loadStateSpec,
   loadTechSpec,
   loadUnitBehaviorSpec,
   loadLoggingSpec,
   loadWorldSpec,
   type CombatSpec,
+  type EntitySpec,
   type LoggingSpec,
   type StateSpec,
   type TechSpec,
@@ -23,6 +25,7 @@ type InitMessage = {
   unitBehaviorSpecUrl: string;
   loggingSpecUrl: string;
   combatSpecUrl: string;
+  entitySpecUrl: string;
   seed?: number;
 };
 
@@ -42,6 +45,7 @@ type GenerateResult = {
   unitBehaviorSpec: UnitBehaviorSpec;
   loggingSpec: LoggingSpec;
   combatSpec: CombatSpec;
+  entitySpec: EntitySpec;
   buffers: StateBuffers;
   shared: boolean;
 };
@@ -99,10 +103,11 @@ function buildTerrain(spec: WorldSpec, seed: number, buffer?: ArrayBuffer): Uint
   return terrain;
 }
 
-function seedForests(spec: WorldSpec, buffers: StateBuffers, seed: number) {
-  const { width, height } = spec.config.dimensions;
+function seedForests(view: StateView, seed: number) {
+  const width = view.width;
+  const height = view.height;
   const rng = lcg(seed ^ 0x9e3779b9);
-  const grassId = Object.values(spec.terrain_types).find((t) => t.id === 0)?.id ?? 0;
+  const grassId = Object.values(worldSpecRef!.terrain_types).find((t) => t.id === 0)?.id ?? 0;
   const tileCount = width * height;
   const avgClusterSize = 7;
   const clusterCount = Math.max(1, Math.floor((tileCount * 0.08) / avgClusterSize));
@@ -119,7 +124,7 @@ function seedForests(spec: WorldSpec, buffers: StateBuffers, seed: number) {
     let attempts = 0;
     while (attempts < 50) {
       const idx = cy * width + cx;
-      if (buffers.terrain[idx] === grassId) break;
+      if (view.getTerrain(idx) === grassId) break;
       cx = Math.floor(rng() * width);
       cy = Math.floor(rng() * height);
       attempts += 1;
@@ -130,8 +135,8 @@ function seedForests(spec: WorldSpec, buffers: StateBuffers, seed: number) {
     for (let i = 0; i < size; i += 1) {
       if (x < 0 || y < 0 || x >= width || y >= height) break;
       const idx = y * width + x;
-      if (buffers.terrain[idx] === grassId) {
-        buffers.feature[idx] = 100;
+      if (view.getTerrain(idx) === grassId) {
+        view.setFeature(idx, 100);
       }
       const [dx, dy] = directions[Math.floor(rng() * directions.length)];
       x += dx;
@@ -141,58 +146,20 @@ function seedForests(spec: WorldSpec, buffers: StateBuffers, seed: number) {
 }
 
 function spawnInitialUnits() {
-  if (!buffersRef || !worldSpecRef) return;
-  const buffers = buffersRef;
-  const { width, height } = worldSpecRef.config.dimensions;
-  const ids = buffers.entities.id as Uint32Array;
-  const types = buffers.entities.type as Uint8Array;
-  const factions = buffers.entities.faction_id as Uint8Array;
-  const xs = buffers.entities.x as Uint16Array;
-  const ys = buffers.entities.y as Uint16Array;
-  const wood = buffers.entities.inventory_wood as Uint8Array;
-  const food = buffers.entities.inventory_food as Uint8Array;
-  const hunger = buffers.entities.hunger as Uint8Array;
-  const actionId = buffers.entities.current_action_id as Uint8Array;
-  const progress = buffers.entities.action_progress as Uint8Array;
-  const planLock = buffers.entities.plan_lock_ticks as Uint8Array;
+  if (!buffersRef || !worldSpecRef || !entitySpecRef) return;
+  const baseHealth = entitySpecRef.config.base_health_all_units;
+  const workerId = entitySpecRef.units.worker.type_id;
+  const scoutId = entitySpecRef.units.scout.type_id;
 
-  let spawned = 0;
-  for (let i = 0; i < ids.length && spawned < 2; i += 1) {
-    if (ids[i] !== 0) continue;
-    for (let y = 1; y < height - 1; y += 1) {
-      for (let x = 1; x < width - 1; x += 1) {
-        const idx = y * width + x;
-        if (buffers.feature[idx] !== 100) continue;
-        const adj = [
-          [x + 1, y],
-          [x - 1, y],
-          [x, y + 1],
-          [x, y - 1]
-        ];
-        const spot = adj.find(([ax, ay]) => {
-          const aIdx = ay * width + ax;
-          return buffers.feature[aIdx] === 0 && buffers.terrain[aIdx] === buffers.terrain[idx];
-        });
-        if (!spot) continue;
-        ids[i] = i + 1;
-        types[i] = 201;
-        factions[i] = 0;
-        if (!homeByFaction.has(0)) {
-          homeByFaction.set(0, { x: spot[0], y: spot[1] });
-        }
-        xs[i] = spot[0];
-        ys[i] = spot[1];
-        wood[i] = 0;
-        food[i] = 0;
-        hunger[i] = 0;
-        actionId[i] = 0;
-        progress[i] = 0;
-        planLock[i] = 0;
-        spawned += 1;
-        break;
-      }
-      if (spawned >= 2) break;
-    }
+  const spawns = [
+    { faction: 0, x: 10, y: 10 },
+    { faction: 1, x: 70, y: 70 }
+  ];
+
+  for (const spawn of spawns) {
+    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction, spawn.x, spawn.y);
+    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, workerId, spawn.faction);
+    spawnUnit(buffersRef, worldSpecRef, homeByFaction, baseHealth, scoutId, spawn.faction);
   }
 }
 
@@ -370,6 +337,7 @@ let simTick = 0;
 let loggingSpecRef: LoggingSpec | null = null;
 let stateViewRef: StateView | null = null;
 let combatSpecRef: CombatSpec | null = null;
+let entitySpecRef: EntitySpec | null = null;
 
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
 let actionIdByName: Map<string, number> = new Map();
@@ -378,6 +346,26 @@ const lastPaths: Map<number, Array<[number, number]>> = new Map();
 const lastDecision: Map<number, { goal: string; plan: string[]; utilities: Record<string, number> }> = new Map();
 const homeByFaction: Map<number, { x: number; y: number }> = new Map();
 const buildingOwner: Map<number, number> = new Map();
+const hateMatrix: number[][] = Array.from({ length: 8 }, (_, i) =>
+  Array.from({ length: 8 }, (_, j) => (i === j ? 0 : 100))
+);
+
+function getUnitDefByType(typeId: number) {
+  if (!entitySpecRef) return null;
+  return Object.values(entitySpecRef.units).find((u) => u.type_id === typeId) ?? null;
+}
+
+function getUnitVision(typeId: number) {
+  return getUnitDefByType(typeId)?.vision ?? 1;
+}
+
+function getUnitStrength(typeId: number) {
+  return getUnitDefByType(typeId)?.strength ?? 0;
+}
+
+function isCombatUnit(typeId: number) {
+  return getUnitDefByType(typeId)?.is_combat ?? false;
+}
 
 function buildActionIdMap(spec: UnitBehaviorSpec) {
   actionById = new Map();
@@ -390,18 +378,69 @@ function buildActionIdMap(spec: UnitBehaviorSpec) {
 
 function buildOccupancy(buffers: StateBuffers, width: number, height: number) {
   const occupied = new Set<number>();
-  const xs = buffers.entities.x as Uint16Array | undefined;
-  const ys = buffers.entities.y as Uint16Array | undefined;
-  const ids = buffers.entities.id as Uint32Array | undefined;
-  if (!xs || !ys || !ids) return occupied;
-  for (let i = 0; i < ids.length; i += 1) {
-    if (ids[i] === 0) continue;
-    const x = xs[i];
-    const y = ys[i];
+  if (!stateViewRef) return occupied;
+  const view = stateViewRef;
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    const x = view.getEntityX(i);
+    const y = view.getEntityY(i);
     if (x >= width || y >= height) continue;
     occupied.add(y * width + x);
   }
   return occupied;
+}
+
+function findEnemyInRange(entityIndex: number, range: number) {
+  if (!stateViewRef) return null;
+  const view = stateViewRef;
+  const selfFaction = view.getEntityFaction(entityIndex);
+  const sx = view.getEntityX(entityIndex);
+  const sy = view.getEntityY(entityIndex);
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    if (view.getEntityFaction(i) === selfFaction) continue;
+    const ex = view.getEntityX(i);
+    const ey = view.getEntityY(i);
+    const dx = Math.abs(ex - sx);
+    const dy = Math.abs(ey - sy);
+    if (dx <= range && dy <= range) return i;
+  }
+  return null;
+}
+
+function isEnemyInVision(entityIndex: number) {
+  if (!stateViewRef) return false;
+  const view = stateViewRef;
+  const selfFaction = view.getEntityFaction(entityIndex);
+  const sx = view.getEntityX(entityIndex);
+  const sy = view.getEntityY(entityIndex);
+  const vision = getUnitVision(view.getEntityType(entityIndex));
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    if (view.getEntityFaction(i) === selfFaction) continue;
+    const ex = view.getEntityX(i);
+    const ey = view.getEntityY(i);
+    const dx = Math.abs(ex - sx);
+    const dy = Math.abs(ey - sy);
+    if (dx <= vision && dy <= vision) return true;
+  }
+  return false;
+}
+
+function enemyThreatCost(tx: number, ty: number, factionId: number) {
+  if (!stateViewRef) return 0;
+  const view = stateViewRef;
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    const enemyFaction = view.getEntityFaction(i);
+    if (enemyFaction === factionId) continue;
+    if ((hateMatrix[factionId]?.[enemyFaction] ?? 0) <= 0) continue;
+    const vision = getUnitVision(view.getEntityType(i));
+    const dx = Math.abs(view.getEntityX(i) - tx);
+    const dy = Math.abs(view.getEntityY(i) - ty);
+    if (dx <= vision && dy <= vision) return 20;
+  }
+  return 0;
 }
 
 function findNearestTile(
@@ -446,7 +485,8 @@ function aStarPath(
   width: number,
   height: number,
   isWalkable: (x: number, y: number) => boolean,
-  occupied: Set<number>
+  occupied: Set<number>,
+  extraCost?: (x: number, y: number) => number
 ) {
   const startIdx = startY * width + startX;
   const goalIdx = goalY * width + goalX;
@@ -477,7 +517,8 @@ function aStarPath(
       const nIdx = ny * width + nx;
       if (!isWalkable(nx, ny)) continue;
       if (occupied.has(nIdx) && nIdx !== startIdx && nIdx !== goalIdx) continue;
-      const tentative = gScore[current] + 1;
+      const penalty = extraCost ? extraCost(nx, ny) : 0;
+      const tentative = gScore[current] + 1 + penalty;
       if (tentative < gScore[nIdx]) {
         cameFrom[nIdx] = current;
         gScore[nIdx] = tentative;
@@ -508,18 +549,9 @@ function tickAction(entityIndex: number) {
   const buffers = buffersRef;
   const view = stateViewRef;
   const { width, height } = worldSpecRef.config.dimensions;
-  const xs = buffers.entities.x as Uint16Array;
-  const ys = buffers.entities.y as Uint16Array;
-  const actionIds = buffers.entities.current_action_id as Uint8Array;
-  const progress = buffers.entities.action_progress as Uint8Array;
-  const targetX = buffers.entities.target_x as Uint16Array;
-  const targetY = buffers.entities.target_y as Uint16Array;
-  const inventoryWood = buffers.entities.inventory_wood as Uint8Array;
-  const inventoryFood = buffers.entities.inventory_food as Uint8Array;
-
-  const x = xs[entityIndex];
-  const y = ys[entityIndex];
-  const actionId = actionIds[entityIndex];
+  const x = view.getEntityX(entityIndex);
+  const y = view.getEntityY(entityIndex);
+  const actionId = view.getEntityActionId(entityIndex);
   const actionMeta = actionById.get(actionId);
   const progressStep = actionMeta?.progress_step ?? 0;
   if (!actionMeta) return;
@@ -531,23 +563,35 @@ function tickAction(entityIndex: number) {
   occupied.delete(idx);
 
   const ensureTarget = (predicate: (tx: number, ty: number) => boolean) => {
-    if (targetX[entityIndex] < width && targetY[entityIndex] < height) return;
+    const tx = view.getEntityTargetX(entityIndex);
+    const ty = view.getEntityTargetY(entityIndex);
+    if (tx < width && ty < height) return;
     const found = findNearestTile(x, y, width, height, isWalkable, predicate, occupied);
     if (found) {
-      targetX[entityIndex] = found.x;
-      targetY[entityIndex] = found.y;
+      view.setEntityTargetX(entityIndex, found.x);
+      view.setEntityTargetY(entityIndex, found.y);
     }
   };
 
   const atTarget = () =>
-    x === targetX[entityIndex] && y === targetY[entityIndex];
+    x === view.getEntityTargetX(entityIndex) && y === view.getEntityTargetY(entityIndex);
 
   const moveTowardTarget = () => {
-    const path = aStarPath(x, y, targetX[entityIndex], targetY[entityIndex], width, height, isWalkable, occupied);
+    const path = aStarPath(
+      x,
+      y,
+      view.getEntityTargetX(entityIndex),
+      view.getEntityTargetY(entityIndex),
+      width,
+      height,
+      isWalkable,
+      occupied,
+      actionMeta.name === "ATTACK" ? undefined : (tx, ty) => enemyThreatCost(tx, ty, view.getEntityFaction(entityIndex))
+    );
     if (path && path.length > 1) {
       const [nx, ny] = path[1];
-      xs[entityIndex] = nx;
-      ys[entityIndex] = ny;
+      view.setEntityX(entityIndex, nx);
+      view.setEntityY(entityIndex, ny);
       lastPaths.set(entityIndex, path);
     }
   };
@@ -561,31 +605,34 @@ function tickAction(entityIndex: number) {
     ].filter(([nx, ny]) => nx >= 0 && ny >= 0 && nx < width && ny < height && isWalkable(nx, ny));
     if (options.length > 0) {
       const pick = options[Math.floor(Math.random() * options.length)];
-      xs[entityIndex] = pick[0];
-      ys[entityIndex] = pick[1];
+      view.setEntityX(entityIndex, pick[0]);
+      view.setEntityY(entityIndex, pick[1]);
     }
-    progress[entityIndex] = 0;
+    view.setEntityActionProgress(entityIndex, 0);
     return;
   }
 
   if (actionMeta?.name === "CHOP_WOOD") {
-    ensureTarget((tx, ty) => buffers.feature[ty * width + tx] === 100);
+    ensureTarget((tx, ty) => view.getFeature(ty * width + tx) === 100);
     if (!atTarget()) {
       moveTowardTarget();
       return;
     }
-    const next = Math.min(100, progress[entityIndex] + progressStep);
-    progress[entityIndex] = next;
+    const tx = view.getEntityTargetX(entityIndex);
+    const ty = view.getEntityTargetY(entityIndex);
+    const next = Math.min(100, view.getEntityActionProgress(entityIndex) + progressStep);
+    view.setEntityActionProgress(entityIndex, next);
     if (next >= 100) {
       view.setFeature(ty * width + tx, 0);
-      inventoryWood[entityIndex] = Math.min(255, inventoryWood[entityIndex] + 1);
-      progress[entityIndex] = 0;
-      logEvent({ event_type: "UNIT_ACTION", action: "CHOP_WOOD", entity_id: entityIndex });
+      view.setEntityWood(entityIndex, Math.min(255, view.getEntityWood(entityIndex) + 1));
+      view.setEntityActionProgress(entityIndex, 0);
+      logEvent({ event_type: "UNIT_ACTION", level: "INFO", action: "CHOP_WOOD", entity_id: entityIndex });
       logEvent({
         event_type: "ECONOMY_UPDATE",
+        level: "ECONOMY",
         entity_id: entityIndex,
-        wood: inventoryWood[entityIndex],
-        food: inventoryFood[entityIndex] ?? 0
+        wood: view.getEntityWood(entityIndex),
+        food: view.getEntityFood(entityIndex)
       });
     }
     return;
@@ -593,7 +640,7 @@ function tickAction(entityIndex: number) {
 
   if (actionMeta?.name === "GATHER_FOOD") {
     ensureTarget((tx, ty) => {
-      const terrainId = buffers.terrain[ty * width + tx];
+      const terrainId = view.getTerrain(ty * width + tx);
       for (const def of Object.values(worldSpecRef!.terrain_types)) {
         if (def.id === terrainId) return (def.yield?.food ?? 0) > 0;
       }
@@ -603,24 +650,52 @@ function tickAction(entityIndex: number) {
       moveTowardTarget();
       return;
     }
-    const next = Math.min(100, progress[entityIndex] + progressStep);
-    progress[entityIndex] = next;
+    const tx = view.getEntityTargetX(entityIndex);
+    const ty = view.getEntityTargetY(entityIndex);
+    const next = Math.min(100, view.getEntityActionProgress(entityIndex) + progressStep);
+    view.setEntityActionProgress(entityIndex, next);
     if (next >= 100) {
-      inventoryFood[entityIndex] = Math.min(255, inventoryFood[entityIndex] + 1);
-      progress[entityIndex] = 0;
-      logEvent({ event_type: "UNIT_ACTION", action: "GATHER_FOOD", entity_id: entityIndex });
+      view.setEntityFood(entityIndex, Math.min(255, view.getEntityFood(entityIndex) + 1));
+      view.setEntityActionProgress(entityIndex, 0);
+      logEvent({ event_type: "UNIT_ACTION", level: "INFO", action: "GATHER_FOOD", entity_id: entityIndex });
       logEvent({
         event_type: "ECONOMY_UPDATE",
+        level: "ECONOMY",
         entity_id: entityIndex,
-        wood: inventoryWood[entityIndex] ?? 0,
-        food: inventoryFood[entityIndex]
+        wood: view.getEntityWood(entityIndex),
+        food: view.getEntityFood(entityIndex)
       });
     }
     return;
   }
 
+  if (actionMeta?.name === "ATTACK") {
+    const enemyIndex = findEnemyInRange(entityIndex, 1);
+    if (enemyIndex === null) return;
+    const defenderIdx = view.tileIndex(view.getEntityX(enemyIndex), view.getEntityY(enemyIndex));
+    let defense = 1;
+    const featureId = view.getFeature(defenderIdx);
+    if (featureId === 102) defense = combatSpecRef?.rules.defense_multiplier_hills ?? 1.25;
+    if (featureId === 100) defense = combatSpecRef?.rules.defense_multiplier_forest ?? 1.5;
+    const baseDamage = combatSpecRef?.rules.base_damage ?? 10;
+    const damage = baseDamage / defense;
+    const newHealth = view.getEntityHealth(enemyIndex) - damage;
+    view.setEntityHealth(enemyIndex, Math.max(0, Math.floor(newHealth)));
+    logEvent({ event_type: "COMBAT_HIT", level: "COMBAT", attacker: entityIndex, target: enemyIndex, damage });
+    if (newHealth <= (combatSpecRef?.rules.death_threshold ?? 0)) {
+      view.setEntityId(enemyIndex, 0);
+      view.setEntityType(enemyIndex, 0);
+      view.setEntityFaction(enemyIndex, 0);
+      view.setEntityHealth(enemyIndex, 0);
+      view.setEntityActionId(enemyIndex, 0);
+      view.setEntityActionProgress(enemyIndex, 0);
+      logEvent({ event_type: "UNIT_DIED", level: "COMBAT", entity_id: enemyIndex });
+    }
+    return;
+  }
+
   if (actionMeta?.name === "BUILD_HOUSE") {
-    const home = homeByFaction.get((buffers.entities.faction_id as Uint8Array)[entityIndex]);
+    const home = homeByFaction.get(view.getEntityFaction(entityIndex));
     const grassId = Object.values(worldSpecRef!.terrain_types).find((t) => t.id === 0)?.id ?? 0;
     if (home) {
       let found: { x: number; y: number } | null = null;
@@ -631,8 +706,8 @@ function tickAction(entityIndex: number) {
           const ty = home.y + dy;
           if (tx < 0 || ty < 0 || tx >= width || ty >= height) continue;
           const idx = ty * width + tx;
-          if (buffers.terrain[idx] !== grassId) continue;
-          if (buffers.building[idx] !== 0) continue;
+          if (view.getTerrain(idx) !== grassId) continue;
+          if (view.getBuilding(idx) !== 0) continue;
           const dist = Math.abs(dx) + Math.abs(dy);
           if (dist < bestDist) {
             bestDist = dist;
@@ -641,42 +716,43 @@ function tickAction(entityIndex: number) {
         }
       }
       if (found) {
-        targetX[entityIndex] = found.x;
-        targetY[entityIndex] = found.y;
+        view.setEntityTargetX(entityIndex, found.x);
+        view.setEntityTargetY(entityIndex, found.y);
       }
     } else {
       ensureTarget((tx, ty) => {
         const idx = ty * width + tx;
-        return buffers.terrain[idx] === grassId && buffers.building[idx] === 0;
+        return view.getTerrain(idx) === grassId && view.getBuilding(idx) === 0;
       });
     }
     if (!atTarget()) {
       moveTowardTarget();
       return;
     }
-    const next = Math.min(100, progress[entityIndex] + progressStep);
-    progress[entityIndex] = next;
+    const tx = view.getEntityTargetX(entityIndex);
+    const ty = view.getEntityTargetY(entityIndex);
+    const next = Math.min(100, view.getEntityActionProgress(entityIndex) + progressStep);
+    view.setEntityActionProgress(entityIndex, next);
     if (next >= 100) {
       view.setBuilding(ty * width + tx, 300);
-      buildingOwner.set(ty * width + tx, (buffers.entities.faction_id as Uint8Array)[entityIndex]);
-      inventoryWood[entityIndex] = Math.max(0, inventoryWood[entityIndex] - 3);
-      progress[entityIndex] = 0;
-      logEvent({ event_type: "UNIT_ACTION", action: "BUILD_HOUSE", entity_id: entityIndex });
+      buildingOwner.set(ty * width + tx, view.getEntityFaction(entityIndex));
+      view.setEntityWood(entityIndex, Math.max(0, view.getEntityWood(entityIndex) - 3));
+      view.setEntityActionProgress(entityIndex, 0);
+      logEvent({ event_type: "UNIT_ACTION", level: "INFO", action: "BUILD_HOUSE", entity_id: entityIndex });
       logEvent({
         event_type: "ECONOMY_UPDATE",
+        level: "ECONOMY",
         entity_id: entityIndex,
-        wood: inventoryWood[entityIndex],
-        food: inventoryFood[entityIndex] ?? 0
+        wood: view.getEntityWood(entityIndex),
+        food: view.getEntityFood(entityIndex)
       });
     }
   }
 }
 
 function updateExploration(entityIndex: number, width: number) {
-  const buffers = buffersRef!;
-  const xs = buffers.entities.x as Uint16Array;
-  const ys = buffers.entities.y as Uint16Array;
-  const idx = ys[entityIndex] * width + xs[entityIndex];
+  const view = stateViewRef!;
+  const idx = view.getEntityY(entityIndex) * width + view.getEntityX(entityIndex);
   let set = exploredTiles.get(entityIndex);
   if (!set) {
     set = new Set<number>();
@@ -690,41 +766,34 @@ function getTilesExplored(entityIndex: number) {
 }
 
 function buildStateFacts(entityIndex: number, width: number, height: number) {
-  const buffers = buffersRef!;
-  const xs = buffers.entities.x as Uint16Array;
-  const ys = buffers.entities.y as Uint16Array;
-  const wood = buffers.entities.inventory_wood as Uint8Array;
-  const x = xs[entityIndex];
-  const y = ys[entityIndex];
+  const view = stateViewRef!;
+  const wood = view.getEntityWood(entityIndex);
+  const x = view.getEntityX(entityIndex);
+  const y = view.getEntityY(entityIndex);
   const idx = y * width + x;
   const facts: string[] = [];
-  if (buffers.feature[idx] === 100) facts.push("is_on_forest_tile");
-  if (buffers.feature.includes(100)) facts.push("is_on_forest_tile");
-  const terrainId = buffers.terrain[idx];
+  if (view.getFeature(idx) === 100) facts.push("is_on_forest_tile");
+  const terrainId = view.getTerrain(idx);
   for (const def of Object.values(worldSpecRef!.terrain_types)) {
     if (def.id === terrainId && (def.yield?.food ?? 0) > 0) {
       facts.push("is_on_food_tile");
       break;
     }
   }
-  if (Object.values(worldSpecRef!.terrain_types).some((def) => (def.yield?.food ?? 0) > 0)) {
-    facts.push("is_on_food_tile");
-  }
-  if (wood[entityIndex] >= 3) facts.push("has_wood_3");
+  if (wood >= 3) facts.push("has_wood_3");
   facts.push("is_on_grass_tile");
+  if (findEnemyInRange(entityIndex, 1) !== null) facts.push("enemy_in_range");
+  if (isEnemyInVision(entityIndex)) facts.push("enemy_nearby");
   return facts;
 }
 
 function computeInputs(entityIndex: number, width: number) {
-  const buffers = buffersRef!;
-  const health = buffers.entities.health as Uint8Array;
-  const hunger = buffers.entities.hunger as Uint8Array;
-  const wood = buffers.entities.inventory_wood as Uint8Array;
+  const view = stateViewRef!;
   return {
-    enemy_nearby: 0,
-    health: health[entityIndex],
-    hunger: hunger[entityIndex],
-    wood: wood[entityIndex],
+    enemy_nearby: isEnemyInVision(entityIndex) ? 1 : 0,
+    health: view.getEntityHealth(entityIndex),
+    hunger: view.getEntityHunger(entityIndex),
+    wood: view.getEntityWood(entityIndex),
     tiles_explored: getTilesExplored(entityIndex)
   };
 }
@@ -752,21 +821,19 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
   }
   if (ev.data.type === "sim_tick") {
     const { entityIndices } = ev.data as SimTickMessage;
-    if (!buffersRef) return;
+    if (!buffersRef || !stateViewRef || !entitySpecRef) return;
+    const view = stateViewRef;
     const { width, height } = worldSpecRef!.config.dimensions;
-    const ids = buffersRef.entities.id as Uint32Array;
-    const planLock = buffersRef.entities.plan_lock_ticks as Uint8Array;
-    const currentAction = buffersRef.entities.current_action_id as Uint8Array;
-    const hunger = buffersRef.entities.hunger as Uint8Array;
+    const count = view.entityCount;
     const indices =
       entityIndices && entityIndices.length > 0
         ? entityIndices
-        : Array.from({ length: ids.length }, (_, i) => i);
+        : Array.from({ length: count }, (_, i) => i);
 
     if (simTick % 5 === 0) {
-      for (let i = 0; i < hunger.length; i += 1) {
-        if (ids[i] === 0) continue;
-        hunger[i] = Math.min(100, hunger[i] + 1);
+      for (let i = 0; i < count; i += 1) {
+        if (view.getEntityId(i) === 0) continue;
+        view.setEntityHunger(i, Math.min(100, view.getEntityHunger(i) + 1));
       }
     }
 
@@ -774,62 +841,51 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       const houseLimitPerHouse = 10;
       const housesPerFaction: Record<number, number> = {};
       const population: Record<number, number> = {};
-      const types = buffersRef.entities.type as Uint8Array;
-      const factions = buffersRef.entities.faction_id as Uint8Array;
-      for (let i = 0; i < ids.length; i += 1) {
-        if (ids[i] === 0) continue;
-        if (types[i] === 201) {
-          population[factions[i]] = (population[factions[i]] ?? 0) + 1;
+      const unitTypeIds = new Set(Object.values(entitySpecRef.units).map((u) => u.type_id));
+      for (let i = 0; i < count; i += 1) {
+        if (view.getEntityId(i) === 0) continue;
+        if (unitTypeIds.has(view.getEntityType(i))) {
+          const faction = view.getEntityFaction(i);
+          population[faction] = (population[faction] ?? 0) + 1;
         }
       }
-      for (let i = 0; i < buffersRef.building.length; i += 1) {
-        if (buffersRef.building[i] === 300) {
+      for (let i = 0; i < view.width * view.height; i += 1) {
+        if (view.getBuilding(i) === 300) {
           const faction = buildingOwner.get(i) ?? 0;
           housesPerFaction[faction] = (housesPerFaction[faction] ?? 0) + 1;
         }
       }
-      for (let i = 0; i < buffersRef.building.length; i += 1) {
-        if (buffersRef.building[i] !== 300) continue;
+      for (let i = 0; i < view.width * view.height; i += 1) {
+        if (view.getBuilding(i) !== 300) continue;
         const faction = buildingOwner.get(i) ?? 0;
         const limit = (housesPerFaction[faction] ?? 0) * houseLimitPerHouse;
         const current = population[faction] ?? 0;
         if (current >= limit) continue;
         const x = i % width;
         const y = Math.floor(i / width);
-        for (let slot = 0; slot < ids.length; slot += 1) {
-          if (ids[slot] !== 0) continue;
-          ids[slot] = slot + 1;
-          const typesArr = buffersRef.entities.type as Uint8Array;
-          const facArr = buffersRef.entities.faction_id as Uint8Array;
-          const xs = buffersRef.entities.x as Uint16Array;
-          const ys = buffersRef.entities.y as Uint16Array;
-          const wood = buffersRef.entities.inventory_wood as Uint8Array;
-          const food = buffersRef.entities.inventory_food as Uint8Array;
-          const actionId = buffersRef.entities.current_action_id as Uint8Array;
-          const progress = buffersRef.entities.action_progress as Uint8Array;
-          const planLockArr = buffersRef.entities.plan_lock_ticks as Uint8Array;
-          const hungerArr = buffersRef.entities.hunger as Uint8Array;
-          typesArr[slot] = 201;
-          facArr[slot] = faction;
-          xs[slot] = x;
-          ys[slot] = y;
-          wood[slot] = 0;
-          food[slot] = 0;
-          hungerArr[slot] = 0;
-          actionId[slot] = 0;
-          progress[slot] = 0;
-          planLockArr[slot] = 0;
-          logEvent({ event_type: "UNIT_SPAWN", entity_id: slot, unit_type: 201 });
-          break;
+        const result = spawnUnit(
+          buffersRef,
+          worldSpecRef!,
+          homeByFaction,
+          entitySpecRef.config.base_health_all_units,
+          entitySpecRef.units.worker.type_id,
+          faction,
+          x,
+          y
+        );
+        if (result.success) {
+          logEvent({ event_type: "UNIT_SPAWN", level: "INFO", entity_id: result.entityIndex, unit_type: 201 });
         }
       }
     }
 
     for (const idx of indices) {
-      if (ids[idx] === 0) continue;
-      if (planLock[idx] > 0) planLock[idx] -= 1;
+      if (view.getEntityId(idx) === 0) continue;
+      if (view.getEntityPlanLock(idx) > 0) {
+        view.setEntityPlanLock(idx, view.getEntityPlanLock(idx) - 1);
+      }
       updateExploration(idx, width);
-      if (planLock[idx] === 0) {
+      if (view.getEntityPlanLock(idx) === 0) {
         const inputs = computeInputs(idx, width);
         const utilities = computeUtilities(unitBehaviorSpecRef!, inputs);
         const { goalKey, goalEffect } = pickTopGoal(unitBehaviorSpecRef!, utilities);
@@ -839,10 +895,11 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         const plan = buildPlan(actions, goalEffect, new Set(buildStateFacts(idx, width, height)));
         const nextAction = plan[0]?.name;
         const nextId = nextAction ? actionIdByName.get(nextAction) ?? 0 : 0;
-        currentAction[idx] = nextId;
-        planLock[idx] = 10;
+        view.setEntityActionId(idx, nextId);
+        view.setEntityPlanLock(idx, 10);
         logEvent({
           event_type: "AI_PLAN_CHANGE",
+          level: "DECISION",
           entity_id: idx,
           goal: goalKey,
           utilities,
@@ -850,6 +907,13 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
           reason: "utility_top_goal"
         });
         lastDecision.set(idx, { goal: goalKey, plan: plan.map((p) => p.name), utilities });
+      }
+      // recovery at home
+      const home = homeByFaction.get(view.getEntityFaction(idx));
+      if (home && view.getEntityX(idx) === home.x && view.getEntityY(idx) === home.y) {
+        const rate = combatSpecRef?.rules.recovery_rate_at_home ?? 5;
+        const max = entitySpecRef.config.base_health_all_units;
+        view.setEntityHealth(idx, Math.min(max, view.getEntityHealth(idx) + rate));
       }
       tickAction(idx);
     }
@@ -863,20 +927,27 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     for (const [id, meta] of lastDecision.entries()) {
       entityDebug[id] = meta;
     }
-    const stats = { population: {} as Record<number, number>, houses: {} as Record<number, number>, wood: {} as Record<number, number> };
-    const typesAll = buffersRef.entities.type as Uint8Array;
-    const factionsAll = buffersRef.entities.faction_id as Uint8Array;
-    const woodAll = buffersRef.entities.inventory_wood as Uint8Array;
-    for (let i = 0; i < ids.length; i += 1) {
-      if (ids[i] === 0) continue;
-      const faction = factionsAll[i] ?? 0;
-      if (typesAll[i] === 201) {
+    const stats = {
+      population: {} as Record<number, number>,
+      houses: {} as Record<number, number>,
+      wood: {} as Record<number, number>,
+      military: {} as Record<number, number>
+    };
+    const unitTypeIds = new Set(Object.values(entitySpecRef.units).map((u) => u.type_id));
+    for (let i = 0; i < count; i += 1) {
+      if (view.getEntityId(i) === 0) continue;
+      const faction = view.getEntityFaction(i);
+      const typeId = view.getEntityType(i);
+      if (unitTypeIds.has(typeId)) {
         stats.population[faction] = (stats.population[faction] ?? 0) + 1;
       }
-      stats.wood[faction] = (stats.wood[faction] ?? 0) + (woodAll[i] ?? 0);
+      stats.wood[faction] = (stats.wood[faction] ?? 0) + view.getEntityWood(i);
+      const strength = getUnitStrength(typeId);
+      stats.military[faction] =
+        (stats.military[faction] ?? 0) + view.getEntityHealth(i) * strength;
     }
-    for (let i = 0; i < buffersRef.building.length; i += 1) {
-      if (buffersRef.building[i] === 300) {
+    for (let i = 0; i < view.width * view.height; i += 1) {
+      if (view.getBuilding(i) === 300) {
         const faction = buildingOwner.get(i) ?? 0;
         stats.houses[faction] = (stats.houses[faction] ?? 0) + 1;
       }
@@ -892,34 +963,48 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
   if (ev.data.type === "spawn_unit") {
     if (!buffersRef || !worldSpecRef) return;
     const req = ev.data as SpawnUnitMessage;
-    const result = spawnUnit(buffersRef, worldSpecRef, homeByFaction, req.unitType, req.factionId, req.x, req.y);
+    const baseHealth = entitySpecRef?.config.base_health_all_units ?? 100;
+    const result = spawnUnit(
+      buffersRef,
+      worldSpecRef,
+      homeByFaction,
+      baseHealth,
+      req.unitType,
+      req.factionId,
+      req.x,
+      req.y
+    );
     if (result.success) {
-      logEvent({ event_type: "UNIT_SPAWN", entity_id: result.entityIndex, unit_type: req.unitType });
+      logEvent({ event_type: "UNIT_SPAWN", level: "INFO", entity_id: result.entityIndex, unit_type: req.unitType });
     } else {
-      logEvent({ event_type: "UNIT_SPAWN_FAILED", reason: result.reason });
+      logEvent({ event_type: "UNIT_SPAWN_FAILED", level: "INFO", reason: result.reason });
     }
     flushLogs();
     return;
   }
   if (ev.data.type !== "init") return;
   try {
-    const [worldSpec, stateSpec, techSpec, unitBehaviorSpec, loggingSpec, combatSpec] =
+    const [worldSpec, stateSpec, techSpec, unitBehaviorSpec, loggingSpec, combatSpec, entitySpec] =
       await Promise.all([
-      loadWorldSpec(ev.data.worldSpecUrl),
-      loadStateSpec(ev.data.stateSpecUrl),
-      loadTechSpec(ev.data.techSpecUrl),
-      loadUnitBehaviorSpec(ev.data.unitBehaviorSpecUrl),
-      loadLoggingSpec(ev.data.loggingSpecUrl),
-      loadCombatSpec(ev.data.combatSpecUrl)
-    ]);
+        loadWorldSpec(ev.data.worldSpecUrl),
+        loadStateSpec(ev.data.stateSpecUrl),
+        loadTechSpec(ev.data.techSpecUrl),
+        loadUnitBehaviorSpec(ev.data.unitBehaviorSpecUrl),
+        loadLoggingSpec(ev.data.loggingSpecUrl),
+        loadCombatSpec(ev.data.combatSpecUrl),
+        loadEntitySpec(ev.data.entitySpecUrl)
+      ]);
     const seed = ev.data.seed ?? 1337;
     const useShared = typeof SharedArrayBuffer !== "undefined";
     const buffers = makeStateBuffers(stateSpec, worldSpec, useShared);
     buildTerrain(worldSpec, seed, buffers.terrain.buffer);
-    seedForests(worldSpec, buffers, seed);
+    const localView = new StateView(buffers, worldSpec, stateSpec);
+    stateViewRef = localView;
+    seedForests(localView, seed);
 
     const techManager = new TechManager(techSpec);
     techManager.addFaction(0);
+    techManager.addFaction(1);
     techManager.startResearch(0, "mining");
     techManagerRef = techManager;
     unitBehaviorSpecRef = unitBehaviorSpec;
@@ -928,8 +1013,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     stateSpecRef = stateSpec;
     buffersRef = buffers;
     loggingSpecRef = loggingSpec;
-    stateViewRef = new StateView(buffers, worldSpec, stateSpec);
     combatSpecRef = combatSpec;
+    entitySpecRef = entitySpec;
     spawnInitialUnits();
 
     logEvent({ kind: "init", message: "world/state/tech loaded" });
@@ -942,6 +1027,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       unitBehaviorSpec,
       loggingSpec,
       combatSpec,
+      entitySpec,
       buffers,
       shared: useShared
     };

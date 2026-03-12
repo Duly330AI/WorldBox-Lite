@@ -9,6 +9,7 @@ export function spawnUnit(
   buffers: StateBuffers,
   worldSpec: WorldSpec,
   homeByFaction: Map<number, { x: number; y: number }>,
+  baseHealth: number,
   unitType: number,
   factionId: number,
   x?: number,
@@ -23,6 +24,7 @@ export function spawnUnit(
   const wood = buffers.entities.inventory_wood as Uint8Array;
   const food = buffers.entities.inventory_food as Uint8Array;
   const hunger = buffers.entities.hunger as Uint8Array;
+  const health = buffers.entities.health as Uint8Array;
   const actionId = buffers.entities.current_action_id as Uint8Array;
   const progress = buffers.entities.action_progress as Uint8Array;
   const planLock = buffers.entities.plan_lock_ticks as Uint8Array;
@@ -65,6 +67,7 @@ export function spawnUnit(
     wood[i] = 0;
     food[i] = 0;
     hunger[i] = 0;
+    health[i] = baseHealth;
     actionId[i] = 0;
     progress[i] = 0;
     planLock[i] = 0;

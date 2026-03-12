@@ -5,6 +5,7 @@ import techSchema from "../../specs/schemas/tech_spec.schema.json";
 import unitBehaviorSchema from "../../specs/schemas/unit_behavior_spec.schema.json";
 import loggingSchema from "../../specs/schemas/logging_spec.schema.json";
 import combatSchema from "../../specs/schemas/combat_spec.schema.json";
+import entitySchema from "../../specs/schemas/entity_spec.schema.json";
 
 export type WorldSpec = {
   spec_id: string;
@@ -102,6 +103,36 @@ export type CombatSpec = {
   unit_counters: Record<string, number>;
 };
 
+export type EntitySpec = {
+  spec_id: string;
+  version: string;
+  schema_version: string;
+  config: { base_health_all_units: number };
+  units: Record<
+    string,
+    {
+      type_id: number;
+      strength: number;
+      vision: number;
+      movement: number;
+      cost: number;
+      is_combat: boolean;
+      required_tech: string;
+    }
+  >;
+  buildings: Record<
+    string,
+    {
+      type_id: number;
+      health: number;
+      cost: number;
+      vision: number;
+      is_combat: boolean;
+      required_tech: string;
+    }
+  >;
+};
+
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateWorld = ajv.compile(worldSchema);
 const validateState = ajv.compile(stateSchema);
@@ -109,6 +140,7 @@ const validateTech = ajv.compile(techSchema);
 const validateUnitBehavior = ajv.compile(unitBehaviorSchema);
 const validateLogging = ajv.compile(loggingSchema);
 const validateCombat = ajv.compile(combatSchema);
+const validateEntity = ajv.compile(entitySchema);
 
 export function assertWorldSpec(data: unknown): WorldSpec {
   if (!validateWorld(data)) {
@@ -176,6 +208,17 @@ export function assertCombatSpec(data: unknown): CombatSpec {
   return data as CombatSpec;
 }
 
+export function assertEntitySpec(data: unknown): EntitySpec {
+  if (!validateEntity(data)) {
+    const errors = (validateEntity.errors || []) as DefinedError[];
+    const message = errors
+      .map((e) => `${e.instancePath || "(root)"} ${e.message}`)
+      .join("; ");
+    throw new Error(`entity_spec validation failed: ${message}`);
+  }
+  return data as EntitySpec;
+}
+
 export async function loadWorldSpec(url: string): Promise<WorldSpec> {
   const res = await fetch(url);
   if (!res.ok) {
@@ -228,4 +271,13 @@ export async function loadCombatSpec(url: string): Promise<CombatSpec> {
   }
   const json = (await res.json()) as unknown;
   return assertCombatSpec(json);
+}
+
+export async function loadEntitySpec(url: string): Promise<EntitySpec> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to load entity_spec: ${res.status}`);
+  }
+  const json = (await res.json()) as unknown;
+  return assertEntitySpec(json);
 }

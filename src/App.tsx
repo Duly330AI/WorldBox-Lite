@@ -71,6 +71,7 @@ export function App() {
       unitBehaviorSpecUrl: "/specs/unit_behavior_spec.json",
       loggingSpecUrl: "/specs/logging_spec.json",
       combatSpecUrl: "/specs/combat_spec.json",
+      entitySpecUrl: "/specs/entity_spec.json",
       seed: 1337
     });
 
@@ -107,7 +108,11 @@ export function App() {
       <div style={{ display: "flex", gap: 16, marginBottom: 12, fontSize: 12 }}>
         <div>
           Faktion Rot: {stats?.population?.[0] ?? 0} Menschen, {stats?.houses?.[0] ?? 0} Häuser,{" "}
-          {stats?.wood?.[0] ?? 0} Holz gesamt
+          {stats?.wood?.[0] ?? 0} Holz, Militär {stats?.military?.[0] ?? 0}
+        </div>
+        <div>
+          Faktion Blau: {stats?.population?.[1] ?? 0} Menschen, {stats?.houses?.[1] ?? 0} Häuser,{" "}
+          {stats?.wood?.[1] ?? 0} Holz, Militär {stats?.military?.[1] ?? 0}
         </div>
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>

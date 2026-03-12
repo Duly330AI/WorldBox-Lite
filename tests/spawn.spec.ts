@@ -27,7 +27,7 @@ describe("spawnUnit", () => {
     const buffers = makeBuffers();
     buffers.terrain.fill(0); // grass
     const home = new Map<number, { x: number; y: number }>();
-    const result = spawnUnit(buffers, worldSpec, home, 201, 0, 1, 1);
+    const result = spawnUnit(buffers, worldSpec, home, 100, 201, 0, 1, 1);
     expect(result.success).toBe(true);
     if (result.success) {
       const ids = buffers.entities.id as Uint32Array;
@@ -41,7 +41,7 @@ describe("spawnUnit", () => {
     const ids = buffers.entities.id as Uint32Array;
     ids.fill(1);
     const home = new Map<number, { x: number; y: number }>();
-    const result = spawnUnit(buffers, worldSpec, home, 201, 0, 1, 1);
+    const result = spawnUnit(buffers, worldSpec, home, 100, 201, 0, 1, 1);
     expect(result.success).toBe(false);
     if (!result.success) expect(result.reason).toBe("no_free_slots");
   });
@@ -50,7 +50,7 @@ describe("spawnUnit", () => {
     const buffers = makeBuffers();
     buffers.terrain.fill(5); // water
     const home = new Map<number, { x: number; y: number }>();
-    const result = spawnUnit(buffers, worldSpec, home, 201, 0);
+    const result = spawnUnit(buffers, worldSpec, home, 100, 201, 0);
     expect(result.success).toBe(false);
     if (!result.success) expect(result.reason).toBe("no_walkable_tile");
   });

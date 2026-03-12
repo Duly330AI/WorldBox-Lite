@@ -1,7 +1,28 @@
+import { useEffect, useState } from "react";
 import { useWorldStore } from "../store";
 
 export function EventLog() {
   const events = useWorldStore((s) => s.events);
+  const loggingSpec = useWorldStore((s) => s.loggingSpec);
+  const levels = loggingSpec?.config.levels ?? ["INFO", "DECISION", "COMBAT", "ECONOMY"];
+  const [enabled, setEnabled] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const next: Record<string, boolean> = {};
+    for (const level of levels) next[level] = true;
+    setEnabled(next);
+  }, [levels.join(",")]);
+
+  const toggle = (level: string) => {
+    if (level === "COMBAT") return;
+    setEnabled((prev) => ({ ...prev, [level]: !prev[level] }));
+  };
+
+  const filtered = events.filter((e) => {
+    const level = String(e.level ?? "INFO");
+    if (level === "COMBAT") return true;
+    return enabled[level] ?? true;
+  });
   return (
     <div
       style={{
@@ -14,10 +35,24 @@ export function EventLog() {
       }}
     >
       <div style={{ fontWeight: 600, marginBottom: 8 }}>Event Log</div>
-      {events.length === 0 ? (
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+        {levels.map((level) => (
+          <label key={level} style={{ fontSize: 11, cursor: level === "COMBAT" ? "default" : "pointer" }}>
+            <input
+              type="checkbox"
+              checked={enabled[level] ?? true}
+              onChange={() => toggle(level)}
+              disabled={level === "COMBAT"}
+              style={{ marginRight: 4 }}
+            />
+            {level}
+          </label>
+        ))}
+      </div>
+      {filtered.length === 0 ? (
         <div style={{ color: "#666" }}>No events yet.</div>
       ) : (
-        events
+        filtered
           .slice()
           .reverse()
           .map((e, idx) => {

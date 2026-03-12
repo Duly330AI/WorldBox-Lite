@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "entity_spec.schema.json",
+  "title": "Entity Spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_id", "version", "schema_version", "config", "units", "buildings"],
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_health_all_units"],
+      "properties": {
+        "base_health_all_units": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type_id",
+          "strength",
+          "vision",
+          "movement",
+          "cost",
+          "is_combat",
+          "required_tech"
+        ],
+        "properties": {
+          "type_id": { "type": "integer", "minimum": 0 },
+          "strength": { "type": "integer", "minimum": 0 },
+          "vision": { "type": "integer", "minimum": 0 },
+          "movement": { "type": "integer", "minimum": 0 },
+          "cost": { "type": "integer", "minimum": 0 },
+          "is_combat": { "type": "boolean" },
+          "required_tech": { "type": "string" }
+        }
+      }
+    },
+    "buildings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type_id", "health", "cost", "vision", "is_combat", "required_tech"],
+        "properties": {
+          "type_id": { "type": "integer", "minimum": 0 },
+          "health": { "type": "integer", "minimum": 0 },
+          "cost": { "type": "integer", "minimum": 0 },
+          "vision": { "type": "integer", "minimum": 0 },
+          "is_combat": { "type": "boolean" },
+          "required_tech": { "type": "string" }
+        }
+      }
+    }
+  }
+}

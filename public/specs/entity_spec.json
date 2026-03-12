@@ -1,0 +1,65 @@
+{
+  "spec_id": "entities_v1",
+  "version": "1.0",
+  "schema_version": "1.0.0",
+  "config": {
+    "base_health_all_units": 100
+  },
+  "units": {
+    "scout": {
+      "type_id": 200,
+      "strength": 1,
+      "vision": 3,
+      "movement": 2,
+      "cost": 20,
+      "is_combat": true,
+      "required_tech": "hunting"
+    },
+    "worker": {
+      "type_id": 201,
+      "strength": 0,
+      "vision": 1,
+      "movement": 2,
+      "cost": 60,
+      "is_combat": false,
+      "required_tech": "agriculture"
+    },
+    "archer": {
+      "type_id": 202,
+      "strength": 3,
+      "vision": 2,
+      "movement": 1,
+      "cost": 60,
+      "is_combat": true,
+      "required_tech": "archery"
+    },
+    "axeman": {
+      "type_id": 203,
+      "strength": 5,
+      "vision": 1,
+      "movement": 1,
+      "cost": 40,
+      "is_combat": true,
+      "required_tech": "bronze_working"
+    },
+    "swordsman": {
+      "type_id": 204,
+      "strength": 6,
+      "vision": 1,
+      "movement": 1,
+      "cost": 40,
+      "is_combat": true,
+      "required_tech": "iron_working"
+    }
+  },
+  "buildings": {
+    "house": {
+      "type_id": 300,
+      "health": 200,
+      "cost": 0,
+      "vision": 2,
+      "is_combat": false,
+      "required_tech": "pottery"
+    }
+  }
+}

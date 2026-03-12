@@ -12,7 +12,7 @@ export type WorldState = {
   events: Array<Record<string, unknown>>;
   selectedEntityId: number | null;
   entityDebug: Record<number, { goal?: string; plan?: string[]; utilities?: Record<string, number> }>;
-  stats: { population: Record<number, number>; houses: Record<number, number>; wood: Record<number, number> } | null;
+  stats: { population: Record<number, number>; houses: Record<number, number>; wood: Record<number, number>; military: Record<number, number> } | null;
   error: string | null;
   setWorld: (
     spec: WorldSpec,
@@ -27,7 +27,7 @@ export type WorldState = {
   setEntityDebug: (
     data: Record<number, { goal?: string; plan?: string[]; utilities?: Record<string, number> }>
   ) => void;
-  setStats: (stats: { population: Record<number, number>; houses: Record<number, number>; wood: Record<number, number> }) => void;
+  setStats: (stats: { population: Record<number, number>; houses: Record<number, number>; wood: Record<number, number>; military: Record<number, number> }) => void;
   setError: (message: string) => void;
 };
 
