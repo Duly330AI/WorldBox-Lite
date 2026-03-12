@@ -5,6 +5,7 @@ import { Minimap } from "./ui/components/Minimap";
 import { TechTree } from "./ui/components/TechTree";
 import { UnitInspector } from "./ui/components/UnitInspector";
 import { useWorldStore } from "./ui/store";
+import { loadAssetSpec } from "./engine/io/specLoader";
 
 export function App() {
   const setWorld = useWorldStore((s) => s.setWorld);
@@ -21,6 +22,8 @@ export function App() {
   const setKnowledge = useWorldStore((s) => s.setKnowledge);
   const setResearch = useWorldStore((s) => s.setResearch);
   const setChronicles = useWorldStore((s) => s.setChronicles);
+  const setTilesetImages = useWorldStore((s) => s.setTilesetImages);
+  const setAssetSpec = useWorldStore((s) => s.setAssetSpec);
   const stats = useWorldStore((s) => s.stats);
   const perfStats = useWorldStore((s) => s.perfStats);
   const simulationSpec = useWorldStore((s) => s.simulationSpec);
@@ -47,7 +50,7 @@ export function App() {
     worker.onmessage = (ev) => {
       if (ev.data.type === "world") {
         const terrain = new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.spec, terrain, null, null, null, null, null);
+        setWorld(ev.data.spec, terrain, null, null, null, null, null, null);
       }
       if (ev.data.type === "state") {
         const terrain = ev.data.buffers?.terrain
@@ -60,7 +63,8 @@ export function App() {
           ev.data.unitBehaviorSpec ?? null,
           ev.data.loggingSpec ?? null,
           ev.data.simulationSpec ?? null,
-          ev.data.techSpec ?? null
+          ev.data.techSpec ?? null,
+          null
         );
       }
       if (ev.data.type === "error") {
@@ -129,7 +133,38 @@ export function App() {
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles, setTilesetImages]);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadAssetSpec("/specs/asset_spec.json")
+      .then((spec) => {
+        if (cancelled) return;
+        setAssetSpec(spec);
+        const images: Record<string, HTMLImageElement> = {};
+        const loaders = spec.tilesets.map(
+          (ts) =>
+            new Promise<void>((resolve) => {
+              const img = new Image();
+              img.onload = () => {
+                images[ts.name] = img;
+                resolve();
+              };
+              img.onerror = () => resolve();
+              img.src = ts.image;
+            })
+        );
+        Promise.all(loaders).then(() => {
+          if (!cancelled) setTilesetImages(images);
+        });
+      })
+      .catch(() => {
+        // asset spec is optional at runtime
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [setTilesetImages, setAssetSpec]);
 
   useEffect(() => {
     const worker = workerRef.current;

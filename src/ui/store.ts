@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { LoggingSpec, SimulationSpec, TechSpec, UnitBehaviorSpec, WorldSpec } from "../engine/io/specLoader";
+import type { AssetSpec, LoggingSpec, SimulationSpec, TechSpec, UnitBehaviorSpec, WorldSpec } from "../engine/io/specLoader";
 import type { StateBuffers } from "../engine/worker";
 
 export type WorldState = {
@@ -8,6 +8,8 @@ export type WorldState = {
   loggingSpec: LoggingSpec | null;
   simulationSpec: SimulationSpec | null;
   techSpec: TechSpec | null;
+  assetSpec: AssetSpec | null;
+  tilesetImages: Record<string, HTMLImageElement>;
   terrain: Uint8Array | null;
   buffers: StateBuffers | null;
   paths: Array<{ entity_id: number; path: Array<[number, number]> }>;
@@ -31,7 +33,8 @@ export type WorldState = {
     unitBehaviorSpec: UnitBehaviorSpec | null,
     loggingSpec: LoggingSpec | null,
     simulationSpec: SimulationSpec | null,
-    techSpec: TechSpec | null
+    techSpec: TechSpec | null,
+    assetSpec: AssetSpec | null
   ) => void;
   addEvents: (entries: Array<Record<string, unknown>>) => void;
   setPaths: (paths: Array<{ entity_id: number; path: Array<[number, number]> }>) => void;
@@ -46,6 +49,8 @@ export type WorldState = {
   setKnowledge: (data: Record<number, Record<string, number>>) => void;
   setResearch: (data: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>) => void;
   setChronicles: (data: Record<number, { battle_win_loss_ratio: number }>) => void;
+  setTilesetImages: (images: Record<string, HTMLImageElement>) => void;
+  setAssetSpec: (spec: AssetSpec | null) => void;
   setGodTool: (tool: "lava" | "forest" | "water" | "ignite" | null) => void;
   setBrushSize: (size: number) => void;
   setWorker: (worker: Worker | null) => void;
@@ -58,6 +63,8 @@ export const useWorldStore = create<WorldState>((set) => ({
   loggingSpec: null,
   simulationSpec: null,
   techSpec: null,
+  assetSpec: null,
+  tilesetImages: {},
   terrain: null,
   buffers: null,
   paths: [],
@@ -74,8 +81,8 @@ export const useWorldStore = create<WorldState>((set) => ({
   godTool: { tool: null, brushSize: 1 },
   worker: null,
   error: null,
-  setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec) =>
-    set({ spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, error: null }),
+  setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, assetSpec) =>
+    set({ spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, assetSpec, error: null }),
   addEvents: (entries) =>
     set((state) => {
       const merged = [...state.events, ...entries];
@@ -92,6 +99,8 @@ export const useWorldStore = create<WorldState>((set) => ({
   setKnowledge: (data) => set({ knowledge: data }),
   setResearch: (data) => set({ research: data }),
   setChronicles: (data) => set({ chronicles: data }),
+  setTilesetImages: (images: Record<string, HTMLImageElement>) => set({ tilesetImages: images }),
+  setAssetSpec: (spec) => set({ assetSpec: spec }),
   setGodTool: (tool) => set((state) => ({ godTool: { ...state.godTool, tool } })),
   setBrushSize: (size) => set((state) => ({ godTool: { ...state.godTool, brushSize: size } })),
   setWorker: (worker) => set({ worker }),

@@ -17,6 +17,8 @@ export function WorldCanvas() {
   const terrain = useWorldStore((s) => s.terrain);
   const buffers = useWorldStore((s) => s.buffers);
   const unitBehaviorSpec = useWorldStore((s) => s.unitBehaviorSpec);
+  const assetSpec = useWorldStore((s) => s.assetSpec);
+  const tilesetImages = useWorldStore((s) => s.tilesetImages);
   const paths = useWorldStore((s) => s.paths);
   const buildingOwners = useWorldStore((s) => s.buildingOwners);
   const setSelectedEntityId = useWorldStore((s) => s.setSelectedEntityId);
@@ -24,9 +26,20 @@ export function WorldCanvas() {
   const worker = useWorldStore((s) => s.worker);
   const entityDebug = useWorldStore((s) => s.entityDebug);
   const [hover, setHover] = useState<{ x: number; y: number; px: number; py: number; entityId: number | null } | null>(null);
+  const [camera, setCamera] = useState({ x: 0, y: 0, scale: 1 });
+  const dragRef = useRef<{ x: number; y: number; startX: number; startY: number; dragging: boolean } | null>(null);
   const isPaintingRef = useRef(false);
   const lastPaintRef = useRef<string | null>(null);
   const teamColors = ["#ef4444", "#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#eab308", "#64748b"];
+
+  const getSprite = (group: "terrain" | "features" | "entities", id: number) => {
+    const mapping = assetSpec?.mappings?.[group]?.[String(id)];
+    if (!mapping) return null;
+    const tileset = assetSpec?.tilesets.find((t) => t.name === mapping.tileset);
+    const image = tileset ? tilesetImages[tileset.name] : undefined;
+    if (!tileset || !image) return null;
+    return { image, tileset, mapping };
+  };
 
   useEffect(() => {
     if (!spec || !terrain) return;
@@ -41,43 +54,94 @@ export function WorldCanvas() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    ctx.setTransform(camera.scale, 0, 0, camera.scale, camera.x, camera.y);
+    ctx.clearRect(-camera.x / camera.scale, -camera.y / camera.scale, canvas.width / camera.scale, canvas.height / camera.scale);
+
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
         const idx = y * width + x;
         const id = terrain[idx];
-        ctx.fillStyle = ID_COLORS[id] ?? "#333333";
-        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+        const sprite = getSprite("terrain", id);
+        if (sprite) {
+          const { image, tileset, mapping } = sprite;
+          ctx.drawImage(
+            image,
+            mapping.x * tileset.tile_size,
+            mapping.y * tileset.tile_size,
+            tileset.tile_size,
+            tileset.tile_size,
+            x * tileSize,
+            y * tileSize,
+            tileSize,
+            tileSize
+          );
+        } else {
+          ctx.fillStyle = ID_COLORS[id] ?? "#333333";
+          ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+        }
       }
     }
 
     if (buffers) {
-      ctx.fillStyle = "#064e3b";
       for (let y = 0; y < height; y += 1) {
         for (let x = 0; x < width; x += 1) {
           const idx = y * width + x;
           if (buffers.feature[idx] === 100) {
-            ctx.beginPath();
-            ctx.arc(
-              x * tileSize + tileSize / 2,
-              y * tileSize + tileSize / 2,
-              tileSize / 4,
-              0,
-              Math.PI * 2
-            );
-            ctx.fill();
+            const sprite = getSprite("features", 100);
+            if (sprite) {
+              const { image, tileset, mapping } = sprite;
+              ctx.drawImage(
+                image,
+                mapping.x * tileset.tile_size,
+                mapping.y * tileset.tile_size,
+                tileset.tile_size,
+                tileset.tile_size,
+                x * tileSize,
+                y * tileSize,
+                tileSize,
+                tileSize
+              );
+            } else {
+              ctx.fillStyle = "#064e3b";
+              ctx.beginPath();
+              ctx.arc(
+                x * tileSize + tileSize / 2,
+                y * tileSize + tileSize / 2,
+                tileSize / 4,
+                0,
+                Math.PI * 2
+              );
+              ctx.fill();
+            }
           }
           if (buffers.feature[idx] === 110) {
-            const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 200);
-            ctx.fillStyle = `rgba(255, 140, 0, ${pulse})`;
-            ctx.beginPath();
-            ctx.arc(
-              x * tileSize + tileSize / 2,
-              y * tileSize + tileSize / 2,
-              tileSize / 3,
-              0,
-              Math.PI * 2
-            );
-            ctx.fill();
+            const sprite = getSprite("features", 110);
+            if (sprite) {
+              const { image, tileset, mapping } = sprite;
+              ctx.drawImage(
+                image,
+                mapping.x * tileset.tile_size,
+                mapping.y * tileset.tile_size,
+                tileset.tile_size,
+                tileset.tile_size,
+                x * tileSize,
+                y * tileSize,
+                tileSize,
+                tileSize
+              );
+            } else {
+              const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 200);
+              ctx.fillStyle = `rgba(255, 140, 0, ${pulse})`;
+              ctx.beginPath();
+              ctx.arc(
+                x * tileSize + tileSize / 2,
+                y * tileSize + tileSize / 2,
+                tileSize / 3,
+                0,
+                Math.PI * 2
+              );
+              ctx.fill();
+            }
           }
         }
       }
@@ -90,11 +154,27 @@ export function WorldCanvas() {
           if (buffers.building[idx] === 300) {
             const owner = buildingOwners[idx] ?? 0;
             const teamColor = teamColors[owner % teamColors.length];
-            ctx.fillStyle = "#8b5a2b";
-            ctx.fillRect(x * tileSize + 4, y * tileSize + 4, tileSize - 8, tileSize - 8);
-            ctx.fillStyle = teamColor;
-            ctx.font = "10px sans-serif";
-            ctx.fillText("H", x * tileSize + tileSize / 2 - 3, y * tileSize + tileSize / 2 + 3);
+            const sprite = getSprite("entities", 300);
+            if (sprite) {
+              const { image, tileset, mapping } = sprite;
+              ctx.drawImage(
+                image,
+                mapping.x * tileset.tile_size,
+                mapping.y * tileset.tile_size,
+                tileset.tile_size,
+                tileset.tile_size,
+                x * tileSize,
+                y * tileSize,
+                tileSize,
+                tileSize
+              );
+            } else {
+              ctx.fillStyle = "#8b5a2b";
+              ctx.fillRect(x * tileSize + 4, y * tileSize + 4, tileSize - 8, tileSize - 8);
+              ctx.fillStyle = teamColor;
+              ctx.font = "10px sans-serif";
+              ctx.fillText("H", x * tileSize + tileSize / 2 - 3, y * tileSize + tileSize / 2 + 3);
+            }
           }
         }
       }
@@ -137,16 +217,32 @@ export function WorldCanvas() {
           const faction = buffers.entities.faction_id as Uint8Array | undefined;
           const teamColor = faction ? teamColors[faction[i] % teamColors.length] : "#ffffff";
           if (types && (types[i] === 201 || types[i] === 200 || types[i] === 202 || types[i] === 203 || types[i] === 204)) {
-            ctx.fillStyle = "#7c4a2d";
-            ctx.beginPath();
-            ctx.arc(
-              px + tileSize / 2,
-              py + tileSize / 2,
-              tileSize / 4,
-              0,
-              Math.PI * 2
-            );
-            ctx.fill();
+            const sprite = getSprite("entities", types[i]);
+            if (sprite) {
+              const { image, tileset, mapping } = sprite;
+              ctx.drawImage(
+                image,
+                mapping.x * tileset.tile_size,
+                mapping.y * tileset.tile_size,
+                tileset.tile_size,
+                tileset.tile_size,
+                px,
+                py,
+                tileSize,
+                tileSize
+              );
+            } else {
+              ctx.fillStyle = "#7c4a2d";
+              ctx.beginPath();
+              ctx.arc(
+                px + tileSize / 2,
+                py + tileSize / 2,
+                tileSize / 4,
+                0,
+                Math.PI * 2
+              );
+              ctx.fill();
+            }
             ctx.strokeStyle = teamColor;
             ctx.lineWidth = 1;
             ctx.stroke();
@@ -183,7 +279,7 @@ export function WorldCanvas() {
       ctx.strokeRect(px, py, size * tileSize, size * tileSize);
       ctx.setLineDash([]);
     }
-  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, godTool, hover]);
+  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, godTool, hover, tilesetImages, assetSpec, camera]);
 
   const tileFromEvent = (event: MouseEvent<HTMLCanvasElement>) => {
     if (!spec || !buffers) return;
@@ -192,8 +288,10 @@ export function WorldCanvas() {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const x = Math.floor(((event.clientX - rect.left) * scaleX) / spec.config.tile_size);
-    const y = Math.floor(((event.clientY - rect.top) * scaleY) / spec.config.tile_size);
+    const worldX = ((event.clientX - rect.left) * scaleX - camera.x) / camera.scale;
+    const worldY = ((event.clientY - rect.top) * scaleY - camera.y) / camera.scale;
+    const x = Math.floor(worldX / spec.config.tile_size);
+    const y = Math.floor(worldY / spec.config.tile_size);
     return { x, y, px: event.clientX - rect.left, py: event.clientY - rect.top };
   };
 
@@ -260,6 +358,10 @@ export function WorldCanvas() {
   };
 
   const handleMouseDown = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!godTool.tool && event.button === 0) {
+      dragRef.current = { x: event.clientX, y: event.clientY, startX: camera.x, startY: camera.y, dragging: true };
+      return;
+    }
     if (!godTool.tool) return;
     isPaintingRef.current = true;
     const tile = tileFromEvent(event);
@@ -273,6 +375,11 @@ export function WorldCanvas() {
 
   const handleMouseMove = (event: MouseEvent<HTMLCanvasElement>) => {
     updateHover(event);
+    if (dragRef.current?.dragging && !godTool.tool) {
+      const dx = event.clientX - dragRef.current.x;
+      const dy = event.clientY - dragRef.current.y;
+      setCamera((prev) => ({ ...prev, x: dragRef.current!.startX + dx, y: dragRef.current!.startY + dy }));
+    }
     if (!isPaintingRef.current || !godTool.tool) return;
     const tile = tileFromEvent(event);
     if (!tile) return;
@@ -293,11 +400,21 @@ export function WorldCanvas() {
         onMouseUp={() => {
           isPaintingRef.current = false;
           lastPaintRef.current = null;
+          if (dragRef.current) dragRef.current.dragging = false;
         }}
         onMouseLeave={() => {
           isPaintingRef.current = false;
           lastPaintRef.current = null;
+          if (dragRef.current) dragRef.current.dragging = false;
           setHover(null);
+        }}
+        onWheel={(event) => {
+          event.preventDefault();
+          const delta = event.deltaY > 0 ? -0.1 : 0.1;
+          setCamera((prev) => {
+            const nextScale = Math.min(3, Math.max(0.5, prev.scale + delta));
+            return { ...prev, scale: nextScale };
+          });
         }}
         style={{
           width: "100%",

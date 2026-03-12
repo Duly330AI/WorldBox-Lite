@@ -68,5 +68,12 @@
 - [x] Minimap (64x64)
 - [x] Dashboard: K/D Ratio + Research Speed
 
+## Phase 28-30 – Assets & Renderer
+- [x] asset_spec.json + Schema + AJV Validation
+- [x] Assets Ordnerstruktur (assets/*) + Build-Sync (assets → public/assets)
+- [x] Sprite-fähiger Renderer (drawImage Fallback auf Farben)
+- [x] Camera Pan & Zoom
+- [x] Brush Preview bleibt kompatibel mit Kamera
+
 ## Notes
 - combat_spec wird geladen und verwendet.

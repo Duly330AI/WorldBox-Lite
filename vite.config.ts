@@ -17,6 +17,25 @@ function syncSpecs() {
   }
 }
 
+function syncAssets() {
+  const root = process.cwd();
+  const assetDir = path.join(root, "assets");
+  const publicAssetDir = path.join(root, "public", "assets");
+  if (!fs.existsSync(assetDir)) return;
+  fs.mkdirSync(publicAssetDir, { recursive: true });
+  const copyRecursive = (src: string, dest: string) => {
+    if (fs.statSync(src).isDirectory()) {
+      fs.mkdirSync(dest, { recursive: true });
+      for (const entry of fs.readdirSync(src)) {
+        copyRecursive(path.join(src, entry), path.join(dest, entry));
+      }
+    } else {
+      fs.copyFileSync(src, dest);
+    }
+  };
+  copyRecursive(assetDir, publicAssetDir);
+}
+
 export default defineConfig({
   plugins: [
     react(),
@@ -24,18 +43,24 @@ export default defineConfig({
       name: "spec-sync",
       buildStart() {
         syncSpecs();
+        syncAssets();
       },
       configureServer(server) {
         syncSpecs();
+        syncAssets();
         server.watcher.add(path.join(process.cwd(), "specs"));
+        server.watcher.add(path.join(process.cwd(), "assets"));
         server.watcher.on("add", (file) => {
           if (file.endsWith(".json")) syncSpecs();
+          if (file.includes(`${path.sep}assets${path.sep}`)) syncAssets();
         });
         server.watcher.on("change", (file) => {
           if (file.endsWith(".json")) syncSpecs();
+          if (file.includes(`${path.sep}assets${path.sep}`)) syncAssets();
         });
         server.watcher.on("unlink", (file) => {
           if (file.endsWith(".json")) syncSpecs();
+          if (file.includes(`${path.sep}assets${path.sep}`)) syncAssets();
         });
       }
     }
