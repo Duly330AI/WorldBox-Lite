@@ -1,0 +1,5 @@
+{
+  "name": "WorldBox Lite",
+  "description": "A 2D sandbox world simulation with terrain, plants, humans, and wolves.",
+  "requestFramePermissions": []
+}
