@@ -73,6 +73,14 @@ export class StateView {
     this.buffers.explored[idx] = value;
   }
 
+  getOwnership(idx: number) {
+    return this.buffers.ownership[idx];
+  }
+
+  setOwnership(idx: number, value: number) {
+    this.buffers.ownership[idx] = value;
+  }
+
   setExploredBit(idx: number, factionId: number) {
     const mask = 1 << factionId;
     this.buffers.explored[idx] = this.buffers.explored[idx] | mask;
@@ -177,6 +185,24 @@ export class StateView {
   }
   setEntityAnimationFrame(index: number, value: number) {
     this.setEntityField(index, "animation_frame", value);
+  }
+  getEntityCitySize(index: number) {
+    return this.getEntityField<number>(index, "city_size");
+  }
+  setEntityCitySize(index: number, value: number) {
+    this.setEntityField(index, "city_size", value);
+  }
+  getEntityCityGrowthPoints(index: number) {
+    return this.getEntityField<number>(index, "city_growth_points");
+  }
+  setEntityCityGrowthPoints(index: number, value: number) {
+    this.setEntityField(index, "city_growth_points", value);
+  }
+  getEntityCityFoodStockpile(index: number) {
+    return this.getEntityField<number>(index, "city_food_stockpile");
+  }
+  setEntityCityFoodStockpile(index: number, value: number) {
+    this.setEntityField(index, "city_food_stockpile", value);
   }
   getEntityTargetX(index: number) {
     return this.getEntityField<number>(index, "target_x");

@@ -139,6 +139,7 @@ export function App() {
       entitySpecUrl: "/specs/entity_spec.json",
       simulationSpecUrl: "/specs/simulation_spec.json",
       exportSpecUrl: "/specs/export_spec.json",
+      citySpecUrl: "/specs/city_spec.json",
       seed: 1337
     });
 

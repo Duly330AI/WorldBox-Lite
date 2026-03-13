@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "city_spec.schema.json",
+  "title": "City Spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_id", "version", "schema_version", "growth_rules", "placement_rules"],
+  "properties": {
+    "spec_id": { "type": "string" },
+    "version": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "growth_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "patternProperties": {
+        "^[0-9]+$": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["radius", "food_consumption", "threshold"],
+          "properties": {
+            "radius": { "type": "integer", "minimum": 0 },
+            "food_consumption": { "type": "integer", "minimum": 0 },
+            "threshold": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "placement_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_distance_centers", "allow_radius_overlap"],
+      "properties": {
+        "min_distance_centers": { "type": "integer", "minimum": 1 },
+        "allow_radius_overlap": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "spec_id": "cities_v1",
+  "version": "1.0",
+  "schema_version": "1.0.0",
+  "growth_rules": {
+    "1": { "radius": 1, "food_consumption": 2, "threshold": 20 },
+    "2": { "radius": 2, "food_consumption": 4, "threshold": 50 },
+    "3": { "radius": 3, "food_consumption": 6, "threshold": 100 }
+  },
+  "placement_rules": {
+    "min_distance_centers": 8,
+    "allow_radius_overlap": false
+  }
+}

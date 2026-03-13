@@ -8,6 +8,7 @@ import combatSchema from "../../specs/schemas/combat_spec.schema.json";
 import entitySchema from "../../specs/schemas/entity_spec.schema.json";
 import simulationSchema from "../../specs/schemas/simulation_spec.schema.json";
 import exportSchema from "../../specs/schemas/export_spec.schema.json";
+import citySchema from "../../specs/schemas/city_spec.schema.json";
 
 export type WorldSpec = {
   spec_id: string;
@@ -53,6 +54,7 @@ export type StateSpec = {
     building_storage_buffer: { type: string; bytes_per_tile: number; description?: string };
     height_buffer: { type: string; bytes_per_tile: number; description?: string };
     explored_buffer: { type: string; bytes_per_tile: number; description?: string };
+    ownership_buffer: { type: string; bytes_per_tile: number; description?: string };
   };
   entity_state: {
     max_entities: number;
@@ -181,6 +183,14 @@ export type ExportSpec = {
   };
 };
 
+export type CitySpec = {
+  spec_id: string;
+  version: string;
+  schema_version: string;
+  growth_rules: Record<string, { radius: number; food_consumption: number; threshold: number }>;
+  placement_rules: { min_distance_centers: number; allow_radius_overlap: boolean };
+};
+
 
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateWorld = ajv.compile(worldSchema);
@@ -192,6 +202,7 @@ const validateCombat = ajv.compile(combatSchema);
 const validateEntity = ajv.compile(entitySchema);
 const validateSimulation = ajv.compile(simulationSchema);
 const validateExport = ajv.compile(exportSchema);
+const validateCity = ajv.compile(citySchema);
 
 export function assertWorldSpec(data: unknown): WorldSpec {
   if (!validateWorld(data)) {
@@ -292,6 +303,17 @@ export function assertExportSpec(data: unknown): ExportSpec {
   return data as ExportSpec;
 }
 
+export function assertCitySpec(data: unknown): CitySpec {
+  if (!validateCity(data)) {
+    const errors = (validateCity.errors || []) as DefinedError[];
+    const message = errors
+      .map((e) => `${e.instancePath || "(root)"} ${e.message}`)
+      .join("; ");
+    throw new Error(`city_spec validation failed: ${message}`);
+  }
+  return data as CitySpec;
+}
+
 
 export async function loadWorldSpec(url: string): Promise<WorldSpec> {
   const res = await fetch(url);
@@ -372,4 +394,13 @@ export async function loadExportSpec(url: string): Promise<ExportSpec> {
   }
   const json = (await res.json()) as unknown;
   return assertExportSpec(json);
+}
+
+export async function loadCitySpec(url: string): Promise<CitySpec> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to load city_spec: ${res.status}`);
+  }
+  const json = (await res.json()) as unknown;
+  return assertCitySpec(json);
 }

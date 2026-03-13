@@ -32,6 +32,9 @@ export function spawnUnit(
   const animation = buffers.entities.animation_frame as Uint8Array | undefined;
   const targetX = buffers.entities.target_x as Uint16Array | undefined;
   const targetY = buffers.entities.target_y as Uint16Array | undefined;
+  const citySize = buffers.entities.city_size as Uint8Array | undefined;
+  const cityGrowth = buffers.entities.city_growth_points as Uint16Array | undefined;
+  const cityFood = buffers.entities.city_food_stockpile as Uint16Array | undefined;
 
   const tryPlaceAt = (tx: number, ty: number) => {
     if (tx < 0 || ty < 0 || tx >= width || ty >= height) return false;
@@ -77,6 +80,9 @@ export function spawnUnit(
     planLock[i] = 0;
     if (targetX) targetX[i] = 0xffff;
     if (targetY) targetY[i] = 0xffff;
+    if (citySize) citySize[i] = 0;
+    if (cityGrowth) cityGrowth[i] = 0;
+    if (cityFood) cityFood[i] = 0;
     if (animation) animation[i] = 0;
     return { success: true, entityIndex: i };
   }

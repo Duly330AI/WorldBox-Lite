@@ -8,6 +8,7 @@ import {
   loadLoggingSpec,
   loadSimulationSpec,
   loadWorldSpec,
+  loadCitySpec,
   type CombatSpec,
   type ExportSpec,
   type EntitySpec,
@@ -16,7 +17,8 @@ import {
   type StateSpec,
   type TechSpec,
   type UnitBehaviorSpec,
-  type WorldSpec
+  type WorldSpec,
+  type CitySpec
 } from "./io/specLoader";
 import { StateView } from "./state/StateView";
 import { spawnUnit } from "./systems/spawn";
@@ -35,6 +37,7 @@ type InitMessage = {
   entitySpecUrl: string;
   simulationSpecUrl: string;
   exportSpecUrl: string;
+  citySpecUrl: string;
   seed?: number;
 };
 
@@ -45,6 +48,7 @@ export type StateBuffers = {
   building_storage: Uint16Array;
   height: Int8Array;
   explored: Uint8Array;
+  ownership: Uint8Array;
   entities: Record<string, Uint8Array | Uint16Array | Uint32Array>;
 };
 
@@ -175,6 +179,35 @@ function spawnInitialUnits() {
   }
 }
 
+function spawnCityEntity(factionId: number, x: number, y: number) {
+  if (!buffersRef || !stateViewRef || !entitySpecRef) return null;
+  const view = stateViewRef;
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) !== 0) continue;
+    view.setEntityId(i, i + 1);
+    view.setEntityType(i, CITY_ENTITY_TYPE);
+    view.setEntityFaction(i, factionId);
+    view.setEntityX(i, x);
+    view.setEntityY(i, y);
+    view.setEntityHealth(i, entitySpecRef.config.base_health_all_units);
+    view.setEntityHunger(i, 0);
+    view.setEntityWood(i, 0);
+    view.setEntityFood(i, 0);
+    view.setEntityActionId(i, 0);
+    view.setEntityActionProgress(i, 0);
+    view.setEntityPlanLock(i, 0);
+    view.setEntityTargetX(i, INVALID_TARGET);
+    view.setEntityTargetY(i, INVALID_TARGET);
+    view.setEntityCitySize(i, 1);
+    view.setEntityCityGrowthPoints(i, 0);
+    const rule = getCityRule(1);
+    const initialFood = rule ? rule.threshold + rule.food_consumption * 5 : 20;
+    view.setEntityCityFoodStockpile(i, initialFood);
+    return i;
+  }
+  return null;
+}
+
 function allocBuffer(byteLength: number, useShared: boolean): ArrayBuffer {
   if (useShared && typeof SharedArrayBuffer !== "undefined") {
     return new SharedArrayBuffer(byteLength);
@@ -215,7 +248,9 @@ function makeStateBuffers(stateSpec: StateSpec, worldSpec: WorldSpec, useShared:
     }
   }
 
-  return { terrain, feature, building, building_storage: buildingStorage, height: heightBuf, explored, entities };
+  const ownership = makeTileBuffer(stateSpec.memory_layout.ownership_buffer.type, tileCount, useShared) as Uint8Array;
+
+  return { terrain, feature, building, building_storage: buildingStorage, height: heightBuf, explored, ownership, entities };
 }
 
 class TechManager {
@@ -559,6 +594,7 @@ let combatSpecRef: CombatSpec | null = null;
 let entitySpecRef: EntitySpec | null = null;
 let simulationSpecRef: SimulationSpec | null = null;
 let exportSpecRef: ExportSpec | null = null;
+let citySpecRef: CitySpec | null = null;
 let seedRef = 0;
 let randomRef: Random | null = null;
 let randomFn: () => number = Math.random;
@@ -567,6 +603,7 @@ let pathfindingCalls = 0;
 let matchOverSent = false;
 const attackLines: Array<{ from: [number, number]; to: [number, number] }> = [];
 const INVALID_TARGET = 0xffff;
+const CITY_ENTITY_TYPE = 210;
 
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
 let actionIdByName: Map<string, number> = new Map();
@@ -693,6 +730,32 @@ function hasTech(factionId: number, techId: string | undefined) {
   return techManagerRef?.getKnown(factionId)?.has(techId) ?? false;
 }
 
+function getCityRule(size: number) {
+  if (!citySpecRef) return null;
+  const rule = citySpecRef.growth_rules[String(size)];
+  return rule ?? null;
+}
+
+function getCityRadius(size: number) {
+  return getCityRule(size)?.radius ?? 0;
+}
+
+function isCityEntity(typeId: number) {
+  return typeId === CITY_ENTITY_TYPE;
+}
+
+function countFactionCities(factionId: number) {
+  if (!stateViewRef) return 0;
+  const view = stateViewRef;
+  let count = 0;
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    if (view.getEntityFaction(i) !== factionId) continue;
+    if (isCityEntity(view.getEntityType(i))) count += 1;
+  }
+  return count;
+}
+
 function chooseProductionUnit(
   factionId: number,
   storage: number,
@@ -766,6 +829,7 @@ function findEnemyInRange(entityIndex: number, range: number) {
   forEachNearbyEntity(sx, sy, range, (i) => {
     if (view.getEntityId(i) === 0) return;
     if (view.getEntityFaction(i) === selfFaction) return;
+    if (isCityEntity(view.getEntityType(i))) return;
     const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
     if ((view.getExplored(enemyIdx) & (1 << selfFaction)) === 0) return;
     const ex = view.getEntityX(i);
@@ -808,6 +872,7 @@ function isEnemyInVision(entityIndex: number) {
   forEachNearbyEntity(sx, sy, vision, (i) => {
     if (view.getEntityId(i) === 0) return;
     if (view.getEntityFaction(i) === selfFaction) return;
+    if (isCityEntity(view.getEntityType(i))) return;
     const enemyIdx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
     if ((view.getExplored(enemyIdx) & (1 << selfFaction)) === 0) return;
     const ex = view.getEntityX(i);
@@ -845,6 +910,49 @@ function enemyThreatCost(tx: number, ty: number, factionId: number) {
   });
   if (cost > 0) return cost;
   return 0;
+}
+
+function claimCityTerritory(cityIndex: number) {
+  if (!stateViewRef || !citySpecRef) return;
+  const view = stateViewRef;
+  const size = view.getEntityCitySize(cityIndex);
+  const radius = getCityRadius(size);
+  const cx = view.getEntityX(cityIndex);
+  const cy = view.getEntityY(cityIndex);
+  const faction = view.getEntityFaction(cityIndex);
+  for (let dy = -radius; dy <= radius; dy += 1) {
+    for (let dx = -radius; dx <= radius; dx += 1) {
+      const tx = cx + dx;
+      const ty = cy + dy;
+      if (tx < 0 || ty < 0 || tx >= view.width || ty >= view.height) continue;
+      const dist = Math.max(Math.abs(dx), Math.abs(dy));
+      if (dist > radius) continue;
+      view.setOwnership(view.tileIndex(tx, ty), faction);
+    }
+  }
+}
+
+function isValidCityPlacement(x: number, y: number, factionId: number) {
+  if (!stateViewRef || !citySpecRef) return false;
+  const view = stateViewRef;
+  if (!view.isWalkable(x, y)) return false;
+  const idx = view.tileIndex(x, y);
+  if (view.getBuilding(idx) !== 0) return false;
+  const minDist = citySpecRef.placement_rules.min_distance_centers;
+  const allowOverlap = citySpecRef.placement_rules.allow_radius_overlap;
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    if (!isCityEntity(view.getEntityType(i))) continue;
+    const ox = view.getEntityX(i);
+    const oy = view.getEntityY(i);
+    const dist = Math.max(Math.abs(ox - x), Math.abs(oy - y));
+    if (dist < minDist) return false;
+    if (!allowOverlap) {
+      const otherRadius = getCityRadius(view.getEntityCitySize(i));
+      if (dist <= otherRadius + getCityRadius(1)) return false;
+    }
+  }
+  return true;
 }
 
 function findNearestTile(
@@ -1011,6 +1119,7 @@ function tickAction(entityIndex: number) {
   const actionMeta = actionById.get(actionId);
   const progressStep = actionMeta?.progress_step ?? 0;
   if (!actionMeta) return;
+  if (isCityEntity(view.getEntityType(entityIndex))) return;
 
   const isWalkable = (tx: number, ty: number) => view.isWalkable(tx, ty);
 
@@ -1397,6 +1506,37 @@ function tickAction(entityIndex: number) {
       });
     }
   }
+
+  if (actionMeta?.name === "FOUND_CITY") {
+    const faction = view.getEntityFaction(entityIndex);
+    if (!isValidCityPlacement(x, y, faction)) {
+      const found = findNearestTile(
+        x,
+        y,
+        width,
+        height,
+        isWalkable,
+        (tx, ty) => isValidCityPlacement(tx, ty, faction),
+        occupied
+      );
+      if (found) {
+        view.setEntityTargetX(entityIndex, found.x);
+        view.setEntityTargetY(entityIndex, found.y);
+        moveTowardTarget();
+      }
+      return;
+    }
+    const next = Math.min(100, view.getEntityActionProgress(entityIndex) + progressStep);
+    view.setEntityActionProgress(entityIndex, next);
+    if (next >= 100) {
+      const cityIndex = spawnCityEntity(faction, x, y);
+      if (cityIndex !== null) {
+        claimCityTerritory(cityIndex);
+        logEvent({ event_type: "CITY_FOUNDED", level: "INFO", faction_id: faction, x, y });
+      }
+      view.setEntityActionProgress(entityIndex, 0);
+    }
+  }
 }
 
 function updateExploration(entityIndex: number, width: number) {
@@ -1479,6 +1619,7 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
   if (wood >= 3) facts.push("has_wood_to_store");
   const grassId = Object.values(worldSpecRef!.terrain_types).find((t) => t.id === 0)?.id ?? 0;
   if (terrainId === grassId) facts.push("is_on_grass_tile");
+  if (isValidCityPlacement(x, y, faction)) facts.push("is_on_valid_land");
   if (findEnemyInRangeByType(entityIndex) !== null) facts.push("enemy_in_range");
   if (isEnemyInVision(entityIndex)) facts.push("enemy_nearby");
   if (board.forests.size > 0) facts.push("forest_known");
@@ -1489,6 +1630,42 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
   const home = homeByFaction.get(faction);
   if (home && home.x === x && home.y === y) facts.push("is_at_home");
   return facts;
+}
+
+function stepCityGrowth() {
+  if (!stateViewRef || !citySpecRef) return;
+  const view = stateViewRef;
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    if (!isCityEntity(view.getEntityType(i))) continue;
+    const size = view.getEntityCitySize(i);
+    const rule = getCityRule(size);
+    if (!rule) continue;
+    let food = view.getEntityCityFoodStockpile(i);
+    let growth = view.getEntityCityGrowthPoints(i);
+    food = Math.min(1000, food + 1);
+    if (food > rule.food_consumption) {
+      food -= rule.food_consumption;
+      growth += 1;
+    } else {
+      food = Math.max(0, food - rule.food_consumption);
+    }
+    const nextRule = getCityRule(size + 1);
+    if (nextRule && growth >= rule.threshold) {
+      view.setEntityCitySize(i, size + 1);
+      growth = 0;
+      claimCityTerritory(i);
+      logEvent({
+        event_type: "CITY_GROWTH",
+        level: "INFO",
+        faction_id: view.getEntityFaction(i),
+        city_id: i,
+        size: size + 1
+      });
+    }
+    view.setEntityCityFoodStockpile(i, food);
+    view.setEntityCityGrowthPoints(i, growth);
+  }
 }
 
 function computeInputs(entityIndex: number, width: number) {
@@ -1519,6 +1696,7 @@ function computeInputs(entityIndex: number, width: number) {
     health: view.getEntityHealth(entityIndex),
     hunger: view.getEntityHunger(entityIndex),
     wood: view.getEntityWood(entityIndex),
+    city_count: countFactionCities(faction),
     tiles_explored: getTilesExplored(entityIndex),
     enemy_near_home: enemyNearHome,
     military_strength_ratio: ratio
@@ -1636,6 +1814,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       stepTreeGrowth(view, { rng: randomFn });
     }
 
+    stepCityGrowth();
+
     if (simTick % 5 === 0) {
       for (let i = 0; i < count; i += 1) {
         if (view.getEntityId(i) === 0) continue;
@@ -1709,6 +1889,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
 
     for (const idx of indices) {
       if (view.getEntityId(idx) === 0) continue;
+      if (isCityEntity(view.getEntityType(idx))) continue;
       if (view.getEntityPlanLock(idx) > 0) {
         view.setEntityPlanLock(idx, view.getEntityPlanLock(idx) - 1);
       }
@@ -1956,7 +2137,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       combatSpec,
       entitySpec,
       simulationSpec,
-      exportSpec
+      exportSpec,
+      citySpec
     ] = await Promise.all([
       loadWorldSpec(ev.data.worldSpecUrl),
       loadStateSpec(ev.data.stateSpecUrl),
@@ -1966,7 +2148,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       loadCombatSpec(ev.data.combatSpecUrl),
       loadEntitySpec(ev.data.entitySpecUrl),
       loadSimulationSpec(ev.data.simulationSpecUrl),
-      loadExportSpec(ev.data.exportSpecUrl)
+      loadExportSpec(ev.data.exportSpecUrl),
+      loadCitySpec(ev.data.citySpecUrl)
     ]);
     const seed =
       worldSpec.generation_params?.seed ??
@@ -2000,6 +2183,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     entitySpecRef = entitySpec;
     simulationSpecRef = simulationSpec;
     exportSpecRef = exportSpec;
+    citySpecRef = citySpec;
     maxVisionRef = Math.max(1, ...Object.values(entitySpec.units).map((u) => u.vision));
     foodTerrainIds = new Set(
       Object.values(worldSpec.terrain_types)
@@ -2016,6 +2200,13 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     blackboardByFaction.clear();
     forcedTargets.clear();
     spawnInitialUnits();
+    for (const [factionId, home] of homeByFaction.entries()) {
+      const cityIndex = spawnCityEntity(factionId, home.x, home.y);
+      if (cityIndex !== null) {
+        claimCityTerritory(cityIndex);
+        logEvent({ event_type: "CITY_FOUNDED", level: "INFO", faction_id: factionId, x: home.x, y: home.y });
+      }
+    }
 
     logEvent({ kind: "init", message: "world/state/tech loaded" });
 
@@ -2044,6 +2235,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         buffers.building_storage.buffer,
         buffers.height.buffer,
         buffers.explored.buffer,
+        buffers.ownership.buffer,
         ...Object.values(buffers.entities).map((arr) => arr.buffer)
       ];
       self.postMessage(payload, transferables);

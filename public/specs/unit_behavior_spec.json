@@ -6,6 +6,7 @@
     "DEFEND": { "priority": 1, "utility_curve": "defense_curve", "target_effect": "enemy_health_reduced" },
     "SURVIVE": { "priority": 2, "utility_curve": "danger_curve", "target_effect": "safety_increased" },
     "RECOVER": { "priority": 3, "utility_curve": "health_curve", "target_effect": "health_increased" },
+    "SETTLE": { "priority": 3, "utility_curve": "settle_curve", "target_effect": "city_founded" },
     "NUTRITION": { "priority": 4, "utility_curve": "hunger_curve", "target_effect": "inventory_food_increased" },
     "ATTACK_ORDER": { "priority": 4, "utility_curve": "aggression_curve", "target_effect": "enemy_health_reduced" },
     "STORE_RESOURCES": { "priority": 5, "utility_curve": "storage_curve", "target_effect": "resources_stored" },
@@ -21,11 +22,13 @@
     "ATTACK": { "id": 4, "cost": 10, "progress_step": 100, "pre": ["enemy_known"], "eff": ["enemy_health_reduced", "safety_increased"] },
     "FLEE": { "id": 5, "cost": 2, "progress_step": 100, "pre": ["enemy_nearby"], "eff": ["safety_increased"] },
     "HEAL": { "id": 6, "cost": 5, "progress_step": 20, "pre": ["is_at_home"], "eff": ["health_increased"] },
-    "DELIVER": { "id": 7, "cost": 2, "progress_step": 50, "pre": ["has_wood_to_store"], "eff": ["resources_stored"] }
+    "DELIVER": { "id": 7, "cost": 2, "progress_step": 50, "pre": ["has_wood_to_store"], "eff": ["resources_stored"] },
+    "FOUND_CITY": { "id": 10, "cost": 50, "progress_step": 20, "pre": ["is_on_valid_land"], "eff": ["city_founded"] }
   },
   "utility_formulas": {
     "danger_curve": "enemy_nearby ? 100 : 0",
     "health_curve": "(100 - health)^2 / 100",
+    "settle_curve": "(city_count < 1 && wood >= 3) ? 75 : 0",
     "hunger_curve": "hunger > 50 ? (hunger^2 / 100) : 0",
     "wood_curve": "wood < 3 ? 60 : 0",
     "expansion_curve": "wood >= 3 ? 80 : 0",

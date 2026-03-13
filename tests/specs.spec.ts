@@ -9,6 +9,7 @@ import combatSchema from "../src/specs/schemas/combat_spec.schema.json";
 import entitySchema from "../src/specs/schemas/entity_spec.schema.json";
 import simulationSchema from "../src/specs/schemas/simulation_spec.schema.json";
 import exportSchema from "../src/specs/schemas/export_spec.schema.json";
+import citySchema from "../src/specs/schemas/city_spec.schema.json";
 import worldSpec from "../specs/world_spec.json";
 import stateSpec from "../specs/state_spec.json";
 import techSpec from "../specs/tech_spec.json";
@@ -18,6 +19,7 @@ import combatSpec from "../specs/combat_spec.json";
 import entitySpec from "../specs/entity_spec.json";
 import simulationSpec from "../specs/simulation_spec.json";
 import exportSpec from "../specs/export_spec.json";
+import citySpec from "../specs/city_spec.json";
 
 const ajv = new Ajv({ allErrors: true, strict: true });
 
@@ -65,6 +67,11 @@ describe("Spec validation", () => {
   it("export_spec validates", () => {
     const validate = ajv.compile(exportSchema);
     expect(validate(exportSpec)).toBe(true);
+  });
+
+  it("city_spec validates", () => {
+    const validate = ajv.compile(citySchema);
+    expect(validate(citySpec)).toBe(true);
   });
 
 });

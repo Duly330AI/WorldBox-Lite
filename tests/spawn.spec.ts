@@ -10,7 +10,10 @@ function makeBuffers(): StateBuffers {
   const terrain = new Uint8Array(tileCount);
   const feature = new Uint8Array(tileCount);
   const building = new Uint16Array(tileCount);
+  const building_storage = new Uint16Array(tileCount);
   const heightBuf = new Int8Array(tileCount);
+  const explored = new Uint8Array(tileCount);
+  const ownership = new Uint8Array(tileCount);
 
   const entities: Record<string, Uint8Array | Uint16Array | Uint32Array> = {};
   for (const [key, type] of Object.entries(stateSpec.entity_state.properties_per_entity)) {
@@ -19,7 +22,7 @@ function makeBuffers(): StateBuffers {
     else entities[key] = new Uint32Array(stateSpec.entity_state.max_entities);
   }
 
-  return { terrain, feature, building, height: heightBuf, entities };
+  return { terrain, feature, building, building_storage, height: heightBuf, explored, ownership, entities };
 }
 
 describe("spawnUnit", () => {

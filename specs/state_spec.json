@@ -7,7 +7,8 @@
     "building_buffer": { "type": "Uint16Array", "bytes_per_tile": 2, "description": "Building IDs 300-399" },
     "building_storage_buffer": { "type": "Uint16Array", "bytes_per_tile": 2, "description": "Building storage (wood units)" },
     "height_buffer": { "type": "Int8Array", "bytes_per_tile": 1 },
-    "explored_buffer": { "type": "Uint8Array", "bytes_per_tile": 1, "description": "Bitmask for 8 factions" }
+    "explored_buffer": { "type": "Uint8Array", "bytes_per_tile": 1, "description": "Bitmask for 8 factions" },
+    "ownership_buffer": { "type": "Uint8Array", "bytes_per_tile": 1, "description": "Faction ID owning the tile" }
   },
   "entity_state": {
     "max_entities": 1000,
@@ -27,7 +28,10 @@
       "current_action_id": "uint8",
       "action_progress": "uint8",
       "plan_lock_ticks": "uint8",
-      "animation_frame": "uint8"
+      "animation_frame": "uint8",
+      "city_size": "uint8",
+      "city_growth_points": "uint16",
+      "city_food_stockpile": "uint16"
     }
   }
 }

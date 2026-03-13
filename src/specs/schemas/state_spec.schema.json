@@ -12,14 +12,15 @@
     "memory_layout": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["terrain_buffer", "feature_buffer", "building_buffer", "building_storage_buffer", "height_buffer", "explored_buffer"],
+      "required": ["terrain_buffer", "feature_buffer", "building_buffer", "building_storage_buffer", "height_buffer", "explored_buffer", "ownership_buffer"],
       "properties": {
         "terrain_buffer": { "$ref": "#/definitions/bufferDef" },
         "feature_buffer": { "$ref": "#/definitions/bufferDef" },
         "building_buffer": { "$ref": "#/definitions/bufferDef" },
         "building_storage_buffer": { "$ref": "#/definitions/bufferDef" },
         "height_buffer": { "$ref": "#/definitions/bufferDef" },
-        "explored_buffer": { "$ref": "#/definitions/bufferDef" }
+        "explored_buffer": { "$ref": "#/definitions/bufferDef" },
+        "ownership_buffer": { "$ref": "#/definitions/bufferDef" }
       }
     },
     "entity_state": {
@@ -47,7 +48,10 @@
             "current_action_id",
             "action_progress",
             "plan_lock_ticks",
-            "animation_frame"
+            "animation_frame",
+            "city_size",
+            "city_growth_points",
+            "city_food_stockpile"
           ],
           "properties": {
             "id": { "$ref": "#/definitions/entityType" },
@@ -65,7 +69,10 @@
             "current_action_id": { "$ref": "#/definitions/entityType" },
             "action_progress": { "$ref": "#/definitions/entityType" },
             "plan_lock_ticks": { "$ref": "#/definitions/entityType" },
-            "animation_frame": { "$ref": "#/definitions/entityType" }
+            "animation_frame": { "$ref": "#/definitions/entityType" },
+            "city_size": { "$ref": "#/definitions/entityType" },
+            "city_growth_points": { "$ref": "#/definitions/entityType" },
+            "city_food_stockpile": { "$ref": "#/definitions/entityType" }
           }
         }
       }

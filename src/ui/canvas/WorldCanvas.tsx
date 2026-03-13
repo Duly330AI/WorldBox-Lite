@@ -85,7 +85,8 @@ export function WorldCanvas() {
       "entities.202": { x: 80, y: 16, w: tileSize, h: tileSize }, // archer
       "entities.203": { x: 96, y: 16, w: tileSize, h: tileSize }, // axeman
       "entities.204": { x: 112, y: 16, w: tileSize, h: tileSize }, // swordsman
-      "entities.300": { x: 0, y: 32, w: tileSize, h: tileSize } // house
+      "entities.300": { x: 0, y: 32, w: tileSize, h: tileSize }, // house
+      "entities.210": { x: 0, y: 32, w: tileSize, h: tileSize } // city center (house sprite)
     };
 
     const dot = (c: CanvasRenderingContext2D, x: number, y: number, r: number, color: string) => {
@@ -403,6 +404,49 @@ export function WorldCanvas() {
       }
     }
 
+    if (buffers?.ownership) {
+      const ownership = buffers.ownership as Uint8Array;
+      ctx.lineWidth = 2;
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const idx = y * width + x;
+          const owner = ownership[idx];
+          if (owner === 0) continue;
+          if (!isExplored(idx)) continue;
+          const color = teamColors[owner % teamColors.length];
+          ctx.strokeStyle = color;
+          const px = x * tileSize;
+          const py = y * tileSize;
+          const rightIdx = x + 1 < width ? idx + 1 : -1;
+          const downIdx = y + 1 < height ? idx + width : -1;
+          if (x === 0) {
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px, py + tileSize);
+            ctx.stroke();
+          }
+          if (y === 0) {
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px + tileSize, py);
+            ctx.stroke();
+          }
+          if (rightIdx === -1 || ownership[rightIdx] !== owner) {
+            ctx.beginPath();
+            ctx.moveTo(px + tileSize, py);
+            ctx.lineTo(px + tileSize, py + tileSize);
+            ctx.stroke();
+          }
+          if (downIdx === -1 || ownership[downIdx] !== owner) {
+            ctx.beginPath();
+            ctx.moveTo(px, py + tileSize);
+            ctx.lineTo(px + tileSize, py + tileSize);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
     if (paths.length > 0) {
       ctx.strokeStyle = "rgba(0,0,0,0.5)";
       ctx.lineWidth = 1;
@@ -459,7 +503,7 @@ export function WorldCanvas() {
           if (explored && explored[idx] === 0) {
             continue;
           }
-          if (types && (types[i] === 201 || types[i] === 200 || types[i] === 202 || types[i] === 203 || types[i] === 204)) {
+          if (types && (types[i] === 201 || types[i] === 200 || types[i] === 202 || types[i] === 203 || types[i] === 204 || types[i] === 210)) {
             const sprite = getSprite("entities", types[i]);
             if (sprite) {
               const { image, mapping, w, h } = sprite;
