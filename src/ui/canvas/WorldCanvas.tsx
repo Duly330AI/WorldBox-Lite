@@ -23,6 +23,7 @@ export function WorldCanvas() {
   const buildingOwners = useWorldStore((s) => s.buildingOwners);
   const attackLines = useWorldStore((s) => s.attackLines);
   const setSelectedEntityId = useWorldStore((s) => s.setSelectedEntityId);
+  const selectedEntityId = useWorldStore((s) => s.selectedEntityId);
   const godTool = useWorldStore((s) => s.godTool);
   const worker = useWorldStore((s) => s.worker);
   const entityDebug = useWorldStore((s) => s.entityDebug);
@@ -37,6 +38,7 @@ export function WorldCanvas() {
   const prevPositionsRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const isPaintingRef = useRef(false);
   const lastPaintRef = useRef<string | null>(null);
+  const missingTilesetsRef = useRef(false);
   const teamColors = ["#ef4444", "#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#eab308", "#64748b"];
 
   const getSprite = (group: "terrain" | "features" | "entities", id: number) => {
@@ -66,8 +68,26 @@ export function WorldCanvas() {
       const now = performance.now();
       const t = Math.min(1, Math.max(0, (now - lastTickTimeRef.current) / Math.max(1, tickIntervalMs)));
 
+      if (assetSpec) {
+        const missing = assetSpec.tilesets.filter((ts) => !tilesetImages[ts.name]);
+        if (missing.length > 0) {
+          if (!missingTilesetsRef.current) {
+            console.error(`Missing tileset images: ${missing.map((m) => m.name).join(", ")}`);
+            missingTilesetsRef.current = true;
+          }
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#111";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+      }
+
       ctx.setTransform(camera.scale, 0, 0, camera.scale, camera.x, camera.y);
       ctx.clearRect(-camera.x / camera.scale, -camera.y / camera.scale, canvas.width / camera.scale, canvas.height / camera.scale);
+
+      const explored = buffers?.explored as Uint8Array | undefined;
+      const isExplored = (idx: number) => !explored || (explored[idx] & 1) !== 0;
 
       for (let y = 0; y < height; y += 1) {
         for (let x = 0; x < width; x += 1) {
@@ -91,6 +111,10 @@ export function WorldCanvas() {
             ctx.fillStyle = ID_COLORS[id] ?? "#333333";
             ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
           }
+          if (!isExplored(idx)) {
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+          }
         }
       }
 
@@ -98,6 +122,7 @@ export function WorldCanvas() {
       for (let y = 0; y < height; y += 1) {
         for (let x = 0; x < width; x += 1) {
           const idx = y * width + x;
+          if (!isExplored(idx)) continue;
           if (buffers.feature[idx] === 100) {
             const sprite = getSprite("features", 100);
             if (sprite) {
@@ -163,6 +188,7 @@ export function WorldCanvas() {
       for (let y = 0; y < height; y += 1) {
         for (let x = 0; x < width; x += 1) {
           const idx = y * width + x;
+          if (!isExplored(idx)) continue;
           if (buffers.building[idx] === 300) {
             const owner = buildingOwners[idx] ?? 0;
             const teamColor = teamColors[owner % teamColors.length];
@@ -244,6 +270,10 @@ export function WorldCanvas() {
           const py = interpY * tileSize;
           const faction = buffers.entities.faction_id as Uint8Array | undefined;
           const teamColor = faction ? teamColors[faction[i] % teamColors.length] : "#ffffff";
+          const idx = (Math.floor(targetY) * width) + Math.floor(targetX);
+          if (explored && (explored[idx] & 1) === 0) {
+            continue;
+          }
           if (types && (types[i] === 201 || types[i] === 200 || types[i] === 202 || types[i] === 203 || types[i] === 204)) {
             const sprite = getSprite("entities", types[i]);
             if (sprite) {
@@ -295,6 +325,23 @@ export function WorldCanvas() {
             const pct = Math.max(0, Math.min(1, health / 100));
             ctx.fillRect(px + 2, py + tileSize - 4, (tileSize - 4) * pct, 3);
           }
+
+          if (selectedEntityId !== null && selectedEntityId === i) {
+            const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 200);
+            ctx.strokeStyle = `rgba(255,255,0,${0.4 + 0.4 * pulse})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(
+              px + tileSize / 2,
+              py + tileSize / 2,
+              tileSize / 2.2,
+              tileSize / 3,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.stroke();
+          }
         }
       }
     }
@@ -313,7 +360,7 @@ export function WorldCanvas() {
     };
     draw();
     return () => cancelAnimationFrame(raf);
-  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, attackLines, godTool, hover, tilesetImages, assetSpec, camera, tickIntervalMs]);
+  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, attackLines, godTool, hover, tilesetImages, assetSpec, camera, tickIntervalMs, selectedEntityId]);
 
   useEffect(() => {
     lastTickTimeRef.current = performance.now();
@@ -383,6 +430,19 @@ export function WorldCanvas() {
     if (mutations.length > 0) {
       worker.postMessage({ type: "world_mutation", mutations });
     }
+  };
+
+  const handleContextMenu = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!worker || selectedEntityId === null) return;
+    event.preventDefault();
+    const tile = tileFromEvent(event);
+    if (!tile) return;
+    worker.postMessage({
+      type: "set_forced_target",
+      entityId: selectedEntityId,
+      x: tile.x,
+      y: tile.y
+    });
   };
 
   const handleClick = (event: MouseEvent<HTMLCanvasElement>) => {
@@ -478,6 +538,7 @@ export function WorldCanvas() {
         onClick={handleClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
+        onContextMenu={handleContextMenu}
         onMouseUp={() => {
           isPaintingRef.current = false;
           lastPaintRef.current = null;

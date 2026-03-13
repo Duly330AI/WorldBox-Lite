@@ -553,6 +553,7 @@ const blackboardByFaction: Map<
   number,
   { forests: Set<number>; food: Set<number>; enemyBases: Set<number> }
 > = new Map();
+const forcedTargets: Map<number, { x: number; y: number }> = new Map();
 let foodTerrainIds: Set<number> = new Set();
 type SpatialIndex = {
   cellSize: number;
@@ -981,6 +982,36 @@ function tickAction(entityIndex: number) {
     }
   };
 
+  const forced = forcedTargets.get(entityIndex);
+  if (forced) {
+    view.setEntityTargetX(entityIndex, forced.x);
+    view.setEntityTargetY(entityIndex, forced.y);
+    if (!atTarget()) {
+      moveTowardTarget();
+      return;
+    }
+    forcedTargets.delete(entityIndex);
+    view.setEntityActionProgress(entityIndex, 0);
+    return;
+  }
+
+  const findNearestInVision = (predicate: (idx: number) => boolean) => {
+    const vision = getUnitVision(view.getEntityType(entityIndex));
+    let best: { x: number; y: number; dist: number } | null = null;
+    for (let dy = -vision; dy <= vision; dy += 1) {
+      for (let dx = -vision; dx <= vision; dx += 1) {
+        const tx = x + dx;
+        const ty = y + dy;
+        if (tx < 0 || ty < 0 || tx >= width || ty >= height) continue;
+        const idx = ty * width + tx;
+        if (!predicate(idx)) continue;
+        const dist = Math.abs(dx) + Math.abs(dy);
+        if (!best || dist < best.dist) best = { x: tx, y: ty, dist };
+      }
+    }
+    return best ? { x: best.x, y: best.y } : null;
+  };
+
   if (actionMeta.name === "WANDER") {
     const options = [
       [x + 1, y],
@@ -1003,13 +1034,10 @@ function tickAction(entityIndex: number) {
   if (actionMeta?.name === "CHOP_WOOD") {
     const faction = view.getEntityFaction(entityIndex);
     const board = ensureBlackboard(faction);
-    const known = findNearestKnown(
-      faction,
-      x,
-      y,
-      board.forests,
-      (idx) => view.getFeature(idx) === 100
-    );
+    const visible = findNearestInVision((idx) => view.getFeature(idx) === 100);
+    const known = visible
+      ? visible
+      : findNearestKnown(faction, x, y, board.forests, (idx) => view.getFeature(idx) === 100);
     if (known) {
       view.setEntityTargetX(entityIndex, known.x);
       view.setEntityTargetY(entityIndex, known.y);
@@ -1044,13 +1072,10 @@ function tickAction(entityIndex: number) {
   if (actionMeta?.name === "GATHER_FOOD") {
     const faction = view.getEntityFaction(entityIndex);
     const board = ensureBlackboard(faction);
-    const known = findNearestKnown(
-      faction,
-      x,
-      y,
-      board.food,
-      (idx) => foodTerrainIds.has(view.getTerrain(idx))
-    );
+    const visible = findNearestInVision((idx) => foodTerrainIds.has(view.getTerrain(idx)));
+    const known = visible
+      ? visible
+      : findNearestKnown(faction, x, y, board.food, (idx) => foodTerrainIds.has(view.getTerrain(idx)));
     if (known) {
       view.setEntityTargetX(entityIndex, known.x);
       view.setEntityTargetY(entityIndex, known.y);
@@ -1114,7 +1139,27 @@ function tickAction(entityIndex: number) {
 
   if (actionMeta?.name === "ATTACK") {
     const enemyIndex = findEnemyInRangeByType(entityIndex);
-    if (enemyIndex === null) return;
+    if (enemyIndex === null) {
+      const faction = view.getEntityFaction(entityIndex);
+      const board = ensureBlackboard(faction);
+      const knownBase = findNearestKnown(
+        faction,
+        x,
+        y,
+        board.enemyBases,
+        (idx) => {
+          if (view.getBuilding(idx) !== 300) return false;
+          const owner = buildingOwner.get(idx);
+          return owner !== undefined && owner !== faction;
+        }
+      );
+      if (knownBase) {
+        view.setEntityTargetX(entityIndex, knownBase.x);
+        view.setEntityTargetY(entityIndex, knownBase.y);
+        moveTowardTarget();
+      }
+      return;
+    }
     const attackerX = view.getEntityX(entityIndex);
     const attackerY = view.getEntityY(entityIndex);
     const targetX = view.getEntityX(enemyIndex);
@@ -1219,7 +1264,7 @@ function updateExploration(entityIndex: number, width: number) {
   const faction = view.getEntityFaction(entityIndex);
   const typeId = view.getEntityType(entityIndex);
   const scoutId = entitySpecRef?.units.scout.type_id ?? 200;
-  const vision = getUnitVision(view.getEntityType(entityIndex));
+  const vision = getUnitVision(view.getEntityType(entityIndex)) + (typeId === scoutId ? 2 : 0);
   const ex = view.getEntityX(entityIndex);
   const ey = view.getEntityY(entityIndex);
   const board = ensureBlackboard(faction);
@@ -1710,6 +1755,15 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     flushLogs();
     return;
   }
+  if (ev.data.type === "set_forced_target") {
+    if (!stateViewRef) return;
+    const req = ev.data as { entityId: number; x: number; y: number };
+    forcedTargets.set(req.entityId, { x: req.x, y: req.y });
+    stateViewRef.setEntityTargetX(req.entityId, req.x);
+    stateViewRef.setEntityTargetY(req.entityId, req.y);
+    stateViewRef.setEntityActionProgress(req.entityId, 0);
+    return;
+  }
   if (ev.data.type !== "init") return;
   try {
     const [
@@ -1779,6 +1833,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     eventStream.combat.length = 0;
     eventStream.victory_milestones.length = 0;
     blackboardByFaction.clear();
+    forcedTargets.clear();
     spawnInitialUnits();
 
     logEvent({ kind: "init", message: "world/state/tech loaded" });

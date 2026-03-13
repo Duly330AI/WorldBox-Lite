@@ -156,22 +156,34 @@ export function App() {
         const images: Record<string, HTMLImageElement> = {};
         const loaders = spec.tilesets.map(
           (ts) =>
-            new Promise<void>((resolve) => {
+            new Promise<void>((resolve, reject) => {
               const img = new Image();
               img.onload = () => {
                 images[ts.name] = img;
                 resolve();
               };
-              img.onerror = () => resolve();
+              img.onerror = () => {
+                reject(new Error(`Failed to load tileset image: ${ts.image}`));
+              };
               img.src = ts.image;
             })
         );
-        Promise.all(loaders).then(() => {
-          if (!cancelled) setTilesetImages(images);
-        });
+        Promise.all(loaders)
+          .then(() => {
+            if (!cancelled) setTilesetImages(images);
+          })
+          .catch((err) => {
+            if (!cancelled) {
+              console.error(err);
+              setError(err instanceof Error ? err.message : String(err));
+            }
+          });
       })
-      .catch(() => {
-        // asset spec is optional at runtime
+      .catch((err) => {
+        if (!cancelled) {
+          console.error(err);
+          setError("Failed to load asset_spec.json");
+        }
       });
     return () => {
       cancelled = true;
