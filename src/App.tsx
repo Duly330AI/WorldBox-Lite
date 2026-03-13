@@ -16,6 +16,7 @@ export function App() {
   const setEntityDebug = useWorldStore((s) => s.setEntityDebug);
   const setStats = useWorldStore((s) => s.setStats);
   const setBuildingOwners = useWorldStore((s) => s.setBuildingOwners);
+  const setAttackLines = useWorldStore((s) => s.setAttackLines);
   const setWorker = useWorldStore((s) => s.setWorker);
   const setPerfStats = useWorldStore((s) => s.setPerfStats);
   const setMatchOver = useWorldStore((s) => s.setMatchOver);
@@ -88,6 +89,9 @@ export function App() {
         if (ev.data.buildingOwners) {
           setBuildingOwners(ev.data.buildingOwners);
         }
+        if (ev.data.attackLines) {
+          setAttackLines(ev.data.attackLines);
+        }
       }
       if (ev.data.type === "perf_stats") {
         setPerfStats(ev.data);
@@ -141,7 +145,7 @@ export function App() {
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles, setTilesetImages, setMinimapBuffer]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setAttackLines, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles, setTilesetImages, setMinimapBuffer]);
 
   useEffect(() => {
     let cancelled = false;
@@ -390,6 +394,18 @@ export function App() {
               Sieger: {matchOver.winnerName} (Faktion {matchOver.winnerFactionId})
             </div>
             <div style={{ fontSize: 12, color: "#666" }}>Dauer: {matchOver.tick} Ticks</div>
+            {matchOver.summary ? (
+              <div style={{ marginTop: 12, fontSize: 12, textAlign: "left" }}>
+                <div>Meistgebaute Einheit: {matchOver.summary.most_built_unit}</div>
+                <div>Gesammeltes Holz: {matchOver.summary.collected_wood}</div>
+                <div>
+                  Erforschte Techs:{" "}
+                  {matchOver.summary.researched_techs.length > 0
+                    ? matchOver.summary.researched_techs.join(", ")
+                    : "Keine"}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

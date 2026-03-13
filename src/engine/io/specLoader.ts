@@ -123,6 +123,7 @@ export type EntitySpec = {
       type_id: number;
       strength: number;
       vision: number;
+      attack_range?: number;
       movement: number;
       cost: number;
       is_combat: boolean;

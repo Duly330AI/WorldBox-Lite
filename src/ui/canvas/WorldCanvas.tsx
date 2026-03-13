@@ -21,6 +21,7 @@ export function WorldCanvas() {
   const tilesetImages = useWorldStore((s) => s.tilesetImages);
   const paths = useWorldStore((s) => s.paths);
   const buildingOwners = useWorldStore((s) => s.buildingOwners);
+  const attackLines = useWorldStore((s) => s.attackLines);
   const setSelectedEntityId = useWorldStore((s) => s.setSelectedEntityId);
   const godTool = useWorldStore((s) => s.godTool);
   const worker = useWorldStore((s) => s.worker);
@@ -207,6 +208,19 @@ export function WorldCanvas() {
       }
     }
 
+    if (attackLines.length > 0) {
+      ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      ctx.lineWidth = 1;
+      for (const line of attackLines) {
+        const [sx, sy] = line.from;
+        const [tx, ty] = line.to;
+        ctx.beginPath();
+        ctx.moveTo(sx * tileSize + tileSize / 2, sy * tileSize + tileSize / 2);
+        ctx.lineTo(tx * tileSize + tileSize / 2, ty * tileSize + tileSize / 2);
+        ctx.stroke();
+      }
+    }
+
     if (buffers && unitBehaviorSpec) {
       const ids = buffers.entities.id as Uint32Array | undefined;
       const xs = buffers.entities.x as Uint16Array | undefined;
@@ -299,7 +313,7 @@ export function WorldCanvas() {
     };
     draw();
     return () => cancelAnimationFrame(raf);
-  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, godTool, hover, tilesetImages, assetSpec, camera, tickIntervalMs]);
+  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, attackLines, godTool, hover, tilesetImages, assetSpec, camera, tickIntervalMs]);
 
   useEffect(() => {
     lastTickTimeRef.current = performance.now();

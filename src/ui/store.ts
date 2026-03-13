@@ -16,12 +16,19 @@ export type WorldState = {
   buffers: StateBuffers | null;
   paths: Array<{ entity_id: number; path: Array<[number, number]> }>;
   buildingOwners: Record<number, number>;
+  attackLines: Array<{ from: [number, number]; to: [number, number] }>;
   events: Array<Record<string, unknown>>;
   selectedEntityId: number | null;
   entityDebug: Record<number, { goal?: string; plan?: string[]; utilities?: Record<string, number> }>;
   stats: { population: Record<number, number>; houses: Record<number, number>; wood: Record<number, number>; military: Record<number, number> } | null;
   perfStats: { avg_tick_ms: number; entity_count: number; pathfinding_calls_per_tick: number } | null;
-  matchOver: { winnerFactionId: number; winnerName: string; tick: number; knowledge: Record<number, Record<string, number>> } | null;
+  matchOver: {
+    winnerFactionId: number;
+    winnerName: string;
+    tick: number;
+    knowledge: Record<number, Record<string, number>>;
+    summary?: { most_built_unit: string; collected_wood: number; researched_techs: string[] };
+  } | null;
   knowledge: Record<number, Record<string, number>>;
   research: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>;
   chronicles: Record<number, { battle_win_loss_ratio: number }>;
@@ -43,13 +50,20 @@ export type WorldState = {
   addEvents: (entries: Array<Record<string, unknown>>) => void;
   setPaths: (paths: Array<{ entity_id: number; path: Array<[number, number]> }>) => void;
   setBuildingOwners: (owners: Record<number, number>) => void;
+  setAttackLines: (lines: Array<{ from: [number, number]; to: [number, number] }>) => void;
   setSelectedEntityId: (id: number | null) => void;
   setEntityDebug: (
     data: Record<number, { goal?: string; plan?: string[]; utilities?: Record<string, number> }>
   ) => void;
   setStats: (stats: { population: Record<number, number>; houses: Record<number, number>; wood: Record<number, number>; military: Record<number, number> }) => void;
   setPerfStats: (perf: { avg_tick_ms: number; entity_count: number; pathfinding_calls_per_tick: number }) => void;
-  setMatchOver: (data: { winnerFactionId: number; winnerName: string; tick: number; knowledge: Record<number, Record<string, number>> }) => void;
+  setMatchOver: (data: {
+    winnerFactionId: number;
+    winnerName: string;
+    tick: number;
+    knowledge: Record<number, Record<string, number>>;
+    summary?: { most_built_unit: string; collected_wood: number; researched_techs: string[] };
+  }) => void;
   setKnowledge: (data: Record<number, Record<string, number>>) => void;
   setResearch: (data: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>) => void;
   setChronicles: (data: Record<number, { battle_win_loss_ratio: number }>) => void;
@@ -81,6 +95,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   buffers: null,
   paths: [],
   buildingOwners: {},
+  attackLines: [],
   events: [],
   selectedEntityId: null,
   entityDebug: {},
@@ -105,6 +120,7 @@ export const useWorldStore = create<WorldState>((set) => ({
     }),
   setPaths: (paths) => set({ paths }),
   setBuildingOwners: (owners) => set({ buildingOwners: owners }),
+  setAttackLines: (lines) => set({ attackLines: lines }),
   setSelectedEntityId: (id) => set({ selectedEntityId: id }),
   setEntityDebug: (data) => set({ entityDebug: data }),
   setStats: (stats) => set({ stats }),

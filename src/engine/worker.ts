@@ -362,6 +362,7 @@ const chroniclesByFaction: Record<
     houses_built: number;
     kills: number;
     losses: number;
+    produced_units: Record<number, number>;
   }
 > = {};
 const eventStream = {
@@ -404,7 +405,8 @@ function ensureChronicle(factionId: number) {
       total_resources_gathered: { wood: 0, food: 0 },
       houses_built: 0,
       kills: 0,
-      losses: 0
+      losses: 0,
+      produced_units: {}
     };
   }
   return chroniclesByFaction[factionId];
@@ -412,7 +414,7 @@ function ensureChronicle(factionId: number) {
 
 function ensureBlackboard(factionId: number) {
   if (!blackboardByFaction.has(factionId)) {
-    blackboardByFaction.set(factionId, { forests: new Set(), food: new Set() });
+    blackboardByFaction.set(factionId, { forests: new Set(), food: new Set(), enemyBases: new Set() });
   }
   return blackboardByFaction.get(factionId)!;
 }
@@ -466,7 +468,8 @@ function snapshotChronicles() {
     snapshot[Number(factionStr)] = {
       tech_order: [...data.tech_order],
       total_resources_gathered: { ...data.total_resources_gathered },
-      battle_win_loss_ratio: ratio
+      battle_win_loss_ratio: ratio,
+      produced_units: { ...data.produced_units }
     };
   }
   return snapshot;
@@ -529,6 +532,7 @@ let randomFn: () => number = Math.random;
 let maxVisionRef = 3;
 let pathfindingCalls = 0;
 let matchOverSent = false;
+const attackLines: Array<{ from: [number, number]; to: [number, number] }> = [];
 
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
 let actionIdByName: Map<string, number> = new Map();
@@ -545,7 +549,10 @@ const lastFactionEnemyMilitary: Map<number, number> = new Map();
 const lastExploredCount: Map<number, number> = new Map();
 const perfSamples: number[] = [];
 const lastAttackerByEntity: Map<number, number> = new Map();
-const blackboardByFaction: Map<number, { forests: Set<number>; food: Set<number> }> = new Map();
+const blackboardByFaction: Map<
+  number,
+  { forests: Set<number>; food: Set<number>; enemyBases: Set<number> }
+> = new Map();
 let foodTerrainIds: Set<number> = new Set();
 type SpatialIndex = {
   cellSize: number;
@@ -605,6 +612,11 @@ function getUnitDefByType(typeId: number) {
   return Object.values(entitySpecRef.units).find((u) => u.type_id === typeId) ?? null;
 }
 
+function getUnitNameByType(typeId: number) {
+  if (!entitySpecRef) return null;
+  return Object.keys(entitySpecRef.units).find((k) => entitySpecRef!.units[k].type_id === typeId) ?? null;
+}
+
 function getUnitVision(typeId: number) {
   return getUnitDefByType(typeId)?.vision ?? 1;
 }
@@ -613,8 +625,47 @@ function getUnitStrength(typeId: number) {
   return getUnitDefByType(typeId)?.strength ?? 0;
 }
 
+function getUnitAttackRange(typeId: number) {
+  return getUnitDefByType(typeId)?.attack_range ?? 1;
+}
+
 function isCombatUnit(typeId: number) {
   return getUnitDefByType(typeId)?.is_combat ?? false;
+}
+
+function getUnitCost(typeId: number) {
+  const def = getUnitDefByType(typeId);
+  return def?.cost ?? 0;
+}
+
+function chooseProductionUnit(
+  factionId: number,
+  storage: number,
+  rng: () => number
+) {
+  if (!entitySpecRef) return entitySpecRef?.units.worker.type_id ?? 201;
+  const workerId = entitySpecRef.units.worker.type_id;
+  const archerId = entitySpecRef.units.archer?.type_id ?? 202;
+  const axemanId = entitySpecRef.units.axeman?.type_id ?? 203;
+  const known = techManagerRef?.getKnown(factionId) ?? new Set<string>();
+  let archerWeight = known.has("archery") ? 0.3 : 0;
+  let axemanWeight = known.has("bronze_working") ? 0.3 : 0;
+  if (storage < getUnitCost(archerId)) archerWeight = 0;
+  if (storage < getUnitCost(axemanId)) axemanWeight = 0;
+  let workerWeight = Math.max(0, 1 - (archerWeight + axemanWeight));
+  if (storage < getUnitCost(workerId)) workerWeight = 0;
+  const options: Array<{ id: number; weight: number }> = [];
+  if (workerWeight > 0) options.push({ id: workerId, weight: workerWeight });
+  if (archerWeight > 0) options.push({ id: archerId, weight: archerWeight });
+  if (axemanWeight > 0) options.push({ id: axemanId, weight: axemanWeight });
+  if (options.length === 0) return null;
+  const total = options.reduce((sum, o) => sum + o.weight, 0);
+  let roll = rng() * total;
+  for (const opt of options) {
+    if (roll <= opt.weight) return opt.id;
+    roll -= opt.weight;
+  }
+  return options[0].id;
 }
 
 function buildActionIdMap(spec: UnitBehaviorSpec) {
@@ -663,6 +714,13 @@ function findEnemyInRange(entityIndex: number, range: number) {
   });
   if (found !== null) return found;
   return null;
+}
+
+function findEnemyInRangeByType(entityIndex: number) {
+  if (!stateViewRef) return null;
+  const view = stateViewRef;
+  const range = getUnitAttackRange(view.getEntityType(entityIndex));
+  return findEnemyInRange(entityIndex, range);
 }
 
 function isEnemyInVision(entityIndex: number) {
@@ -1055,8 +1113,13 @@ function tickAction(entityIndex: number) {
   }
 
   if (actionMeta?.name === "ATTACK") {
-    const enemyIndex = findEnemyInRange(entityIndex, 1);
+    const enemyIndex = findEnemyInRangeByType(entityIndex);
     if (enemyIndex === null) return;
+    const attackerX = view.getEntityX(entityIndex);
+    const attackerY = view.getEntityY(entityIndex);
+    const targetX = view.getEntityX(enemyIndex);
+    const targetY = view.getEntityY(enemyIndex);
+    attackLines.push({ from: [attackerX, attackerY], to: [targetX, targetY] });
     const defenderIdx = view.tileIndex(view.getEntityX(enemyIndex), view.getEntityY(enemyIndex));
     let defense = 1;
     const featureId = view.getFeature(defenderIdx);
@@ -1065,12 +1128,8 @@ function tickAction(entityIndex: number) {
     const baseDamage = combatSpecRef?.rules.base_damage ?? 10;
     const attackerType = view.getEntityType(entityIndex);
     const defenderType = view.getEntityType(enemyIndex);
-    const attackerName = Object.keys(entitySpecRef!.units).find(
-      (k) => entitySpecRef!.units[k].type_id === attackerType
-    );
-    const defenderName = Object.keys(entitySpecRef!.units).find(
-      (k) => entitySpecRef!.units[k].type_id === defenderType
-    );
+    const attackerName = getUnitNameByType(attackerType);
+    const defenderName = getUnitNameByType(defenderType);
     let counter = 1;
     if (attackerName && defenderName) {
       const key = `${attackerName}_vs_${defenderName}`;
@@ -1158,6 +1217,8 @@ function tickAction(entityIndex: number) {
 function updateExploration(entityIndex: number, width: number) {
   const view = stateViewRef!;
   const faction = view.getEntityFaction(entityIndex);
+  const typeId = view.getEntityType(entityIndex);
+  const scoutId = entitySpecRef?.units.scout.type_id ?? 200;
   const vision = getUnitVision(view.getEntityType(entityIndex));
   const ex = view.getEntityX(entityIndex);
   const ey = view.getEntityY(entityIndex);
@@ -1174,6 +1235,15 @@ function updateExploration(entityIndex: number, width: number) {
       }
       if (foodTerrainIds.has(view.getTerrain(idx))) {
         board.food.add(idx);
+      }
+      if (typeId === scoutId) {
+        const building = view.getBuilding(idx);
+        if (building === 300) {
+          const owner = buildingOwner.get(idx);
+          if (owner !== undefined && owner !== faction) {
+            board.enemyBases.add(idx);
+          }
+        }
       }
     }
   }
@@ -1204,7 +1274,7 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
   if (wood >= 3) facts.push("has_wood_3");
   if (wood >= 3) facts.push("has_wood_to_store");
   facts.push("is_on_grass_tile");
-  if (findEnemyInRange(entityIndex, 1) !== null) facts.push("enemy_in_range");
+  if (findEnemyInRangeByType(entityIndex) !== null) facts.push("enemy_in_range");
   if (isEnemyInVision(entityIndex)) facts.push("enemy_nearby");
   return facts;
 }
@@ -1329,6 +1399,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       entityIndices && entityIndices.length > 0
         ? entityIndices
         : Array.from({ length: count }, (_, i) => i);
+    attackLines.length = 0;
     rebuildSpatialIndex(view);
 
     if (simTick % 2 === 0) {
@@ -1389,23 +1460,28 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         const current = population[faction] ?? 0;
         if (current >= limit) continue;
         const storage = (buffersRef.building_storage as Uint16Array)[i] ?? 0;
-        if (storage < 10) continue;
+        const unitType = chooseProductionUnit(faction, storage, randomFn);
+        if (!unitType) continue;
+        const cost = getUnitCost(unitType);
+        if (storage < cost || cost <= 0) continue;
         const x = i % width;
         const y = Math.floor(i / width);
-        (buffersRef.building_storage as Uint16Array)[i] = Math.max(0, storage - 10);
+        (buffersRef.building_storage as Uint16Array)[i] = Math.max(0, storage - cost);
         const result = spawnUnit(
           buffersRef,
           worldSpecRef!,
           homeByFaction,
           entitySpecRef.config.base_health_all_units,
-          entitySpecRef.units.worker.type_id,
+          unitType,
           faction,
           x,
           y,
           randomFn
         );
         if (result.success) {
-          logEvent({ event_type: "UNIT_SPAWN", level: "INFO", entity_id: result.entityIndex, unit_type: 201 });
+          ensureChronicle(faction).produced_units[unitType] =
+            (ensureChronicle(faction).produced_units[unitType] ?? 0) + 1;
+          logEvent({ event_type: "UNIT_SPAWN", level: "INFO", entity_id: result.entityIndex, unit_type: unitType });
           logEvent({ event_type: "HOUSE_PRODUCED_UNIT", level: "INFO", building_idx: i, faction_id: faction });
         }
       }
@@ -1526,7 +1602,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     for (const [idx, faction] of buildingOwner.entries()) {
       buildingOwners[idx] = faction;
     }
-    self.postMessage({ type: "tick", tick: simTick, paths, entityDebug, stats, buildingOwners });
+    self.postMessage({ type: "tick", tick: simTick, paths, entityDebug, stats, buildingOwners, attackLines });
     const tickDuration = performance.now() - tickStart;
     perfSamples.push(tickDuration);
     if (perfSamples.length > 30) perfSamples.shift();
@@ -1571,6 +1647,21 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
             : winnerFactionId === 1
               ? "Blue"
               : `Faction ${winnerFactionId}`;
+        let summary: Record<string, unknown> | null = null;
+        if (winnerFactionId >= 0) {
+          const chronicle = ensureChronicle(winnerFactionId);
+          let topUnit: { id: number; count: number } | null = null;
+          for (const [unitIdStr, count] of Object.entries(chronicle.produced_units)) {
+            const id = Number(unitIdStr);
+            if (!topUnit || count > topUnit.count) topUnit = { id, count };
+          }
+          const topName = topUnit ? getUnitNameByType(topUnit.id) ?? `Unit ${topUnit.id}` : "None";
+          summary = {
+            most_built_unit: topName,
+            collected_wood: chronicle.total_resources_gathered.wood,
+            researched_techs: Array.from(techManagerRef?.getKnown(winnerFactionId) ?? [])
+          };
+        }
         logEvent({
           event_type: "MATCH_OVER",
           level: "INFO",
@@ -1584,7 +1675,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
           winnerFactionId,
           winnerName,
           tick: simTick,
-          knowledge: snapshotKnowledge()
+          knowledge: snapshotKnowledge(),
+          summary
         });
       }
     }

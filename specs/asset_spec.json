@@ -28,6 +28,8 @@
     },
     "entities": {
       "201": { "tileset": "characters", "x": 0, "y": 0, "w": 16, "h": 16, "desc": "worker" },
+      "202": { "tileset": "characters", "x": 34, "y": 0, "w": 16, "h": 16, "desc": "archer" },
+      "203": { "tileset": "characters", "x": 51, "y": 0, "w": 16, "h": 16, "desc": "axeman" },
       "300": { "tileset": "kenney", "x": 0, "y": 153, "w": 16, "h": 16, "desc": "house" }
     }
   }
