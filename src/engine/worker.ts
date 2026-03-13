@@ -768,6 +768,29 @@ function countFactionHouses(factionId: number) {
   return count;
 }
 
+function findNearestCityTile(factionId: number, x: number, y: number) {
+  if (!stateViewRef) return null;
+  const view = stateViewRef;
+  let best: { x: number; y: number; dist: number } | null = null;
+  for (let i = 0; i < view.entityCount; i += 1) {
+    if (view.getEntityId(i) === 0) continue;
+    if (!isCityEntity(view.getEntityType(i))) continue;
+    if (view.getEntityFaction(i) !== factionId) continue;
+    const cx = view.getEntityX(i);
+    const cy = view.getEntityY(i);
+    const dist = Math.abs(cx - x) + Math.abs(cy - y);
+    if (!best || dist < best.dist) best = { x: cx, y: cy, dist };
+  }
+  return best ? { x: best.x, y: best.y } : null;
+}
+
+function isCityAt(x: number, y: number, factionId: number) {
+  if (!stateViewRef) return false;
+  const idx = findEntityAtTile(x, y);
+  if (idx === null) return false;
+  return isCityEntity(stateViewRef.getEntityType(idx)) && stateViewRef.getEntityFaction(idx) === factionId;
+}
+
 function chooseProductionUnit(
   factionId: number,
   storage: number,
@@ -1339,12 +1362,21 @@ function tickAction(entityIndex: number) {
   if (actionMeta?.name === "DELIVER") {
     let tx = view.getEntityTargetX(entityIndex);
     let ty = view.getEntityTargetY(entityIndex);
-    if (!hasValidTarget(tx, ty, (sx, sy) => view.getBuilding(sy * width + sx) === 300)) {
-      ensureTarget((sx, sy) => view.getBuilding(sy * width + sx) === 300);
+    const faction = view.getEntityFaction(entityIndex);
+    const targetIsValid = (sx: number, sy: number) =>
+      view.getBuilding(sy * width + sx) === 300 || isCityAt(sx, sy, faction);
+    if (!hasValidTarget(tx, ty, targetIsValid)) {
+      const nearestCity = findNearestCityTile(faction, x, y);
+      if (nearestCity) {
+        view.setEntityTargetX(entityIndex, nearestCity.x);
+        view.setEntityTargetY(entityIndex, nearestCity.y);
+      } else {
+        ensureTarget((sx, sy) => view.getBuilding(sy * width + sx) === 300);
+      }
       tx = view.getEntityTargetX(entityIndex);
       ty = view.getEntityTargetY(entityIndex);
     }
-    if (!hasValidTarget(tx, ty, (sx, sy) => view.getBuilding(sy * width + sx) === 300)) {
+    if (!hasValidTarget(tx, ty, targetIsValid)) {
       view.setEntityActionProgress(entityIndex, 0);
       view.setEntityTargetX(entityIndex, INVALID_TARGET);
       view.setEntityTargetY(entityIndex, INVALID_TARGET);
@@ -1355,7 +1387,7 @@ function tickAction(entityIndex: number) {
       return;
     }
     const idx = ty * width + tx;
-    if (view.getBuilding(idx) !== 300) {
+    if (view.getBuilding(idx) !== 300 && !isCityAt(tx, ty, faction)) {
       view.setEntityActionProgress(entityIndex, 0);
       return;
     }
@@ -1363,11 +1395,21 @@ function tickAction(entityIndex: number) {
     view.setEntityActionProgress(entityIndex, next);
     if (next >= 100) {
       const wood = view.getEntityWood(entityIndex);
-      const stored = (buffersRef!.building_storage as Uint16Array)[idx] ?? 0;
-      (buffersRef!.building_storage as Uint16Array)[idx] = stored + wood;
+      if (view.getBuilding(idx) === 300) {
+        const stored = (buffersRef!.building_storage as Uint16Array)[idx] ?? 0;
+        (buffersRef!.building_storage as Uint16Array)[idx] = stored + wood;
+      }
       view.setEntityWood(entityIndex, 0);
       view.setEntityActionProgress(entityIndex, 0);
-      logEvent({ event_type: "UNIT_ACTION", level: "INFO", action: "DELIVER", entity_id: entityIndex });
+      if (wood > 0) {
+        chooseAutoResearch(faction);
+        const completed = techManagerRef?.tickResearch(faction, Math.max(1, wood)) ?? null;
+        if (completed) {
+          ensureChronicle(faction).tech_order.push(completed);
+          logEvent({ event_type: "TECH_UNLOCKED", level: "INFO", faction_id: faction, tech: completed });
+        }
+      }
+      logEvent({ event_type: "UNIT_ACTION", level: "INFO", action: "DELIVER", entity_id: entityIndex, faction_id: faction });
       logEvent({ event_type: "ECONOMY_UPDATE", level: "ECONOMY", entity_id: entityIndex, wood: 0 });
     }
     return;
@@ -1868,11 +1910,6 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     if (techManagerRef) {
       for (const factionId of homeByFaction.keys()) {
         chooseAutoResearch(factionId);
-        const completed = techManagerRef.tickResearch(factionId, 1);
-        if (completed) {
-          ensureChronicle(factionId).tech_order.push(completed);
-          logEvent({ event_type: "TECH_UNLOCKED", level: "INFO", faction_id: factionId, tech: completed });
-        }
       }
     }
 

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { LoggingSpec, SimulationSpec, TechSpec, UnitBehaviorSpec, WorldSpec } from "../engine/io/specLoader";
+import type { EntitySpec, LoggingSpec, SimulationSpec, TechSpec, UnitBehaviorSpec, WorldSpec } from "../engine/io/specLoader";
 import type { StateBuffers } from "../engine/worker";
 
 export type WorldState = {
@@ -8,6 +8,7 @@ export type WorldState = {
   loggingSpec: LoggingSpec | null;
   simulationSpec: SimulationSpec | null;
   techSpec: TechSpec | null;
+  entitySpec: EntitySpec | null;
   minimapBuffer: Uint8ClampedArray | null;
   cameraTarget: { x: number; y: number } | null;
   terrain: Uint8Array | null;
@@ -47,7 +48,8 @@ export type WorldState = {
     unitBehaviorSpec: UnitBehaviorSpec | null,
     loggingSpec: LoggingSpec | null,
     simulationSpec: SimulationSpec | null,
-    techSpec: TechSpec | null
+    techSpec: TechSpec | null,
+    entitySpec: EntitySpec | null
   ) => void;
   addEvents: (entries: Array<Record<string, unknown>>) => void;
   setPaths: (paths: Array<{ entity_id: number; path: Array<[number, number]> }>) => void;
@@ -92,6 +94,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   loggingSpec: null,
   simulationSpec: null,
   techSpec: null,
+  entitySpec: null,
   minimapBuffer: null,
   cameraTarget: null,
   terrain: null,
@@ -113,7 +116,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   tick: 0,
   tickIntervalMs: 500,
   error: null,
-  setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec) =>
+  setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, entitySpec) =>
     set((state) => ({
       spec,
       terrain,
@@ -122,6 +125,7 @@ export const useWorldStore = create<WorldState>((set) => ({
       loggingSpec,
       simulationSpec,
       techSpec,
+      entitySpec,
       error: null
     })),
   addEvents: (entries) =>

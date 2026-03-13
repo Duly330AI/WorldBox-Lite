@@ -275,7 +275,7 @@ export function WorldCanvas() {
       const snapX = Math.round(camera.x);
       const snapY = Math.round(camera.y);
       ctx.setTransform(camera.scale, 0, 0, camera.scale, snapX, snapY);
-      ctx.clearRect(-camera.x / camera.scale, -camera.y / camera.scale, canvas.width / camera.scale, canvas.height / camera.scale);
+      ctx.clearRect(-snapX / camera.scale, -snapY / camera.scale, canvas.width / camera.scale, canvas.height / camera.scale);
 
       const explored = buffers?.explored as Uint8Array | undefined;
       const isExplored = (idx: number) => !explored || explored[idx] !== 0;
@@ -741,9 +741,9 @@ export function WorldCanvas() {
     if (!canvas) return;
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
-      const delta = event.deltaY > 0 ? -0.1 : 0.1;
+      const delta = event.deltaY > 0 ? -1 : 1;
       setCamera((prev) => {
-        const nextScale = Math.min(3, Math.max(0.5, prev.scale + delta));
+        const nextScale = Math.min(3, Math.max(1, prev.scale + delta));
         return { ...prev, scale: nextScale };
       });
     };

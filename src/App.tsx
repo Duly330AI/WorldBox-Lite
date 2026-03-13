@@ -53,7 +53,7 @@ export function App() {
     worker.onmessage = (ev) => {
       if (ev.data.type === "world") {
         const terrain = new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.spec, terrain, null, null, null, null, null);
+        setWorld(ev.data.spec, terrain, null, null, null, null, null, null);
       }
       if (ev.data.type === "state") {
         const terrain = ev.data.buffers?.terrain
@@ -66,7 +66,8 @@ export function App() {
           ev.data.unitBehaviorSpec ?? null,
           ev.data.loggingSpec ?? null,
           ev.data.simulationSpec ?? null,
-          ev.data.techSpec ?? null
+          ev.data.techSpec ?? null,
+          ev.data.entitySpec ?? null
         );
       }
       if (ev.data.type === "error") {

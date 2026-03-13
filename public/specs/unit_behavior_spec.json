@@ -28,13 +28,13 @@
   "utility_formulas": {
     "danger_curve": "enemy_nearby ? 100 : 0",
     "health_curve": "(100 - health)^2 / 100",
-    "settle_curve": "(city_count < 1 && wood >= 3) ? 75 : 0",
+    "settle_curve": "(city_count < 2 && wood >= 3) ? 90 : 0",
     "hunger_curve": "hunger > 50 ? (hunger^2 / 100) : 0",
     "wood_curve": "wood < 3 ? 60 : 0",
     "expansion_curve": "(wood >= 3 && has_pottery) ? 80 : 0",
     "exploration_curve": "200 / (tiles_explored + 1)",
     "defense_curve": "enemy_near_home ? 100 : 0",
     "aggression_curve": "(enemy_known && military_strength_ratio > 1.5) ? 70 : 0",
-    "storage_curve": "(wood >= 3 && house_count > 0) ? 90 : 0"
+    "storage_curve": "(wood >= 3 && city_count > 0) ? 90 : 0"
   }
 }
