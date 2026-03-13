@@ -1,13 +1,8 @@
 import fs from "fs";
 import path from "path";
 import AdmZip from "adm-zip";
-import axios from "axios";
 
-const DEFAULT_ZIP_URL = "https://www.kenney.nl/content/assets/top-down-rpg-pack.zip";
-const TILEMAP_URL =
-  "https://raw.githubusercontent.com/KenneyNL/RPG-Assets/master/Spritesheet/rpgTilemap_packed.png";
-const CHARACTER_URL =
-  "https://raw.githubusercontent.com/KenneyNL/RPG-Assets/master/Spritesheet/rpgPack_spriteSheet.png";
+const LOCAL_ZIP = "kenney_roguelike-rpg-pack.zip";
 
 function isZip(filePath: string) {
   const fd = fs.openSync(filePath, "r");
@@ -17,19 +12,11 @@ function isZip(filePath: string) {
   return buf.toString("hex").startsWith("504b");
 }
 
-async function download(url: string, dest: string) {
-  const response = await axios.get(url, {
-    responseType: "arraybuffer",
-    headers: { "User-Agent": "Mozilla/5.0" }
-  });
-  fs.writeFileSync(dest, Buffer.from(response.data));
-}
-
 async function main() {
   const root = process.cwd();
   const tmpDir = path.join(root, ".tmp_assets");
   const zipPath = path.join(tmpDir, "kenney.zip");
-  const localZip = path.join(root, "assets", "kenney.zip");
+  const localZip = path.join(root, LOCAL_ZIP);
   const tilesetTarget = path.join(root, "assets", "tilesets", "kenney");
   const spriteTarget = path.join(root, "assets", "sprites");
   const publicTilesetTarget = path.join(root, "public", "assets", "tilesets", "kenney");
@@ -56,46 +43,27 @@ async function main() {
   fs.mkdirSync(publicSpriteTarget, { recursive: true });
 
   try {
-    let downloaded = false;
-    try {
-      console.log(`Downloading Kenney tilesheet from ${TILEMAP_URL}`);
-      await download(TILEMAP_URL, tilesheetOut);
-      console.log(`Downloading Kenney characters from ${CHARACTER_URL}`);
-      await download(CHARACTER_URL, spriteOut);
-      downloaded = true;
-    } catch (err) {
-      console.warn(`Asset mirror download failed: ${err instanceof Error ? err.message : String(err)}`);
+    if (!fs.existsSync(localZip)) {
+      throw new Error(`Missing ${LOCAL_ZIP} in repo root.`);
+    }
+    fs.copyFileSync(localZip, zipPath);
+
+    if (!isZip(zipPath)) {
+      throw new Error("Local file is not a ZIP.");
     }
 
-    if (!downloaded) {
-      const url = process.env.KENNEY_TOPDOWN_URL || DEFAULT_ZIP_URL;
-      if (fs.existsSync(localZip)) {
-        console.log("Using local assets/kenney.zip");
-        fs.copyFileSync(localZip, zipPath);
-      } else {
-        console.log(`Downloading Kenney assets from ${url}`);
-        await download(url, zipPath);
-      }
+    const zip = new AdmZip(zipPath);
+    const entries = zip.getEntries();
+    const tilesheet = entries.find((e) =>
+      /Spritesheet\/roguelikeSheet_transparent\.png$/i.test(e.entryName)
+    );
 
-      if (!isZip(zipPath)) {
-        throw new Error("Downloaded file is not a ZIP.");
-      }
-
-      const zip = new AdmZip(zipPath);
-      const entries = zip.getEntries();
-      const tilesheet = entries.find((e) => /Tilesheet\/tilesheet\.png$/i.test(e.entryName));
-      const spritesheet = entries.find((e) => /Spritesheet\/spritesheet_characters\.png$/i.test(e.entryName));
-
-      if (!tilesheet) {
-        throw new Error("Tilesheet/tilesheet.png not found in archive.");
-      }
-      if (!spritesheet) {
-        throw new Error("Spritesheet/spritesheet_characters.png not found in archive.");
-      }
-
-      fs.writeFileSync(tilesheetOut, tilesheet.getData());
-      fs.writeFileSync(spriteOut, spritesheet.getData());
+    if (!tilesheet) {
+      throw new Error("Spritesheet/roguelikeSheet_transparent.png not found in archive.");
     }
+
+    fs.writeFileSync(tilesheetOut, tilesheet.getData());
+    fs.writeFileSync(spriteOut, tilesheet.getData());
 
     fs.copyFileSync(tilesheetOut, publicTilesheetOut);
     fs.copyFileSync(spriteOut, publicSpriteOut);
