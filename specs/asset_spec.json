@@ -7,30 +7,40 @@
       "name": "kenney",
       "image": "/assets/tilesets/kenney/tilesheet.png",
       "tile_size": 16,
-      "columns": 16
+      "columns": 57,
+      "spacing": 1
     },
     {
       "name": "characters",
       "image": "/assets/sprites/characters.png",
       "tile_size": 16,
-      "columns": 16
+      "columns": 57,
+      "spacing": 1
     }
   ],
   "mappings": {
     "terrain": {
-      "0": { "tileset": "kenney", "x": 68, "y": 0, "w": 16, "h": 16, "desc": "grass" },
-      "5": { "tileset": "kenney", "x": 170, "y": 0, "w": 16, "h": 16, "desc": "water" },
-      "8": { "tileset": "kenney", "x": 187, "y": 136, "w": 16, "h": 16, "desc": "lava" }
+      "0": { "tileset": "kenney", "tile_index": 0, "desc": "grass" },
+      "1": { "tileset": "kenney", "tile_index": 1, "desc": "plains" },
+      "2": { "tileset": "kenney", "tile_index": 2, "desc": "sand" },
+      "3": { "tileset": "kenney", "tile_index": 3, "desc": "tundra" },
+      "4": { "tileset": "kenney", "tile_index": 4, "desc": "snow" },
+      "5": { "tileset": "kenney", "tile_index": 5, "desc": "water" },
+      "6": { "tileset": "kenney", "tile_index": 6, "desc": "ocean" },
+      "7": { "tileset": "kenney", "tile_index": 7, "desc": "peak" },
+      "8": { "tileset": "kenney", "tile_index": 8, "desc": "lava" }
     },
     "features": {
-      "100": { "tileset": "kenney", "x": 153, "y": 17, "w": 16, "h": 16, "desc": "forest" },
-      "110": { "tileset": "kenney", "x": 153, "y": 119, "w": 16, "h": 16, "desc": "fire" }
+      "100": { "tileset": "kenney", "tile_index": 100, "desc": "forest" },
+      "110": { "tileset": "kenney", "tile_index": 110, "desc": "fire" }
     },
     "entities": {
-      "201": { "tileset": "characters", "x": 0, "y": 0, "w": 16, "h": 16, "desc": "worker" },
-      "202": { "tileset": "characters", "x": 34, "y": 0, "w": 16, "h": 16, "desc": "archer" },
-      "203": { "tileset": "characters", "x": 51, "y": 0, "w": 16, "h": 16, "desc": "axeman" },
-      "300": { "tileset": "kenney", "x": 0, "y": 153, "w": 16, "h": 16, "desc": "house" }
+      "200": { "tileset": "characters", "tile_index": 200, "desc": "scout" },
+      "201": { "tileset": "characters", "tile_index": 201, "desc": "worker" },
+      "202": { "tileset": "characters", "tile_index": 202, "desc": "archer" },
+      "203": { "tileset": "characters", "tile_index": 203, "desc": "axeman" },
+      "204": { "tileset": "characters", "tile_index": 204, "desc": "swordsman" },
+      "300": { "tileset": "kenney", "tile_index": 300, "desc": "house" }
     }
   }
 }

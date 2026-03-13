@@ -49,7 +49,16 @@ export function WorldCanvas() {
     if (!tileset || !image) return null;
     const w = mapping.w ?? tileset.tile_size;
     const h = mapping.h ?? tileset.tile_size;
-    return { image, tileset, mapping, w, h };
+    let x = mapping.x ?? 0;
+    let y = mapping.y ?? 0;
+    if (typeof mapping.tile_index === "number") {
+      const spacing = tileset.spacing ?? 0;
+      const stride = tileset.tile_size + spacing;
+      const cols = tileset.columns;
+      x = (mapping.tile_index % cols) * stride;
+      y = Math.floor(mapping.tile_index / cols) * stride;
+    }
+    return { image, tileset, mapping: { ...mapping, x, y }, w, h };
   };
 
   useEffect(() => {
@@ -280,9 +289,10 @@ export function WorldCanvas() {
               const { image, mapping, w, h } = sprite;
               const anim = buffers.entities.animation_frame as Uint8Array | undefined;
               const frame = anim ? anim[i] % 2 : 0;
+              const spacing = sprite.tileset.spacing ?? 0;
               ctx.drawImage(
                 image,
-                mapping.x + frame * w,
+                mapping.x + frame * (w + spacing),
                 mapping.y,
                 w,
                 h,

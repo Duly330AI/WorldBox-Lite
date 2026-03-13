@@ -18,7 +18,8 @@
           "name": { "type": "string" },
           "image": { "type": "string" },
           "tile_size": { "type": "integer", "minimum": 1 },
-          "columns": { "type": "integer", "minimum": 1 }
+          "columns": { "type": "integer", "minimum": 1 },
+          "spacing": { "type": "integer", "minimum": 0 }
         }
       }
     },
@@ -38,7 +39,7 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["tileset", "x", "y"],
+        "required": ["tileset"],
         "additionalProperties": false,
         "properties": {
           "tileset": { "type": "string" },
@@ -46,6 +47,7 @@
           "y": { "type": "integer", "minimum": 0 },
           "w": { "type": "integer", "minimum": 1 },
           "h": { "type": "integer", "minimum": 1 },
+          "tile_index": { "type": "integer", "minimum": 0 },
           "desc": { "type": "string" }
         }
       }
