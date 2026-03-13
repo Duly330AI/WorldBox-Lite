@@ -45,7 +45,9 @@ export function WorldCanvas() {
   const teamColors = ["#ef4444", "#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#eab308", "#64748b"];
 
   const atlas = useMemo<SpriteAtlas>(() => {
-    const tileSize = 16;
+    const tileSize = 32;
+    const scale = tileSize / 16;
+    const s = (n: number) => n * scale;
     const cols = 8;
     const rows = 4;
     const canvas = document.createElement("canvas");
@@ -69,24 +71,24 @@ export function WorldCanvas() {
     };
 
     const mapping: SpriteAtlas["mapping"] = {
-      "terrain.0": { x: 0, y: 0, w: tileSize, h: tileSize }, // grass
-      "terrain.1": { x: 16, y: 0, w: tileSize, h: tileSize }, // plains
-      "terrain.2": { x: 32, y: 0, w: tileSize, h: tileSize }, // sand
-      "terrain.3": { x: 48, y: 0, w: tileSize, h: tileSize }, // tundra
-      "terrain.4": { x: 64, y: 0, w: tileSize, h: tileSize }, // snow
-      "terrain.5": { x: 80, y: 0, w: tileSize, h: tileSize }, // water
-      "terrain.6": { x: 96, y: 0, w: tileSize, h: tileSize }, // ocean
-      "terrain.7": { x: 112, y: 0, w: tileSize, h: tileSize }, // peak
-      "terrain.8": { x: 0, y: 16, w: tileSize, h: tileSize }, // lava
-      "features.100": { x: 16, y: 16, w: tileSize, h: tileSize }, // forest
-      "features.110": { x: 32, y: 16, w: tileSize, h: tileSize }, // fire
-      "entities.200": { x: 48, y: 16, w: tileSize, h: tileSize }, // scout
-      "entities.201": { x: 64, y: 16, w: tileSize, h: tileSize }, // worker
-      "entities.202": { x: 80, y: 16, w: tileSize, h: tileSize }, // archer
-      "entities.203": { x: 96, y: 16, w: tileSize, h: tileSize }, // axeman
-      "entities.204": { x: 112, y: 16, w: tileSize, h: tileSize }, // swordsman
-      "entities.300": { x: 0, y: 32, w: tileSize, h: tileSize }, // house
-      "entities.210": { x: 0, y: 32, w: tileSize, h: tileSize } // city center (house sprite)
+      "terrain.0": { x: 0 * tileSize, y: 0 * tileSize, w: tileSize, h: tileSize }, // grass
+      "terrain.1": { x: 1 * tileSize, y: 0 * tileSize, w: tileSize, h: tileSize }, // plains
+      "terrain.2": { x: 2 * tileSize, y: 0 * tileSize, w: tileSize, h: tileSize }, // sand
+      "terrain.3": { x: 3 * tileSize, y: 0 * tileSize, w: tileSize, h: tileSize }, // tundra
+      "terrain.4": { x: 4 * tileSize, y: 0 * tileSize, w: tileSize, h: tileSize }, // snow
+      "terrain.5": { x: 5 * tileSize, y: 0 * tileSize, w: tileSize, h: tileSize }, // water
+      "terrain.6": { x: 6 * tileSize, y: 0 * tileSize, w: tileSize, h: tileSize }, // ocean
+      "terrain.7": { x: 7 * tileSize, y: 0 * tileSize, w: tileSize, h: tileSize }, // peak
+      "terrain.8": { x: 0 * tileSize, y: 1 * tileSize, w: tileSize, h: tileSize }, // lava
+      "features.100": { x: 1 * tileSize, y: 1 * tileSize, w: tileSize, h: tileSize }, // forest
+      "features.110": { x: 2 * tileSize, y: 1 * tileSize, w: tileSize, h: tileSize }, // fire
+      "entities.200": { x: 3 * tileSize, y: 1 * tileSize, w: tileSize, h: tileSize }, // scout
+      "entities.201": { x: 4 * tileSize, y: 1 * tileSize, w: tileSize, h: tileSize }, // worker
+      "entities.202": { x: 5 * tileSize, y: 1 * tileSize, w: tileSize, h: tileSize }, // archer
+      "entities.203": { x: 6 * tileSize, y: 1 * tileSize, w: tileSize, h: tileSize }, // axeman
+      "entities.204": { x: 7 * tileSize, y: 1 * tileSize, w: tileSize, h: tileSize }, // swordsman
+      "entities.300": { x: 0 * tileSize, y: 2 * tileSize, w: tileSize, h: tileSize }, // house
+      "entities.210": { x: 0 * tileSize, y: 2 * tileSize, w: tileSize, h: tileSize } // city center (house sprite)
     };
 
     const dot = (c: CanvasRenderingContext2D, x: number, y: number, r: number, color: string) => {
@@ -105,78 +107,78 @@ export function WorldCanvas() {
     drawTile(0, 0, (c, x, y) => {
       c.fillStyle = "#4ade80";
       c.fillRect(x, y, tileSize, tileSize);
-      dot(c, x + 4, y + 5, 1, "rgba(0,0,0,0.15)");
-      dot(c, x + 11, y + 10, 1, "rgba(0,0,0,0.12)");
-      dot(c, x + 7, y + 12, 1, "rgba(0,0,0,0.1)");
+      dot(c, x + s(4), y + s(5), s(1), "rgba(0,0,0,0.15)");
+      dot(c, x + s(11), y + s(10), s(1), "rgba(0,0,0,0.12)");
+      dot(c, x + s(7), y + s(12), s(1), "rgba(0,0,0,0.1)");
       strokeRect(c, x, y, tileSize, tileSize, "rgba(0,0,0,0.08)");
     });
     drawTile(1, 0, (c, x, y) => {
       c.fillStyle = "#fbbf24";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "rgba(0,0,0,0.12)";
-      c.fillRect(x + 2, y + 3, 5, 3);
-      c.fillRect(x + 9, y + 10, 4, 3);
+      c.fillRect(x + s(2), y + s(3), s(5), s(3));
+      c.fillRect(x + s(9), y + s(10), s(4), s(3));
       strokeRect(c, x, y, tileSize, tileSize, "rgba(0,0,0,0.1)");
     });
     drawTile(2, 0, (c, x, y) => {
       c.fillStyle = "#f59e0b";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "rgba(255,255,255,0.2)";
-      c.fillRect(x + 3, y + 4, 4, 2);
-      c.fillRect(x + 9, y + 10, 3, 2);
-      dot(c, x + 6, y + 12, 1, "rgba(0,0,0,0.15)");
+      c.fillRect(x + s(3), y + s(4), s(4), s(2));
+      c.fillRect(x + s(9), y + s(10), s(3), s(2));
+      dot(c, x + s(6), y + s(12), s(1), "rgba(0,0,0,0.15)");
     });
     drawTile(3, 0, (c, x, y) => {
       c.fillStyle = "#9ca3af";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "rgba(255,255,255,0.25)";
-      c.fillRect(x + 3, y + 3, 6, 4);
-      c.fillRect(x + 8, y + 9, 5, 3);
+      c.fillRect(x + s(3), y + s(3), s(6), s(4));
+      c.fillRect(x + s(8), y + s(9), s(5), s(3));
       strokeRect(c, x, y, tileSize, tileSize, "rgba(0,0,0,0.08)");
     });
     drawTile(4, 0, (c, x, y) => {
       c.fillStyle = "#e5e7eb";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "rgba(0,0,0,0.06)";
-      c.fillRect(x + 2, y + 2, 5, 2);
-      c.fillRect(x + 9, y + 9, 4, 2);
+      c.fillRect(x + s(2), y + s(2), s(5), s(2));
+      c.fillRect(x + s(9), y + s(9), s(4), s(2));
       strokeRect(c, x, y, tileSize, tileSize, "rgba(0,0,0,0.06)");
     });
     drawTile(5, 0, (c, x, y) => {
       c.fillStyle = "#3b82f6";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "rgba(255,255,255,0.35)";
-      c.fillRect(x + 2, y + 6, 11, 2);
-      c.fillRect(x + 4, y + 11, 8, 1);
+      c.fillRect(x + s(2), y + s(6), s(11), s(2));
+      c.fillRect(x + s(4), y + s(11), s(8), s(1));
     });
     drawTile(6, 0, (c, x, y) => {
       c.fillStyle = "#1d4ed8";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "rgba(255,255,255,0.25)";
-      c.fillRect(x + 3, y + 5, 10, 2);
-      c.fillRect(x + 2, y + 11, 7, 1);
+      c.fillRect(x + s(3), y + s(5), s(10), s(2));
+      c.fillRect(x + s(2), y + s(11), s(7), s(1));
     });
     drawTile(7, 0, (c, x, y) => {
       c.fillStyle = "#4b5563";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "#9ca3af";
       c.beginPath();
-      c.moveTo(x + 3, y + 13);
-      c.lineTo(x + 8, y + 3);
-      c.lineTo(x + 13, y + 13);
+      c.moveTo(x + s(3), y + s(13));
+      c.lineTo(x + s(8), y + s(3));
+      c.lineTo(x + s(13), y + s(13));
       c.closePath();
       c.fill();
       c.fillStyle = "#6b7280";
-      c.fillRect(x + 6, y + 11, 4, 3);
+      c.fillRect(x + s(6), y + s(11), s(4), s(3));
     });
     drawTile(0, 1, (c, x, y) => {
       c.fillStyle = "#ef4444";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "rgba(0,0,0,0.2)";
       c.beginPath();
-      c.arc(x + 8, y + 9, 5, 0, Math.PI * 2);
+      c.arc(x + s(8), y + s(9), s(5), 0, Math.PI * 2);
       c.fill();
-      dot(c, x + 6, y + 6, 2, "rgba(255,255,255,0.35)");
+      dot(c, x + s(6), y + s(6), s(2), "rgba(255,255,255,0.35)");
     });
 
     // features
@@ -185,22 +187,22 @@ export function WorldCanvas() {
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "#064e3b";
       c.beginPath();
-      c.arc(x + 8, y + 7, 5, 0, Math.PI * 2);
+      c.arc(x + s(8), y + s(7), s(5), 0, Math.PI * 2);
       c.fill();
       c.fillStyle = "#7c3e1d";
-      c.fillRect(x + 7, y + 10, 2, 4);
-      dot(c, x + 5, y + 6, 1, "rgba(255,255,255,0.25)");
+      c.fillRect(x + s(7), y + s(10), s(2), s(4));
+      dot(c, x + s(5), y + s(6), s(1), "rgba(255,255,255,0.25)");
     });
     drawTile(2, 1, (c, x, y) => {
       c.fillStyle = "#1f2937";
       c.fillRect(x, y, tileSize, tileSize);
       c.fillStyle = "#f97316";
       c.beginPath();
-      c.arc(x + 7, y + 8, 4, 0, Math.PI * 2);
+      c.arc(x + s(7), y + s(8), s(4), 0, Math.PI * 2);
       c.fill();
       c.fillStyle = "#facc15";
       c.beginPath();
-      c.arc(x + 10, y + 6, 3, 0, Math.PI * 2);
+      c.arc(x + s(10), y + s(6), s(3), 0, Math.PI * 2);
       c.fill();
     });
 
@@ -211,13 +213,13 @@ export function WorldCanvas() {
         c.fillRect(x, y, tileSize, tileSize);
         c.fillStyle = color;
         c.beginPath();
-        c.arc(x + 8, y + 6, 3, 0, Math.PI * 2);
+        c.arc(x + s(8), y + s(6), s(3), 0, Math.PI * 2);
         c.fill();
         c.fillStyle = "#111827";
-        c.fillRect(x + 6, y + 9, 4, 5);
+        c.fillRect(x + s(6), y + s(9), s(4), s(5));
         c.fillStyle = "#fff";
-        c.font = "7px sans-serif";
-        c.fillText(mark, x + 5, y + 15);
+        c.font = `${Math.max(10, Math.floor(s(7)))}px sans-serif`;
+        c.fillText(mark, x + s(5), y + s(15));
       });
     };
     drawUnit(3, 1, "#60a5fa", "S");
@@ -229,18 +231,18 @@ export function WorldCanvas() {
     // house
     drawTile(0, 2, (c, x, y) => {
       c.fillStyle = "#7c4a2d";
-      c.fillRect(x + 2, y + 7, 12, 7);
+      c.fillRect(x + s(2), y + s(7), s(12), s(7));
       c.fillStyle = "#5a2e12";
       c.beginPath();
-      c.moveTo(x + 2, y + 7);
-      c.lineTo(x + 8, y + 3);
-      c.lineTo(x + 14, y + 7);
+      c.moveTo(x + s(2), y + s(7));
+      c.lineTo(x + s(8), y + s(3));
+      c.lineTo(x + s(14), y + s(7));
       c.closePath();
       c.fill();
       c.fillStyle = "#fef3c7";
-      c.fillRect(x + 7, y + 10, 2, 3);
+      c.fillRect(x + s(7), y + s(10), s(2), s(3));
       c.fillStyle = "#a16207";
-      c.fillRect(x + 4, y + 10, 2, 2);
+      c.fillRect(x + s(4), y + s(10), s(2), s(2));
     });
 
     return { image: canvas, tileSize, mapping };

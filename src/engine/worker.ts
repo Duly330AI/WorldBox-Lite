@@ -507,7 +507,7 @@ function findNearestKnown(
 
 function trackEventStream(entry: Record<string, unknown>) {
   const type = String(entry.event_type ?? "");
-  if (type === "AI_PLAN_CHANGE" || type === "UNIT_ACTION") {
+  if (type === "AI_PLAN_CHANGE" || type === "UNIT_ACTION" || type.startsWith("CITY_")) {
     eventStream.decisions.push(entry);
   } else if (type === "UNIT_DIED" || entry.level === "COMBAT") {
     eventStream.combat.push(entry);
