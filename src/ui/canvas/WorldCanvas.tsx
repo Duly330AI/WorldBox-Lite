@@ -268,10 +268,13 @@ export function WorldCanvas() {
       canvas.height = height * tileSize;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
+      ctx.imageSmoothingEnabled = false;
       const now = performance.now();
       const t = Math.min(1, Math.max(0, (now - lastTickTimeRef.current) / Math.max(1, tickIntervalMs)));
 
-      ctx.setTransform(camera.scale, 0, 0, camera.scale, camera.x, camera.y);
+      const snapX = Math.round(camera.x);
+      const snapY = Math.round(camera.y);
+      ctx.setTransform(camera.scale, 0, 0, camera.scale, snapX, snapY);
       ctx.clearRect(-camera.x / camera.scale, -camera.y / camera.scale, canvas.width / camera.scale, canvas.height / camera.scale);
 
       const explored = buffers?.explored as Uint8Array | undefined;

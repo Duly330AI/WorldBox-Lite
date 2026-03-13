@@ -756,6 +756,18 @@ function countFactionCities(factionId: number) {
   return count;
 }
 
+function countFactionHouses(factionId: number) {
+  if (!stateViewRef) return 0;
+  const view = stateViewRef;
+  let count = 0;
+  for (let i = 0; i < view.width * view.height; i += 1) {
+    if (view.getBuilding(i) !== 300) continue;
+    const owner = buildingOwner.get(i) ?? 0;
+    if (owner === factionId) count += 1;
+  }
+  return count;
+}
+
 function chooseProductionUnit(
   factionId: number,
   storage: number,
@@ -1332,6 +1344,12 @@ function tickAction(entityIndex: number) {
       tx = view.getEntityTargetX(entityIndex);
       ty = view.getEntityTargetY(entityIndex);
     }
+    if (!hasValidTarget(tx, ty, (sx, sy) => view.getBuilding(sy * width + sx) === 300)) {
+      view.setEntityActionProgress(entityIndex, 0);
+      view.setEntityTargetX(entityIndex, INVALID_TARGET);
+      view.setEntityTargetY(entityIndex, INVALID_TARGET);
+      return;
+    }
     if (!atTarget()) {
       moveTowardTarget();
       return;
@@ -1619,6 +1637,7 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
   if (wood >= 3) facts.push("has_wood_to_store");
   const grassId = Object.values(worldSpecRef!.terrain_types).find((t) => t.id === 0)?.id ?? 0;
   if (terrainId === grassId) facts.push("is_on_grass_tile");
+  if (hasTech(faction, "pottery")) facts.push("can_build_house");
   if (isValidCityPlacement(x, y, faction)) facts.push("is_on_valid_land");
   if (findEnemyInRangeByType(entityIndex) !== null) facts.push("enemy_in_range");
   if (isEnemyInVision(entityIndex)) facts.push("enemy_nearby");
@@ -1668,6 +1687,26 @@ function stepCityGrowth() {
   }
 }
 
+function chooseAutoResearch(factionId: number) {
+  if (!techManagerRef || !techSpecRef) return;
+  const state = techManagerRef.getState(factionId);
+  if (state.current) return;
+  const known = techManagerRef.getKnown(factionId);
+  const pickOrder = ["mining", "agriculture", "hunting", "pottery"];
+  let target: string | null = null;
+  for (const techId of pickOrder) {
+    if (!known.has(techId) && techSpecRef.techs[techId]) {
+      target = techId;
+      break;
+    }
+  }
+  if (!target) return;
+  const ok = techManagerRef.startResearch(factionId, target);
+  if (ok) {
+    logEvent({ event_type: "RESEARCH_TARGET", level: "INFO", faction_id: factionId, tech: target });
+  }
+}
+
 function computeInputs(entityIndex: number, width: number) {
   const view = stateViewRef!;
   const faction = view.getEntityFaction(entityIndex);
@@ -1690,6 +1729,7 @@ function computeInputs(entityIndex: number, width: number) {
   const ownMil = (lastFactionMilitary.get(faction) ?? 0);
   const enemyMil = (lastFactionEnemyMilitary.get(faction) ?? 0);
   const ratio = enemyMil > 0 ? ownMil / enemyMil : 0;
+  const known = techManagerRef?.getKnown(faction) ?? new Set<string>();
   return {
     enemy_nearby: isEnemyInVision(entityIndex) ? 1 : 0,
     enemy_known: board.enemyWorkers.size > 0 || board.enemyBases.size > 0 || isEnemyInVision(entityIndex) ? 1 : 0,
@@ -1697,6 +1737,8 @@ function computeInputs(entityIndex: number, width: number) {
     hunger: view.getEntityHunger(entityIndex),
     wood: view.getEntityWood(entityIndex),
     city_count: countFactionCities(faction),
+    house_count: countFactionHouses(faction),
+    has_pottery: known.has("pottery") ? 1 : 0,
     tiles_explored: getTilesExplored(entityIndex),
     enemy_near_home: enemyNearHome,
     military_strength_ratio: ratio
@@ -1825,6 +1867,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
 
     if (techManagerRef) {
       for (const factionId of homeByFaction.keys()) {
+        chooseAutoResearch(factionId);
         const completed = techManagerRef.tickResearch(factionId, 1);
         if (completed) {
           ensureChronicle(factionId).tech_order.push(completed);
