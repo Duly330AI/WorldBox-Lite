@@ -42,6 +42,7 @@ export type StateBuffers = {
   terrain: Uint8Array;
   feature: Uint8Array;
   building: Uint16Array;
+  building_storage: Uint16Array;
   height: Int8Array;
   explored: Uint8Array;
   entities: Record<string, Uint8Array | Uint16Array | Uint32Array>;
@@ -198,6 +199,7 @@ function makeStateBuffers(stateSpec: StateSpec, worldSpec: WorldSpec, useShared:
   const terrain = makeTileBuffer(stateSpec.memory_layout.terrain_buffer.type, tileCount, useShared) as Uint8Array;
   const feature = makeTileBuffer(stateSpec.memory_layout.feature_buffer.type, tileCount, useShared) as Uint8Array;
   const building = makeTileBuffer(stateSpec.memory_layout.building_buffer.type, tileCount, useShared) as Uint16Array;
+  const buildingStorage = makeTileBuffer(stateSpec.memory_layout.building_storage_buffer.type, tileCount, useShared) as Uint16Array;
   const heightBuf = makeTileBuffer(stateSpec.memory_layout.height_buffer.type, tileCount, useShared) as Int8Array;
   const explored = makeTileBuffer(stateSpec.memory_layout.explored_buffer.type, tileCount, useShared) as Uint8Array;
 
@@ -213,7 +215,7 @@ function makeStateBuffers(stateSpec: StateSpec, worldSpec: WorldSpec, useShared:
     }
   }
 
-  return { terrain, feature, building, height: heightBuf, explored, entities };
+  return { terrain, feature, building, building_storage: buildingStorage, height: heightBuf, explored, entities };
 }
 
 class TechManager {
@@ -1021,6 +1023,37 @@ function tickAction(entityIndex: number) {
     return;
   }
 
+  if (actionMeta?.name === "DELIVER") {
+    let tx = view.getEntityTargetX(entityIndex);
+    let ty = view.getEntityTargetY(entityIndex);
+    if (tx >= width || ty >= height || view.getBuilding(ty * width + tx) !== 300) {
+      ensureTarget((sx, sy) => view.getBuilding(sy * width + sx) === 300);
+      tx = view.getEntityTargetX(entityIndex);
+      ty = view.getEntityTargetY(entityIndex);
+    }
+    if (!atTarget()) {
+      moveTowardTarget();
+      return;
+    }
+    const idx = ty * width + tx;
+    if (view.getBuilding(idx) !== 300) {
+      view.setEntityActionProgress(entityIndex, 0);
+      return;
+    }
+    const next = Math.min(100, view.getEntityActionProgress(entityIndex) + progressStep);
+    view.setEntityActionProgress(entityIndex, next);
+    if (next >= 100) {
+      const wood = view.getEntityWood(entityIndex);
+      const stored = (buffersRef!.building_storage as Uint16Array)[idx] ?? 0;
+      (buffersRef!.building_storage as Uint16Array)[idx] = stored + wood;
+      view.setEntityWood(entityIndex, 0);
+      view.setEntityActionProgress(entityIndex, 0);
+      logEvent({ event_type: "UNIT_ACTION", level: "INFO", action: "DELIVER", entity_id: entityIndex });
+      logEvent({ event_type: "ECONOMY_UPDATE", level: "ECONOMY", entity_id: entityIndex, wood: 0 });
+    }
+    return;
+  }
+
   if (actionMeta?.name === "ATTACK") {
     const enemyIndex = findEnemyInRange(entityIndex, 1);
     if (enemyIndex === null) return;
@@ -1169,6 +1202,7 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
     }
   }
   if (wood >= 3) facts.push("has_wood_3");
+  if (wood >= 3) facts.push("has_wood_to_store");
   facts.push("is_on_grass_tile");
   if (findEnemyInRange(entityIndex, 1) !== null) facts.push("enemy_in_range");
   if (isEnemyInVision(entityIndex)) facts.push("enemy_nearby");
@@ -1354,8 +1388,11 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         const limit = (housesPerFaction[faction] ?? 0) * houseLimitPerHouse;
         const current = population[faction] ?? 0;
         if (current >= limit) continue;
+        const storage = (buffersRef.building_storage as Uint16Array)[i] ?? 0;
+        if (storage < 10) continue;
         const x = i % width;
         const y = Math.floor(i / width);
+        (buffersRef.building_storage as Uint16Array)[i] = Math.max(0, storage - 10);
         const result = spawnUnit(
           buffersRef,
           worldSpecRef!,
@@ -1369,6 +1406,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         );
         if (result.success) {
           logEvent({ event_type: "UNIT_SPAWN", level: "INFO", entity_id: result.entityIndex, unit_type: 201 });
+          logEvent({ event_type: "HOUSE_PRODUCED_UNIT", level: "INFO", building_idx: i, faction_id: faction });
         }
       }
     }
@@ -1675,6 +1713,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         buffers.terrain.buffer,
         buffers.feature.buffer,
         buffers.building.buffer,
+        buffers.building_storage.buffer,
         buffers.height.buffer,
         buffers.explored.buffer,
         ...Object.values(buffers.entities).map((arr) => arr.buffer)

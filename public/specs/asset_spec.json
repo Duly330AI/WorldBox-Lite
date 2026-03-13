@@ -6,27 +6,29 @@
     {
       "name": "kenney",
       "image": "/assets/tilesets/kenney/tilesheet.png",
-      "tile_size": 32,
+      "tile_size": 16,
+      "columns": 16
+    },
+    {
+      "name": "characters",
+      "image": "/assets/sprites/characters.png",
+      "tile_size": 16,
       "columns": 16
     }
   ],
   "mappings": {
     "terrain": {
-      "0": { "tileset": "kenney", "x": 0, "y": 0, "desc": "grass" },
-      "1": { "tileset": "kenney", "x": 1, "y": 0, "desc": "plains" },
-      "2": { "tileset": "kenney", "x": 2, "y": 0, "desc": "sand" },
-      "5": { "tileset": "kenney", "x": 3, "y": 0, "desc": "water" },
-      "7": { "tileset": "kenney", "x": 4, "y": 0, "desc": "peak" },
-      "8": { "tileset": "kenney", "x": 5, "y": 0, "desc": "lava" }
+      "0": { "tileset": "kenney", "x": 68, "y": 0, "w": 16, "h": 16, "desc": "grass" },
+      "5": { "tileset": "kenney", "x": 170, "y": 0, "w": 16, "h": 16, "desc": "water" },
+      "8": { "tileset": "kenney", "x": 187, "y": 136, "w": 16, "h": 16, "desc": "lava" }
     },
     "features": {
-      "100": { "tileset": "kenney", "x": 0, "y": 1, "desc": "forest" },
-      "110": { "tileset": "kenney", "x": 1, "y": 1, "desc": "fire" }
+      "100": { "tileset": "kenney", "x": 153, "y": 17, "w": 16, "h": 16, "desc": "forest" },
+      "110": { "tileset": "kenney", "x": 153, "y": 119, "w": 16, "h": 16, "desc": "fire" }
     },
     "entities": {
-      "200": { "tileset": "kenney", "x": 0, "y": 5, "desc": "scout" },
-      "201": { "tileset": "kenney", "x": 1, "y": 5, "desc": "worker" },
-      "300": { "tileset": "kenney", "x": 2, "y": 5, "desc": "house" }
+      "201": { "tileset": "characters", "x": 0, "y": 0, "w": 16, "h": 16, "desc": "worker" },
+      "300": { "tileset": "kenney", "x": 0, "y": 153, "w": 16, "h": 16, "desc": "house" }
     }
   }
 }

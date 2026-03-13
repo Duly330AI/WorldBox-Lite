@@ -57,6 +57,14 @@ export class StateView {
     this.buffers.building[idx] = value;
   }
 
+  getBuildingStorage(idx: number) {
+    return this.buffers.building_storage[idx];
+  }
+
+  setBuildingStorage(idx: number, value: number) {
+    this.buffers.building_storage[idx] = value;
+  }
+
   getExplored(idx: number) {
     return this.buffers.explored[idx];
   }

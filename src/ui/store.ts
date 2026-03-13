@@ -11,6 +11,7 @@ export type WorldState = {
   assetSpec: AssetSpec | null;
   tilesetImages: Record<string, HTMLImageElement>;
   minimapBuffer: Uint8ClampedArray | null;
+  cameraTarget: { x: number; y: number } | null;
   terrain: Uint8Array | null;
   buffers: StateBuffers | null;
   paths: Array<{ entity_id: number; path: Array<[number, number]> }>;
@@ -57,6 +58,8 @@ export type WorldState = {
   setTick: (tick: number) => void;
   setTickIntervalMs: (ms: number) => void;
   setMinimapBuffer: (buf: Uint8ClampedArray | null) => void;
+  setCameraTarget: (target: { x: number; y: number } | null) => void;
+  setCameraTarget: (target: { x: number; y: number } | null) => void;
   setMinimapBuffer: (buf: Uint8ClampedArray | null) => void;
   setGodTool: (tool: "lava" | "forest" | "water" | "ignite" | null) => void;
   setBrushSize: (size: number) => void;
@@ -73,6 +76,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   assetSpec: null,
   tilesetImages: {},
   minimapBuffer: null,
+  cameraTarget: null,
   terrain: null,
   buffers: null,
   paths: [],
@@ -114,6 +118,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   setTick: (tick) => set({ tick }),
   setTickIntervalMs: (ms) => set({ tickIntervalMs: ms }),
   setMinimapBuffer: (buf) => set({ minimapBuffer: buf }),
+  setCameraTarget: (target) => set({ cameraTarget: target }),
   setGodTool: (tool) => set((state) => ({ godTool: { ...state.godTool, tool } })),
   setBrushSize: (size) => set((state) => ({ godTool: { ...state.godTool, brushSize: size } })),
   setWorker: (worker) => set({ worker }),

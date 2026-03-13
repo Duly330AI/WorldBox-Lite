@@ -5,6 +5,7 @@
     "terrain_buffer": { "type": "Uint8Array", "bytes_per_tile": 1 },
     "feature_buffer": { "type": "Uint8Array", "bytes_per_tile": 1 },
     "building_buffer": { "type": "Uint16Array", "bytes_per_tile": 2, "description": "Building IDs 300-399" },
+    "building_storage_buffer": { "type": "Uint16Array", "bytes_per_tile": 2, "description": "Building storage (wood units)" },
     "height_buffer": { "type": "Int8Array", "bytes_per_tile": 1 },
     "explored_buffer": { "type": "Uint8Array", "bytes_per_tile": 1, "description": "Bitmask for 8 factions" }
   },

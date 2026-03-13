@@ -51,6 +51,7 @@ export type StateSpec = {
     terrain_buffer: { type: string; bytes_per_tile: number; description?: string };
     feature_buffer: { type: string; bytes_per_tile: number; description?: string };
     building_buffer: { type: string; bytes_per_tile: number; description?: string };
+    building_storage_buffer: { type: string; bytes_per_tile: number; description?: string };
     height_buffer: { type: string; bytes_per_tile: number; description?: string };
     explored_buffer: { type: string; bytes_per_tile: number; description?: string };
   };
@@ -191,9 +192,9 @@ export type AssetSpec = {
     columns: number;
   }>;
   mappings: {
-    terrain: Record<string, { tileset: string; x: number; y: number; desc?: string }>;
-    features: Record<string, { tileset: string; x: number; y: number; desc?: string }>;
-    entities: Record<string, { tileset: string; x: number; y: number; desc?: string }>;
+    terrain: Record<string, { tileset: string; x: number; y: number; w?: number; h?: number; desc?: string }>;
+    features: Record<string, { tileset: string; x: number; y: number; w?: number; h?: number; desc?: string }>;
+    entities: Record<string, { tileset: string; x: number; y: number; w?: number; h?: number; desc?: string }>;
   };
 };
 

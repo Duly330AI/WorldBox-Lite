@@ -27,6 +27,8 @@ export function WorldCanvas() {
   const entityDebug = useWorldStore((s) => s.entityDebug);
   const tick = useWorldStore((s) => s.tick);
   const tickIntervalMs = useWorldStore((s) => s.tickIntervalMs);
+  const cameraTarget = useWorldStore((s) => s.cameraTarget);
+  const setCameraTarget = useWorldStore((s) => s.setCameraTarget);
   const [hover, setHover] = useState<{ x: number; y: number; px: number; py: number; entityId: number | null } | null>(null);
   const [camera, setCamera] = useState({ x: 0, y: 0, scale: 1 });
   const dragRef = useRef<{ x: number; y: number; startX: number; startY: number; dragging: boolean } | null>(null);
@@ -42,7 +44,9 @@ export function WorldCanvas() {
     const tileset = assetSpec?.tilesets.find((t) => t.name === mapping.tileset);
     const image = tileset ? tilesetImages[tileset.name] : undefined;
     if (!tileset || !image) return null;
-    return { image, tileset, mapping };
+    const w = mapping.w ?? tileset.tile_size;
+    const h = mapping.h ?? tileset.tile_size;
+    return { image, tileset, mapping, w, h };
   };
 
   useEffect(() => {
@@ -70,13 +74,13 @@ export function WorldCanvas() {
           const id = terrain[idx];
           const sprite = getSprite("terrain", id);
           if (sprite) {
-            const { image, tileset, mapping } = sprite;
+            const { image, mapping, w, h } = sprite;
             ctx.drawImage(
               image,
-              mapping.x * tileset.tile_size,
-              mapping.y * tileset.tile_size,
-              tileset.tile_size,
-              tileset.tile_size,
+              mapping.x,
+              mapping.y,
+              w,
+              h,
               x * tileSize,
               y * tileSize,
               tileSize,
@@ -96,13 +100,13 @@ export function WorldCanvas() {
           if (buffers.feature[idx] === 100) {
             const sprite = getSprite("features", 100);
             if (sprite) {
-              const { image, tileset, mapping } = sprite;
+              const { image, mapping, w, h } = sprite;
               ctx.drawImage(
                 image,
-                mapping.x * tileset.tile_size,
-                mapping.y * tileset.tile_size,
-                tileset.tile_size,
-                tileset.tile_size,
+                mapping.x,
+                mapping.y,
+                w,
+                h,
                 x * tileSize,
                 y * tileSize,
                 tileSize,
@@ -124,13 +128,13 @@ export function WorldCanvas() {
           if (buffers.feature[idx] === 110) {
             const sprite = getSprite("features", 110);
             if (sprite) {
-              const { image, tileset, mapping } = sprite;
+              const { image, mapping, w, h } = sprite;
               ctx.drawImage(
                 image,
-                mapping.x * tileset.tile_size,
-                mapping.y * tileset.tile_size,
-                tileset.tile_size,
-                tileset.tile_size,
+                mapping.x,
+                mapping.y,
+                w,
+                h,
                 x * tileSize,
                 y * tileSize,
                 tileSize,
@@ -163,13 +167,13 @@ export function WorldCanvas() {
             const teamColor = teamColors[owner % teamColors.length];
             const sprite = getSprite("entities", 300);
             if (sprite) {
-              const { image, tileset, mapping } = sprite;
+              const { image, mapping, w, h } = sprite;
               ctx.drawImage(
                 image,
-                mapping.x * tileset.tile_size,
-                mapping.y * tileset.tile_size,
-                tileset.tile_size,
-                tileset.tile_size,
+                mapping.x,
+                mapping.y,
+                w,
+                h,
                 x * tileSize,
                 y * tileSize,
                 tileSize,
@@ -229,13 +233,15 @@ export function WorldCanvas() {
           if (types && (types[i] === 201 || types[i] === 200 || types[i] === 202 || types[i] === 203 || types[i] === 204)) {
             const sprite = getSprite("entities", types[i]);
             if (sprite) {
-              const { image, tileset, mapping } = sprite;
+              const { image, mapping, w, h } = sprite;
+              const anim = buffers.entities.animation_frame as Uint8Array | undefined;
+              const frame = anim ? anim[i] % 2 : 0;
               ctx.drawImage(
                 image,
-                mapping.x * tileset.tile_size,
-                mapping.y * tileset.tile_size,
-                tileset.tile_size,
-                tileset.tile_size,
+                mapping.x + frame * w,
+                mapping.y,
+                w,
+                h,
                 px,
                 py,
                 tileSize,
@@ -309,6 +315,21 @@ export function WorldCanvas() {
     }
     prevPositionsRef.current = next;
   }, [tick, buffers]);
+
+  useEffect(() => {
+    if (!cameraTarget || !spec) return;
+    const tileSize = spec.config.tile_size;
+    const canvas = canvasRef.current;
+    const rect = canvas?.getBoundingClientRect();
+    const centerX = rect ? rect.width / 2 : tileSize;
+    const centerY = rect ? rect.height / 2 : tileSize;
+    setCamera((prev) => ({
+      ...prev,
+      x: -cameraTarget.x * tileSize * prev.scale + centerX,
+      y: -cameraTarget.y * tileSize * prev.scale + centerY
+    }));
+    setCameraTarget(null);
+  }, [cameraTarget, spec, setCameraTarget]);
 
   const tileFromEvent = (event: MouseEvent<HTMLCanvasElement>) => {
     if (!spec || !buffers) return;

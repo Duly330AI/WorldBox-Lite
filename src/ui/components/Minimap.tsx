@@ -16,6 +16,7 @@ export function Minimap() {
   const terrain = useWorldStore((s) => s.terrain);
   const buffers = useWorldStore((s) => s.buffers);
   const minimapBuffer = useWorldStore((s) => s.minimapBuffer);
+  const setCameraTarget = useWorldStore((s) => s.setCameraTarget);
 
   useEffect(() => {
     if (!spec || !terrain) return;
@@ -49,6 +50,19 @@ export function Minimap() {
     }
   }, [spec, terrain, buffers, minimapBuffer]);
 
+  const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!spec) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const size = 64;
+    const x = Math.floor(((event.clientX - rect.left) / rect.width) * size);
+    const y = Math.floor(((event.clientY - rect.top) / rect.height) * size);
+    const worldX = Math.floor((x / size) * spec.config.dimensions.width);
+    const worldY = Math.floor((y / size) * spec.config.dimensions.height);
+    setCameraTarget({ x: worldX, y: worldY });
+  };
+
   return (
     <div
       style={{
@@ -60,7 +74,11 @@ export function Minimap() {
       }}
     >
       <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 6 }}>Minimap</div>
-      <canvas ref={canvasRef} style={{ width: 80, height: 80, imageRendering: "pixelated" }} />
+      <canvas
+        ref={canvasRef}
+        onClick={handleClick}
+        style={{ width: 80, height: 80, imageRendering: "pixelated", cursor: "pointer" }}
+      />
     </div>
   );
 }

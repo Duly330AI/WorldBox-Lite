@@ -1,34 +1,9 @@
 import fs from "fs";
 import path from "path";
-import https from "https";
 import AdmZip from "adm-zip";
+import axios from "axios";
 
-const DEFAULT_URL =
-  "https://kenney.nl/media/pages/assets/top-down-rpg-pack/top-down-rpg-pack.zip";
-
-function download(url: string, dest: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    https
-      .get(url, { headers: { "User-Agent": "Mozilla/5.0" } }, (res) => {
-        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          file.close();
-          fs.unlinkSync(dest);
-          return download(res.headers.location, dest).then(resolve).catch(reject);
-        }
-        if (res.statusCode !== 200) {
-          file.close();
-          return reject(new Error(`Download failed: ${res.statusCode}`));
-        }
-        res.pipe(file);
-        file.on("finish", () => file.close(() => resolve()));
-      })
-      .on("error", (err) => {
-        file.close();
-        reject(err);
-      });
-  });
-}
+const DEFAULT_URL = "https://www.kenney.nl/content/assets/top-down-rpg-pack.zip";
 
 function isZip(filePath: string) {
   const fd = fs.openSync(filePath, "r");
@@ -38,47 +13,68 @@ function isZip(filePath: string) {
   return buf.toString("hex").startsWith("504b");
 }
 
+async function download(url: string, dest: string) {
+  const response = await axios.get(url, {
+    responseType: "arraybuffer",
+    headers: { "User-Agent": "Mozilla/5.0" }
+  });
+  fs.writeFileSync(dest, Buffer.from(response.data));
+}
+
 async function main() {
   const url = process.env.KENNEY_TOPDOWN_URL || DEFAULT_URL;
   const root = process.cwd();
   const tmpDir = path.join(root, ".tmp_assets");
   const zipPath = path.join(tmpDir, "kenney.zip");
-  fs.mkdirSync(tmpDir, { recursive: true });
-
-  console.log(`Downloading Kenney assets from ${url}`);
-  await download(url, zipPath);
-
-  if (!isZip(zipPath)) {
-    throw new Error(
-      "Downloaded file is not a ZIP. The Kenney URL may require a direct download link."
-    );
-  }
-
-  const zip = new AdmZip(zipPath);
-  const entries = zip.getEntries();
-  const tilesheet = entries.find((e) => /Tilesheet\/tilesheet\.png$/i.test(e.entryName));
-  const spritesheet = entries.find((e) => /Spritesheet\/spritesheet_characters\.png$/i.test(e.entryName));
-
-  if (!tilesheet) {
-    throw new Error("Tilesheet/tilesheet.png not found in archive.");
-  }
-  if (!spritesheet) {
-    throw new Error("Spritesheet/spritesheet_characters.png not found in archive.");
-  }
-
+  const localZip = path.join(root, "assets", "kenney.zip");
   const tilesetTarget = path.join(root, "assets", "tilesets", "kenney");
   const spriteTarget = path.join(root, "assets", "sprites");
+  const tilesheetOut = path.join(tilesetTarget, "tilesheet.png");
+  const spriteOut = path.join(spriteTarget, "characters.png");
+
+  if (fs.existsSync(tilesheetOut) && fs.existsSync(spriteOut)) {
+    console.log("Kenney assets already installed.");
+    return;
+  }
+
+  fs.mkdirSync(tmpDir, { recursive: true });
   fs.mkdirSync(tilesetTarget, { recursive: true });
   fs.mkdirSync(spriteTarget, { recursive: true });
 
-  fs.writeFileSync(path.join(tilesetTarget, "tilesheet.png"), tilesheet.getData());
-  fs.writeFileSync(path.join(spriteTarget, "characters.png"), spritesheet.getData());
+  try {
+    if (fs.existsSync(localZip)) {
+      console.log("Using local assets/kenney.zip");
+      fs.copyFileSync(localZip, zipPath);
+    } else {
+      console.log(`Downloading Kenney assets from ${url}`);
+      await download(url, zipPath);
+    }
 
-  fs.rmSync(tmpDir, { recursive: true, force: true });
-  console.log("Kenney assets installed.");
+    if (!isZip(zipPath)) {
+      throw new Error("Downloaded file is not a ZIP.");
+    }
+
+    const zip = new AdmZip(zipPath);
+    const entries = zip.getEntries();
+    const tilesheet = entries.find((e) => /Tilesheet\/tilesheet\.png$/i.test(e.entryName));
+    const spritesheet = entries.find((e) => /Spritesheet\/spritesheet_characters\.png$/i.test(e.entryName));
+
+    if (!tilesheet) {
+      throw new Error("Tilesheet/tilesheet.png not found in archive.");
+    }
+    if (!spritesheet) {
+      throw new Error("Spritesheet/spritesheet_characters.png not found in archive.");
+    }
+
+    fs.writeFileSync(tilesheetOut, tilesheet.getData());
+    fs.writeFileSync(spriteOut, spritesheet.getData());
+    console.log("Kenney assets installed.");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`Asset setup warning: ${message}`);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
 }
 
-main().catch((err) => {
-  console.error(err.message);
-  process.exit(1);
-});
+main();
