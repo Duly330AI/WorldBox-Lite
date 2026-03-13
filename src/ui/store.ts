@@ -121,7 +121,17 @@ export const useWorldStore = create<WorldState>((set) => ({
   tickIntervalMs: 500,
   error: null,
   setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, assetSpec) =>
-    set({ spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, assetSpec, error: null }),
+    set((state) => ({
+      spec,
+      terrain,
+      buffers,
+      unitBehaviorSpec,
+      loggingSpec,
+      simulationSpec,
+      techSpec,
+      assetSpec: assetSpec ?? state.assetSpec,
+      error: null
+    })),
   addEvents: (entries) =>
     set((state) => {
       const merged = [...state.events, ...entries];
