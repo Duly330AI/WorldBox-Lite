@@ -159,28 +159,26 @@ export function App() {
         const images: Record<string, HTMLImageElement> = {};
         const loaders = spec.tilesets.map(
           (ts) =>
-            new Promise<void>((resolve, reject) => {
+            new Promise<void>((resolve) => {
               const img = new Image();
               img.onload = () => {
                 images[ts.name] = img;
                 resolve();
               };
               img.onerror = () => {
-                reject(new Error(`Failed to load tileset image: ${ts.image}`));
+                resolve();
               };
               img.src = ts.image;
             })
         );
-        Promise.all(loaders)
-          .then(() => {
-            if (!cancelled) setTilesetImages(images);
-          })
-          .catch((err) => {
-            if (!cancelled) {
-              console.error(err);
-              setError(err instanceof Error ? err.message : String(err));
-            }
-          });
+        Promise.allSettled(loaders).then(() => {
+          if (cancelled) return;
+          setTilesetImages(images);
+          const missing = spec.tilesets.filter((ts) => !images[ts.name]);
+          if (missing.length > 0) {
+            setError(`Missing tileset images: ${missing.map((m) => m.image).join(", ")}`);
+          }
+        });
       })
       .catch((err) => {
         if (!cancelled) {
@@ -387,7 +385,7 @@ export function App() {
           <TechTree />
         </div>
       </div>
-      {!assetsReady ? (
+      {!assetsReady && !error ? (
         <div
           style={{
             position: "fixed",
