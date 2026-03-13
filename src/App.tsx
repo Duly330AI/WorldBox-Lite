@@ -159,19 +159,32 @@ export function App() {
         const images: Record<string, HTMLImageElement> = {};
         const loaders = spec.tilesets.map(
           (ts) =>
-            new Promise<void>((resolve) => {
+            new Promise<void>(async (resolve) => {
+              try {
+                const res = await fetch(ts.image, { method: "HEAD" });
+                if (!res.ok) {
+                  setError(`Missing tileset image: ${ts.image}`);
+                  resolve();
+                  return;
+                }
+              } catch {
+                setError(`Missing tileset image: ${ts.image}`);
+                resolve();
+                return;
+              }
               const img = new Image();
               img.onload = () => {
                 images[ts.name] = img;
                 resolve();
               };
               img.onerror = () => {
+                setError(`Failed to load tileset image: ${ts.image}`);
                 resolve();
               };
               img.src = ts.image;
             })
         );
-        Promise.allSettled(loaders).then(() => {
+        Promise.all(loaders).then(() => {
           if (cancelled) return;
           setTilesetImages(images);
           const missing = spec.tilesets.filter((ts) => !images[ts.name]);
