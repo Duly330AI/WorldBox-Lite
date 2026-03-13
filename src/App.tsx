@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { WorldCanvas } from "./ui/canvas/WorldCanvas";
 import { EventLog } from "./ui/components/EventLog";
 import { Minimap } from "./ui/components/Minimap";
+import { TilesheetInspector } from "./ui/components/TilesheetInspector";
 import { TechTree } from "./ui/components/TechTree";
 import { UnitInspector } from "./ui/components/UnitInspector";
 import { useWorldStore } from "./ui/store";
@@ -378,6 +379,8 @@ export function App() {
           </div>
           <div style={{ height: 12 }} />
           <TechTree />
+          <div style={{ height: 12 }} />
+          <TilesheetInspector />
         </div>
       </div>
       {matchOver ? (
