@@ -161,27 +161,37 @@ export function App() {
           (ts) =>
             new Promise<void>(async (resolve) => {
               try {
-                const res = await fetch(ts.image, { method: "HEAD" });
+                const res = await fetch(ts.image);
                 if (!res.ok) {
                   setError(`Missing tileset image: ${ts.image}`);
                   resolve();
                   return;
                 }
+                const blob = await res.blob();
+                const img = new Image();
+                const url = URL.createObjectURL(blob);
+                const timeout = window.setTimeout(() => {
+                  setError(`Failed to load tileset image: ${ts.image}`);
+                  URL.revokeObjectURL(url);
+                  resolve();
+                }, 2000);
+                img.onload = () => {
+                  window.clearTimeout(timeout);
+                  URL.revokeObjectURL(url);
+                  images[ts.name] = img;
+                  resolve();
+                };
+                img.onerror = () => {
+                  window.clearTimeout(timeout);
+                  URL.revokeObjectURL(url);
+                  setError(`Failed to load tileset image: ${ts.image}`);
+                  resolve();
+                };
+                img.src = url;
               } catch {
                 setError(`Missing tileset image: ${ts.image}`);
                 resolve();
-                return;
               }
-              const img = new Image();
-              img.onload = () => {
-                images[ts.name] = img;
-                resolve();
-              };
-              img.onerror = () => {
-                setError(`Failed to load tileset image: ${ts.image}`);
-                resolve();
-              };
-              img.src = ts.image;
             })
         );
         Promise.all(loaders).then(() => {
