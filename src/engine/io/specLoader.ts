@@ -191,11 +191,12 @@ export type AssetSpec = {
     image: string;
     tile_size: number;
     columns: number;
+    spacing?: number;
   }>;
   mappings: {
-    terrain: Record<string, { tileset: string; x: number; y: number; w?: number; h?: number; desc?: string }>;
-    features: Record<string, { tileset: string; x: number; y: number; w?: number; h?: number; desc?: string }>;
-    entities: Record<string, { tileset: string; x: number; y: number; w?: number; h?: number; desc?: string }>;
+    terrain: Record<string, { tileset: string; x?: number; y?: number; w?: number; h?: number; tile_index?: number; desc?: string }>;
+    features: Record<string, { tileset: string; x?: number; y?: number; w?: number; h?: number; tile_index?: number; desc?: string }>;
+    entities: Record<string, { tileset: string; x?: number; y?: number; w?: number; h?: number; tile_index?: number; desc?: string }>;
   };
 };
 

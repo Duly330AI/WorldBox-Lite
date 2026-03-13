@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { WorldCanvas } from "./ui/canvas/WorldCanvas";
 import { EventLog } from "./ui/components/EventLog";
 import { Minimap } from "./ui/components/Minimap";
-import { TilesheetInspector } from "./ui/components/TilesheetInspector";
 import { TechTree } from "./ui/components/TechTree";
 import { UnitInspector } from "./ui/components/UnitInspector";
+import { VictoryPanel } from "./ui/components/VictoryPanel";
 import { useWorldStore } from "./ui/store";
 import { loadAssetSpec } from "./engine/io/specLoader";
 
@@ -26,6 +26,8 @@ export function App() {
   const setChronicles = useWorldStore((s) => s.setChronicles);
   const setTilesetImages = useWorldStore((s) => s.setTilesetImages);
   const setAssetSpec = useWorldStore((s) => s.setAssetSpec);
+  const tilesetImages = useWorldStore((s) => s.tilesetImages);
+  const assetSpec = useWorldStore((s) => s.assetSpec);
   const setTickStore = useWorldStore((s) => s.setTick);
   const setTickIntervalMs = useWorldStore((s) => s.setTickIntervalMs);
   const setMinimapBuffer = useWorldStore((s) => s.setMinimapBuffer);
@@ -242,6 +244,10 @@ export function App() {
     : [];
   const factionColors = ["#ef4444", "#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#eab308", "#64748b"];
 
+  const assetsReady = assetSpec
+    ? assetSpec.tilesets.every((ts) => tilesetImages[ts.name])
+    : false;
+
   return (
     <div style={{ padding: 16, fontFamily: "'IBM Plex Sans', sans-serif" }}>
       <h1 style={{ marginBottom: 8 }}>CivWorldBox</h1>
@@ -379,51 +385,26 @@ export function App() {
           </div>
           <div style={{ height: 12 }} />
           <TechTree />
-          <div style={{ height: 12 }} />
-          <TilesheetInspector />
         </div>
       </div>
-      {matchOver ? (
+      {!assetsReady ? (
         <div
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.6)",
+            background: "rgba(0,0,0,0.45)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 50
+            zIndex: 60,
+            color: "#fff",
+            fontWeight: 600
           }}
         >
-          <div
-            style={{
-              background: "#fff",
-              padding: 24,
-              borderRadius: 12,
-              minWidth: 320,
-              textAlign: "center"
-            }}
-          >
-            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Match Over</div>
-            <div style={{ fontSize: 14, marginBottom: 8 }}>
-              Sieger: {matchOver.winnerName} (Faktion {matchOver.winnerFactionId})
-            </div>
-            <div style={{ fontSize: 12, color: "#666" }}>Dauer: {matchOver.tick} Ticks</div>
-            {matchOver.summary ? (
-              <div style={{ marginTop: 12, fontSize: 12, textAlign: "left" }}>
-                <div>Meistgebaute Einheit: {matchOver.summary.most_built_unit}</div>
-                <div>Gesammeltes Holz: {matchOver.summary.collected_wood}</div>
-                <div>
-                  Erforschte Techs:{" "}
-                  {matchOver.summary.researched_techs.length > 0
-                    ? matchOver.summary.researched_techs.join(", ")
-                    : "Keine"}
-                </div>
-              </div>
-            ) : null}
-          </div>
+          Loading sprites…
         </div>
       ) : null}
+      <VictoryPanel />
     </div>
   );
 }

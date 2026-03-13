@@ -27,7 +27,12 @@ export type WorldState = {
     winnerName: string;
     tick: number;
     knowledge: Record<number, Record<string, number>>;
-    summary?: { most_built_unit: string; collected_wood: number; researched_techs: string[] };
+    summary?: {
+      most_built_unit: string;
+      collected_wood: number;
+      fallen_units: number;
+      researched_techs: string[];
+    };
   } | null;
   knowledge: Record<number, Record<string, number>>;
   research: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>;
@@ -62,7 +67,12 @@ export type WorldState = {
     winnerName: string;
     tick: number;
     knowledge: Record<number, Record<string, number>>;
-    summary?: { most_built_unit: string; collected_wood: number; researched_techs: string[] };
+    summary?: {
+      most_built_unit: string;
+      collected_wood: number;
+      fallen_units: number;
+      researched_techs: string[];
+    };
   }) => void;
   setKnowledge: (data: Record<number, Record<string, number>>) => void;
   setResearch: (data: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>) => void;

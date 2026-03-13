@@ -414,7 +414,12 @@ function ensureChronicle(factionId: number) {
 
 function ensureBlackboard(factionId: number) {
   if (!blackboardByFaction.has(factionId)) {
-    blackboardByFaction.set(factionId, { forests: new Set(), food: new Set(), enemyBases: new Set() });
+    blackboardByFaction.set(factionId, {
+      forests: new Set(),
+      food: new Set(),
+      enemyBases: new Set(),
+      enemyWorkers: new Set()
+    });
   }
   return blackboardByFaction.get(factionId)!;
 }
@@ -551,7 +556,7 @@ const perfSamples: number[] = [];
 const lastAttackerByEntity: Map<number, number> = new Map();
 const blackboardByFaction: Map<
   number,
-  { forests: Set<number>; food: Set<number>; enemyBases: Set<number> }
+  { forests: Set<number>; food: Set<number>; enemyBases: Set<number>; enemyWorkers: Set<number> }
 > = new Map();
 const forcedTargets: Map<number, { x: number; y: number }> = new Map();
 let foodTerrainIds: Set<number> = new Set();
@@ -606,6 +611,21 @@ function forEachNearbyEntity(
       }
     }
   }
+}
+
+function findEntityAtTile(x: number, y: number) {
+  if (!spatialIndexRef || !stateViewRef) return null;
+  const view = stateViewRef;
+  const { cellSize, cols, rows, cells } = spatialIndexRef;
+  const cx = Math.floor(x / cellSize);
+  const cy = Math.floor(y / cellSize);
+  if (cx < 0 || cy < 0 || cx >= cols || cy >= rows) return null;
+  const list = cells[cy * cols + cx];
+  for (let i = 0; i < list.length; i += 1) {
+    const idx = list[i];
+    if (view.getEntityX(idx) === x && view.getEntityY(idx) === y) return idx;
+  }
+  return null;
 }
 
 function getUnitDefByType(typeId: number) {
@@ -699,6 +719,8 @@ function findEnemyInRange(entityIndex: number, range: number) {
   const sx = view.getEntityX(entityIndex);
   const sy = view.getEntityY(entityIndex);
   let found: number | null = null;
+  let preferred: number | null = null;
+  const workerId = entitySpecRef?.units.worker.type_id ?? 201;
   forEachNearbyEntity(sx, sy, range, (i) => {
     if (view.getEntityId(i) === 0) return;
     if (view.getEntityFaction(i) === selfFaction) return;
@@ -709,10 +731,19 @@ function findEnemyInRange(entityIndex: number, range: number) {
     const dx = Math.abs(ex - sx);
     const dy = Math.abs(ey - sy);
     if (dx <= range && dy <= range) {
-      found = i;
-      return true;
+      if (!found) found = i;
+      const enemyType = view.getEntityType(i);
+      if (enemyType === workerId) {
+        const home = homeByFaction.get(view.getEntityFaction(i));
+        const dist = home ? Math.abs(ex - home.x) + Math.abs(ey - home.y) : 99;
+        if (dist > 5) {
+          preferred = i;
+          return true;
+        }
+      }
     }
   });
+  if (preferred !== null) return preferred;
   if (found !== null) return found;
   return null;
 }
@@ -1013,6 +1044,24 @@ function tickAction(entityIndex: number) {
   };
 
   if (actionMeta.name === "WANDER") {
+    const typeId = view.getEntityType(entityIndex);
+    const scoutId = entitySpecRef?.units.scout.type_id ?? 200;
+    if (typeId === scoutId) {
+      const board = ensureBlackboard(view.getEntityFaction(entityIndex));
+      const known = findNearestKnown(
+        view.getEntityFaction(entityIndex),
+        x,
+        y,
+        board.forests,
+        (idx) => view.getFeature(idx) === 100
+      );
+      if (known) {
+        view.setEntityTargetX(entityIndex, known.x);
+        view.setEntityTargetY(entityIndex, known.y);
+        moveTowardTarget();
+        return;
+      }
+    }
     const options = [
       [x + 1, y],
       [x - 1, y],
@@ -1142,6 +1191,31 @@ function tickAction(entityIndex: number) {
     if (enemyIndex === null) {
       const faction = view.getEntityFaction(entityIndex);
       const board = ensureBlackboard(faction);
+      const knownWorker = findNearestKnown(
+        faction,
+        x,
+        y,
+        board.enemyWorkers,
+        (idx) => {
+          const tx = idx % width;
+          const ty = Math.floor(idx / width);
+          const ent = findEntityAtTile(tx, ty);
+          if (ent === null) return false;
+          const enemyFaction = view.getEntityFaction(ent);
+          const enemyType = view.getEntityType(ent);
+          const workerId = entitySpecRef?.units.worker.type_id ?? 201;
+          if (enemyFaction === faction || enemyType !== workerId) return false;
+          const home = homeByFaction.get(enemyFaction);
+          const dist = home ? Math.abs(view.getEntityX(ent) - home.x) + Math.abs(view.getEntityY(ent) - home.y) : 99;
+          return dist > 5;
+        }
+      );
+      if (knownWorker) {
+        view.setEntityTargetX(entityIndex, knownWorker.x);
+        view.setEntityTargetY(entityIndex, knownWorker.y);
+        moveTowardTarget();
+        return;
+      }
       const knownBase = findNearestKnown(
         faction,
         x,
@@ -1291,6 +1365,23 @@ function updateExploration(entityIndex: number, width: number) {
         }
       }
     }
+  }
+
+  if (typeId === scoutId) {
+    const workerId = entitySpecRef?.units.worker.type_id ?? 201;
+    forEachNearbyEntity(ex, ey, vision, (i) => {
+      if (view.getEntityId(i) === 0) return;
+      const enemyFaction = view.getEntityFaction(i);
+      if (enemyFaction === faction) return;
+      const enemyType = view.getEntityType(i);
+      if (enemyType !== workerId) return;
+      const home = homeByFaction.get(enemyFaction);
+      const dist = home ? Math.abs(view.getEntityX(i) - home.x) + Math.abs(view.getEntityY(i) - home.y) : 99;
+      if (dist > 5) {
+        const idx = view.tileIndex(view.getEntityX(i), view.getEntityY(i));
+        board.enemyWorkers.add(idx);
+      }
+    });
   }
 }
 
@@ -1704,6 +1795,7 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
           summary = {
             most_built_unit: topName,
             collected_wood: chronicle.total_resources_gathered.wood,
+            fallen_units: chronicle.losses,
             researched_techs: Array.from(techManagerRef?.getKnown(winnerFactionId) ?? [])
           };
         }
