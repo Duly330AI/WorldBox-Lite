@@ -69,15 +69,12 @@
 - [x] Dashboard: K/D Ratio + Research Speed
 
 ## Phase 28-30 – Assets & Renderer
-- [x] asset_spec.json + Schema + AJV Validation
 - [x] Assets Ordnerstruktur (assets/*) + Build-Sync (assets → public/assets)
 - [x] Sprite-fähiger Renderer (drawImage Fallback auf Farben)
 - [x] Camera Pan & Zoom
 - [x] Brush Preview bleibt kompatibel mit Kamera
 
 ## Phase 30-31 – Asset Import & Animation
-- [x] setupAssets.ts (Kenney Download + Extract)
-- [x] postinstall Hook (tsx scripts/setupAssets.ts)
 - [x] Entity Movement Lerp
 - [x] animation_frame im State
 - [x] Minimap Buffer aus Worker (20 Ticks)

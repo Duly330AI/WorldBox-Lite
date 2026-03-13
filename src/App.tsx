@@ -5,9 +5,7 @@ import { Minimap } from "./ui/components/Minimap";
 import { TechTree } from "./ui/components/TechTree";
 import { UnitInspector } from "./ui/components/UnitInspector";
 import { VictoryPanel } from "./ui/components/VictoryPanel";
-import { TileMapper } from "./ui/components/TileMapper";
 import { useWorldStore } from "./ui/store";
-import { loadAssetSpec } from "./engine/io/specLoader";
 
 export function App() {
   const setWorld = useWorldStore((s) => s.setWorld);
@@ -25,10 +23,6 @@ export function App() {
   const setKnowledge = useWorldStore((s) => s.setKnowledge);
   const setResearch = useWorldStore((s) => s.setResearch);
   const setChronicles = useWorldStore((s) => s.setChronicles);
-  const setTilesetImages = useWorldStore((s) => s.setTilesetImages);
-  const setAssetSpec = useWorldStore((s) => s.setAssetSpec);
-  const tilesetImages = useWorldStore((s) => s.tilesetImages);
-  const assetSpec = useWorldStore((s) => s.assetSpec);
   const setTickStore = useWorldStore((s) => s.setTick);
   const setTickIntervalMs = useWorldStore((s) => s.setTickIntervalMs);
   const setMinimapBuffer = useWorldStore((s) => s.setMinimapBuffer);
@@ -45,7 +39,7 @@ export function App() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [tick, setTick] = useState(0);
   const [speed, setSpeed] = useState(500);
-  const [assetSpecStatus, setAssetSpecStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [fastForwardTicks, setFastForwardTicks] = useState(500);
   const workerRef = useRef<Worker | null>(null);
   const timerRef = useRef<number | null>(null);
 
@@ -59,7 +53,7 @@ export function App() {
     worker.onmessage = (ev) => {
       if (ev.data.type === "world") {
         const terrain = new Uint8Array(ev.data.terrain);
-        setWorld(ev.data.spec, terrain, null, null, null, null, null, null);
+        setWorld(ev.data.spec, terrain, null, null, null, null, null);
       }
       if (ev.data.type === "state") {
         const terrain = ev.data.buffers?.terrain
@@ -72,8 +66,7 @@ export function App() {
           ev.data.unitBehaviorSpec ?? null,
           ev.data.loggingSpec ?? null,
           ev.data.simulationSpec ?? null,
-          ev.data.techSpec ?? null,
-          null
+          ev.data.techSpec ?? null
         );
       }
       if (ev.data.type === "error") {
@@ -150,91 +143,7 @@ export function App() {
     });
 
     return () => worker.terminate();
-  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setAttackLines, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles, setTilesetImages, setMinimapBuffer]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setAssetSpecStatus("loading");
-    const specTimeout = window.setTimeout(() => {
-      if (!cancelled) {
-        setError("asset_spec did not load (timeout)");
-        setAssetSpecStatus("error");
-      }
-    }, 3000);
-    loadAssetSpec("/specs/asset_spec.json")
-      .then((spec) => {
-        if (cancelled) return;
-        window.clearTimeout(specTimeout);
-        setAssetSpec(spec);
-        setAssetSpecStatus("loaded");
-        const images: Record<string, HTMLImageElement> = {};
-        const loaders = spec.tilesets.map(
-          (ts) =>
-            new Promise<void>(async (resolve) => {
-              try {
-                const res = await fetch(ts.image);
-                if (!res.ok) {
-                  setError(`Missing tileset image: ${ts.image}`);
-                  resolve();
-                  return;
-                }
-                const blob = await res.blob();
-                if (blob.size === 0) {
-                  setError(`Tileset image empty: ${ts.image}`);
-                  resolve();
-                  return;
-                }
-                const img = new Image();
-                const url = URL.createObjectURL(blob);
-                const timeout = window.setTimeout(() => {
-                  setError(`Failed to load tileset image: ${ts.image}`);
-                  URL.revokeObjectURL(url);
-                  resolve();
-                }, 2000);
-                img.onload = () => {
-                  window.clearTimeout(timeout);
-                  URL.revokeObjectURL(url);
-                  images[ts.name] = img;
-                  resolve();
-                };
-                img.onerror = () => {
-                  window.clearTimeout(timeout);
-                  URL.revokeObjectURL(url);
-                  setError(`Failed to load tileset image: ${ts.image}`);
-                  resolve();
-                };
-                img.src = url;
-              } catch {
-                setError(`Missing tileset image: ${ts.image}`);
-                resolve();
-              }
-            })
-        );
-        const watchdog = window.setTimeout(() => {
-          setError("Sprite load timeout");
-        }, 3000);
-        Promise.all(loaders).then(() => {
-          window.clearTimeout(watchdog);
-          if (cancelled) return;
-          setTilesetImages(images);
-          const missing = spec.tilesets.filter((ts) => !images[ts.name]);
-          if (missing.length > 0) {
-            setError(`Missing tileset images: ${missing.map((m) => m.image).join(", ")}`);
-          }
-        });
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error(err);
-          setError("Failed to load asset_spec.json");
-          setAssetSpecStatus("error");
-        }
-      });
-    return () => {
-      cancelled = true;
-      window.clearTimeout(specTimeout);
-    };
-  }, [setTilesetImages, setAssetSpec]);
+  }, [setWorld, setError, addEvents, setPaths, setEntityDebug, setStats, setBuildingOwners, setAttackLines, setWorker, setPerfStats, setMatchOver, setKnowledge, setResearch, setChronicles, setMinimapBuffer]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -286,13 +195,6 @@ export function App() {
         .sort((a, b) => a - b)
     : [];
   const factionColors = ["#ef4444", "#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#eab308", "#64748b"];
-
-  const assetsReady = assetSpec
-    ? assetSpec.tilesets.every((ts) => tilesetImages[ts.name])
-    : false;
-  const assetProgress = assetSpec
-    ? `${Object.keys(tilesetImages).length}/${assetSpec.tilesets.length}`
-    : "0/0";
 
   return (
     <div style={{ padding: 16, fontFamily: "'IBM Plex Sans', sans-serif" }}>
@@ -362,6 +264,41 @@ export function App() {
         >
           Export AI Chronicle
         </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            type="number"
+            min={1}
+            max={10000}
+            value={fastForwardTicks}
+            onChange={(e) => setFastForwardTicks(Math.max(1, Math.min(10000, Number(e.target.value) || 1)))}
+            style={{
+              width: 90,
+              padding: "6px 8px",
+              border: "1px solid #333",
+              borderRadius: 6,
+              fontSize: 12
+            }}
+          />
+          <button
+            onClick={() => {
+              setIsPlaying(false);
+              const worker = workerRef.current;
+              if (!worker) return;
+              for (let i = 0; i < fastForwardTicks; i += 1) {
+                worker.postMessage({ type: "sim_tick" });
+              }
+            }}
+            style={{
+              padding: "6px 12px",
+              border: "1px solid #333",
+              background: "#f5f5f5",
+              color: "#222",
+              borderRadius: 6
+            }}
+          >
+            Fast Forward
+          </button>
+        </div>
         <div style={{ marginLeft: 12, display: "flex", gap: 8, alignItems: "center" }}>
           <span style={{ fontSize: 12, color: "#555" }}>God Tools</span>
           {["lava", "forest", "water", "ignite"].map((tool) => (
@@ -431,27 +368,8 @@ export function App() {
           </div>
           <div style={{ height: 12 }} />
           <TechTree />
-          <div style={{ height: 12 }} />
-          <TileMapper />
         </div>
       </div>
-      {!assetsReady && !error ? (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.45)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 60,
-            color: "#fff",
-            fontWeight: 600
-          }}
-        >
-          Loading sprites… ({assetProgress}, assetSpec: {assetSpecStatus})
-        </div>
-      ) : null}
       <VictoryPanel />
     </div>
   );

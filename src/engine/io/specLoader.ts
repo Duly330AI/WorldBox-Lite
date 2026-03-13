@@ -8,7 +8,6 @@ import combatSchema from "../../specs/schemas/combat_spec.schema.json";
 import entitySchema from "../../specs/schemas/entity_spec.schema.json";
 import simulationSchema from "../../specs/schemas/simulation_spec.schema.json";
 import exportSchema from "../../specs/schemas/export_spec.schema.json";
-import assetSchema from "../../specs/schemas/asset_spec.schema.json";
 
 export type WorldSpec = {
   spec_id: string;
@@ -182,23 +181,6 @@ export type ExportSpec = {
   };
 };
 
-export type AssetSpec = {
-  spec_id: string;
-  version: string;
-  tile_size: number;
-  tilesets: Array<{
-    name: string;
-    image: string;
-    tile_size: number;
-    columns: number;
-    spacing?: number;
-  }>;
-  mappings: {
-    terrain: Record<string, { tileset: string; x?: number; y?: number; w?: number; h?: number; tile_index?: number; desc?: string }>;
-    features: Record<string, { tileset: string; x?: number; y?: number; w?: number; h?: number; tile_index?: number; desc?: string }>;
-    entities: Record<string, { tileset: string; x?: number; y?: number; w?: number; h?: number; tile_index?: number; desc?: string }>;
-  };
-};
 
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateWorld = ajv.compile(worldSchema);
@@ -210,7 +192,6 @@ const validateCombat = ajv.compile(combatSchema);
 const validateEntity = ajv.compile(entitySchema);
 const validateSimulation = ajv.compile(simulationSchema);
 const validateExport = ajv.compile(exportSchema);
-const validateAsset = ajv.compile(assetSchema);
 
 export function assertWorldSpec(data: unknown): WorldSpec {
   if (!validateWorld(data)) {
@@ -311,16 +292,6 @@ export function assertExportSpec(data: unknown): ExportSpec {
   return data as ExportSpec;
 }
 
-export function assertAssetSpec(data: unknown): AssetSpec {
-  if (!validateAsset(data)) {
-    const errors = (validateAsset.errors || []) as DefinedError[];
-    const message = errors
-      .map((e) => `${e.instancePath || "(root)"} ${e.message}`)
-      .join("; ");
-    throw new Error(`asset_spec validation failed: ${message}`);
-  }
-  return data as AssetSpec;
-}
 
 export async function loadWorldSpec(url: string): Promise<WorldSpec> {
   const res = await fetch(url);
@@ -401,13 +372,4 @@ export async function loadExportSpec(url: string): Promise<ExportSpec> {
   }
   const json = (await res.json()) as unknown;
   return assertExportSpec(json);
-}
-
-export async function loadAssetSpec(url: string): Promise<AssetSpec> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to load asset_spec: ${res.status}`);
-  }
-  const json = (await res.json()) as unknown;
-  return assertAssetSpec(json);
 }

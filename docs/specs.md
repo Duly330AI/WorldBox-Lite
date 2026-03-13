@@ -7,6 +7,11 @@ Specs are the single source of truth for all simulation rules and data. Each spe
 - `specs/state_spec.json` (validated by `src/specs/schemas/state_spec.schema.json`)
 - `specs/tech_spec.json` (validated by `src/specs/schemas/tech_spec.schema.json`)
 - `specs/unit_behavior_spec.json` (validated by `src/specs/schemas/unit_behavior_spec.schema.json`)
+- `specs/simulation_spec.json` (validated by `src/specs/schemas/simulation_spec.schema.json`)
+- `specs/logging_spec.json` (validated by `src/specs/schemas/logging_spec.schema.json`)
+- `specs/combat_spec.json` (validated by `src/specs/schemas/combat_spec.schema.json`)
+- `specs/entity_spec.json` (validated by `src/specs/schemas/entity_spec.schema.json`)
+- `specs/export_spec.json` (validated by `src/specs/schemas/export_spec.schema.json`)
 
 ## Loading
 - Specs are mirrored into `public/specs/` for runtime fetch.

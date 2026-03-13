@@ -11,12 +11,10 @@ The AI uses Utility to select the top goal, then GOAP to generate an action plan
 ## Planner
 - Action graph is derived from `actions`.
 - Planner searches for a sequence that satisfies the selected goal.
-- Plans are cached and only recomputed on state changes or cooldown expiration.
+- Plans are recomputed when a new goal is selected or when goal lock expires.
 
 ## Anti-Oscillation
-- Goal lock for N ticks.
-- Switching cost added when goal changes.
-- Cooldowns per goal.
+- Goal lock for N ticks (`plan_lock_ticks`).
 
 ## Telemetry Requirements
 - Every plan change emits `AI_PLAN_CHANGE`.

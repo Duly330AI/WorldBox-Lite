@@ -15,10 +15,10 @@
   },
   "actions": {
     "WANDER": { "id": 0, "cost": 1, "progress_step": 100, "pre": [], "eff": ["explored_area"] },
-    "CHOP_WOOD": { "id": 1, "cost": 5, "progress_step": 20, "pre": ["is_on_forest_tile"], "eff": ["inventory_wood_increased"] },
-    "GATHER_FOOD": { "id": 2, "cost": 3, "progress_step": 34, "pre": ["is_on_food_tile"], "eff": ["inventory_food_increased"] },
-    "BUILD_HOUSE": { "id": 3, "cost": 20, "progress_step": 10, "pre": ["has_wood_3", "is_on_grass_tile"], "eff": ["house_created"] },
-    "ATTACK": { "id": 4, "cost": 10, "progress_step": 100, "pre": ["enemy_in_range"], "eff": ["enemy_health_reduced", "safety_increased"] },
+    "CHOP_WOOD": { "id": 1, "cost": 5, "progress_step": 20, "pre": ["forest_known"], "eff": ["inventory_wood_increased"] },
+    "GATHER_FOOD": { "id": 2, "cost": 3, "progress_step": 34, "pre": ["food_known"], "eff": ["inventory_food_increased"] },
+    "BUILD_HOUSE": { "id": 3, "cost": 20, "progress_step": 10, "pre": ["has_wood_3"], "eff": ["house_created"] },
+    "ATTACK": { "id": 4, "cost": 10, "progress_step": 100, "pre": ["enemy_known"], "eff": ["enemy_health_reduced", "safety_increased"] },
     "FLEE": { "id": 5, "cost": 2, "progress_step": 100, "pre": ["enemy_nearby"], "eff": ["safety_increased"] },
     "HEAL": { "id": 6, "cost": 5, "progress_step": 20, "pre": ["is_at_home"], "eff": ["health_increased"] },
     "DELIVER": { "id": 7, "cost": 2, "progress_step": 50, "pre": ["has_wood_to_store"], "eff": ["resources_stored"] }
@@ -31,7 +31,7 @@
     "expansion_curve": "wood >= 3 ? 80 : 0",
     "exploration_curve": "100 / (tiles_explored + 1)",
     "defense_curve": "enemy_near_home ? 100 : 0",
-    "aggression_curve": "(military_strength_ratio > 1.5) ? 70 : 0",
+    "aggression_curve": "(enemy_known && military_strength_ratio > 1.5) ? 70 : 0",
     "storage_curve": "wood >= 3 ? 65 : 0"
   }
 }

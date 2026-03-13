@@ -9,6 +9,7 @@ Each tile buffer length equals `width * height`.
 - `building_buffer`: `Uint16Array`
 - `height_buffer`: `Int8Array`
 - `pollution_buffer`: `Uint8Array`
+- `explored_buffer`: `Uint8Array` (bitmask for 8 factions)
 
 ## Entity Buffers
 Entity buffers are SoA (Structure of Arrays) aligned with `max_entities`.

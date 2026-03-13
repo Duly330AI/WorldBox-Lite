@@ -352,6 +352,34 @@ function buildPlan(actions: ActionDef[], goalEffect: string, stateFacts: Set<str
   return [];
 }
 
+function pickGoalWithPlan(
+  spec: UnitBehaviorSpec,
+  utilities: Record<string, number>,
+  actions: ActionDef[],
+  stateFacts: Set<string>
+) {
+  const candidates = Object.entries(spec.goal_definitions)
+    .map(([goal, def]) => ({
+      goal,
+      effect: def.target_effect,
+      score: utilities[def.utility_curve] ?? 0,
+      priority: def.priority
+    }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.priority - b.priority;
+    });
+
+  for (const cand of candidates) {
+    const plan = buildPlan(actions, cand.effect, new Set(stateFacts));
+    if (plan.length > 0) {
+      return { goalKey: cand.goal, goalEffect: cand.effect, plan };
+    }
+  }
+
+  return { goalKey: candidates[0]?.goal ?? "", goalEffect: candidates[0]?.effect ?? "", plan: [] };
+}
+
 const logBuffer: Array<Record<string, unknown>> = [];
 const knowledgeByFaction: Record<number, Record<string, number>> = {};
 const chroniclesByFaction: Record<
@@ -538,6 +566,7 @@ let maxVisionRef = 3;
 let pathfindingCalls = 0;
 let matchOverSent = false;
 const attackLines: Array<{ from: [number, number]; to: [number, number] }> = [];
+const INVALID_TARGET = 0xffff;
 
 let actionById: Map<number, { name: string; progress_step: number }> = new Map();
 let actionIdByName: Map<string, number> = new Map();
@@ -659,6 +688,11 @@ function getUnitCost(typeId: number) {
   return def?.cost ?? 0;
 }
 
+function hasTech(factionId: number, techId: string | undefined) {
+  if (!techId) return true;
+  return techManagerRef?.getKnown(factionId)?.has(techId) ?? false;
+}
+
 function chooseProductionUnit(
   factionId: number,
   storage: number,
@@ -669,11 +703,19 @@ function chooseProductionUnit(
   const archerId = entitySpecRef.units.archer?.type_id ?? 202;
   const axemanId = entitySpecRef.units.axeman?.type_id ?? 203;
   const known = techManagerRef?.getKnown(factionId) ?? new Set<string>();
-  let archerWeight = known.has("archery") ? 0.3 : 0;
-  let axemanWeight = known.has("bronze_working") ? 0.3 : 0;
+  const workerOk = hasTech(factionId, entitySpecRef.units.worker.required_tech);
+  const archerOk = entitySpecRef.units.archer
+    ? hasTech(factionId, entitySpecRef.units.archer.required_tech)
+    : false;
+  const axemanOk = entitySpecRef.units.axeman
+    ? hasTech(factionId, entitySpecRef.units.axeman.required_tech)
+    : false;
+  let archerWeight = known.has("archery") && archerOk ? 0.3 : 0;
+  let axemanWeight = known.has("bronze_working") && axemanOk ? 0.3 : 0;
   if (storage < getUnitCost(archerId)) archerWeight = 0;
   if (storage < getUnitCost(axemanId)) axemanWeight = 0;
   let workerWeight = Math.max(0, 1 - (archerWeight + axemanWeight));
+  if (!workerOk) workerWeight = 0;
   if (storage < getUnitCost(workerId)) workerWeight = 0;
   const options: Array<{ id: number; weight: number }> = [];
   if (workerWeight > 0) options.push({ id: workerId, weight: workerWeight });
@@ -976,14 +1018,20 @@ function tickAction(entityIndex: number) {
   const idx = y * width + x;
   occupied.delete(idx);
 
+  const hasValidTarget = (tx: number, ty: number, predicate: (tx: number, ty: number) => boolean) =>
+    tx >= 0 && ty >= 0 && tx < width && ty < height && predicate(tx, ty);
+
   const ensureTarget = (predicate: (tx: number, ty: number) => boolean) => {
     const tx = view.getEntityTargetX(entityIndex);
     const ty = view.getEntityTargetY(entityIndex);
-    if (tx < width && ty < height) return;
+    if (hasValidTarget(tx, ty, predicate)) return;
     const found = findNearestTile(x, y, width, height, isWalkable, predicate, occupied);
     if (found) {
       view.setEntityTargetX(entityIndex, found.x);
       view.setEntityTargetY(entityIndex, found.y);
+    } else {
+      view.setEntityTargetX(entityIndex, INVALID_TARGET);
+      view.setEntityTargetY(entityIndex, INVALID_TARGET);
     }
   };
 
@@ -1099,6 +1147,12 @@ function tickAction(entityIndex: number) {
     }
     const tx = view.getEntityTargetX(entityIndex);
     const ty = view.getEntityTargetY(entityIndex);
+    if (!hasValidTarget(tx, ty, (sx, sy) => view.getFeature(sy * width + sx) === 100)) {
+      view.setEntityActionProgress(entityIndex, 0);
+      view.setEntityTargetX(entityIndex, INVALID_TARGET);
+      view.setEntityTargetY(entityIndex, INVALID_TARGET);
+      return;
+    }
     const next = Math.min(100, view.getEntityActionProgress(entityIndex) + progressStep);
     view.setEntityActionProgress(entityIndex, next);
     if (next >= 100) {
@@ -1137,6 +1191,12 @@ function tickAction(entityIndex: number) {
     }
     const tx = view.getEntityTargetX(entityIndex);
     const ty = view.getEntityTargetY(entityIndex);
+    if (!hasValidTarget(tx, ty, (sx, sy) => foodTerrainIds.has(view.getTerrain(sy * width + sx)))) {
+      view.setEntityActionProgress(entityIndex, 0);
+      view.setEntityTargetX(entityIndex, INVALID_TARGET);
+      view.setEntityTargetY(entityIndex, INVALID_TARGET);
+      return;
+    }
     const next = Math.min(100, view.getEntityActionProgress(entityIndex) + progressStep);
     view.setEntityActionProgress(entityIndex, next);
     if (next >= 100) {
@@ -1158,7 +1218,7 @@ function tickAction(entityIndex: number) {
   if (actionMeta?.name === "DELIVER") {
     let tx = view.getEntityTargetX(entityIndex);
     let ty = view.getEntityTargetY(entityIndex);
-    if (tx >= width || ty >= height || view.getBuilding(ty * width + tx) !== 300) {
+    if (!hasValidTarget(tx, ty, (sx, sy) => view.getBuilding(sy * width + sx) === 300)) {
       ensureTarget((sx, sy) => view.getBuilding(sy * width + sx) === 300);
       tx = view.getEntityTargetX(entityIndex);
       ty = view.getEntityTargetY(entityIndex);
@@ -1276,6 +1336,12 @@ function tickAction(entityIndex: number) {
   }
 
   if (actionMeta?.name === "BUILD_HOUSE") {
+    const faction = view.getEntityFaction(entityIndex);
+    const requiredTech = entitySpecRef?.buildings.house?.required_tech;
+    if (requiredTech && !hasTech(faction, requiredTech)) {
+      view.setEntityActionProgress(entityIndex, 0);
+      return;
+    }
     const home = homeByFaction.get(view.getEntityFaction(entityIndex));
     const grassId = Object.values(worldSpecRef!.terrain_types).find((t) => t.id === 0)?.id ?? 0;
     if (home) {
@@ -1398,6 +1464,8 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
   const y = view.getEntityY(entityIndex);
   const idx = y * width + x;
   const facts: string[] = [];
+  const faction = view.getEntityFaction(entityIndex);
+  const board = ensureBlackboard(faction);
   if (view.getFeature(idx) === 100) facts.push("is_on_forest_tile");
   if (view.getFeature(idx) === 110) facts.push("is_on_fire_tile");
   const terrainId = view.getTerrain(idx);
@@ -1409,15 +1477,24 @@ function buildStateFacts(entityIndex: number, width: number, height: number) {
   }
   if (wood >= 3) facts.push("has_wood_3");
   if (wood >= 3) facts.push("has_wood_to_store");
-  facts.push("is_on_grass_tile");
+  const grassId = Object.values(worldSpecRef!.terrain_types).find((t) => t.id === 0)?.id ?? 0;
+  if (terrainId === grassId) facts.push("is_on_grass_tile");
   if (findEnemyInRangeByType(entityIndex) !== null) facts.push("enemy_in_range");
   if (isEnemyInVision(entityIndex)) facts.push("enemy_nearby");
+  if (board.forests.size > 0) facts.push("forest_known");
+  if (board.food.size > 0) facts.push("food_known");
+  if (board.enemyWorkers.size > 0 || board.enemyBases.size > 0 || isEnemyInVision(entityIndex)) {
+    facts.push("enemy_known");
+  }
+  const home = homeByFaction.get(faction);
+  if (home && home.x === x && home.y === y) facts.push("is_at_home");
   return facts;
 }
 
 function computeInputs(entityIndex: number, width: number) {
   const view = stateViewRef!;
   const faction = view.getEntityFaction(entityIndex);
+  const board = ensureBlackboard(faction);
   const home = homeByFaction.get(faction);
   let enemyNearHome = 0;
   if (home) {
@@ -1434,10 +1511,11 @@ function computeInputs(entityIndex: number, width: number) {
     });
   }
   const ownMil = (lastFactionMilitary.get(faction) ?? 0);
-  const enemyMil = (lastFactionEnemyMilitary.get(faction) ?? 1);
-  const ratio = enemyMil > 0 ? ownMil / enemyMil : ownMil;
+  const enemyMil = (lastFactionEnemyMilitary.get(faction) ?? 0);
+  const ratio = enemyMil > 0 ? ownMil / enemyMil : 0;
   return {
     enemy_nearby: isEnemyInVision(entityIndex) ? 1 : 0,
+    enemy_known: board.enemyWorkers.size > 0 || board.enemyBases.size > 0 || isEnemyInVision(entityIndex) ? 1 : 0,
     health: view.getEntityHealth(entityIndex),
     hunger: view.getEntityHunger(entityIndex),
     wood: view.getEntityWood(entityIndex),
@@ -1452,11 +1530,15 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     if (!unitBehaviorSpecRef) return;
     const { factionId, inputs, stateFacts } = ev.data as AiTickMessage;
     const utilities = computeUtilities(unitBehaviorSpecRef, inputs);
-    const { goalKey, goalEffect } = pickTopGoal(unitBehaviorSpecRef, utilities);
     const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef.actions).map(
       ([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff })
     );
-    const plan = buildPlan(actions, goalEffect, new Set(stateFacts));
+    const { goalKey, goalEffect, plan } = pickGoalWithPlan(
+      unitBehaviorSpecRef,
+      utilities,
+      actions,
+      new Set(stateFacts)
+    );
     logEvent({
       event_type: "AI_PLAN_CHANGE",
       faction_id: factionId,
@@ -1598,6 +1680,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         const storage = (buffersRef.building_storage as Uint16Array)[i] ?? 0;
         const unitType = chooseProductionUnit(faction, storage, randomFn);
         if (!unitType) continue;
+        const unitDef = getUnitDefByType(unitType);
+        if (unitDef?.required_tech && !hasTech(faction, unitDef.required_tech)) continue;
         const cost = getUnitCost(unitType);
         if (storage < cost || cost <= 0) continue;
         const x = i % width;
@@ -1632,7 +1716,16 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
       if (view.getEntityPlanLock(idx) === 0) {
         const inputs = computeInputs(idx, width);
         const utilities = computeUtilities(unitBehaviorSpecRef!, inputs);
-        const { goalKey, goalEffect } = pickTopGoal(unitBehaviorSpecRef!, utilities);
+        const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef!.actions).map(
+          ([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff })
+        );
+        const stateFacts = new Set(buildStateFacts(idx, width, height));
+        const { goalKey, goalEffect, plan } = pickGoalWithPlan(
+          unitBehaviorSpecRef!,
+          utilities,
+          actions,
+          stateFacts
+        );
         const topScore =
           unitBehaviorSpecRef!.goal_definitions[goalKey]?.utility_curve
             ? utilities[unitBehaviorSpecRef!.goal_definitions[goalKey].utility_curve] ?? 0
@@ -1646,10 +1739,6 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
             continue;
           }
         }
-        const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef!.actions).map(
-          ([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff })
-        );
-        const plan = buildPlan(actions, goalEffect, new Set(buildStateFacts(idx, width, height)));
         const nextAction = plan[0]?.name;
         const nextId = nextAction ? actionIdByName.get(nextAction) ?? 0 : 0;
         view.setEntityActionId(idx, nextId);

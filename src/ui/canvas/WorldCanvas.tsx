@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useWorldStore } from "../store";
 
 const ID_COLORS: Record<number, string> = {
@@ -11,14 +11,18 @@ const ID_COLORS: Record<number, string> = {
   8: "#ef4444"
 };
 
+type SpriteAtlas = {
+  image: HTMLCanvasElement;
+  tileSize: number;
+  mapping: Record<string, { x: number; y: number; w: number; h: number }>;
+};
+
 export function WorldCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const spec = useWorldStore((s) => s.spec);
   const terrain = useWorldStore((s) => s.terrain);
   const buffers = useWorldStore((s) => s.buffers);
   const unitBehaviorSpec = useWorldStore((s) => s.unitBehaviorSpec);
-  const assetSpec = useWorldStore((s) => s.assetSpec);
-  const tilesetImages = useWorldStore((s) => s.tilesetImages);
   const paths = useWorldStore((s) => s.paths);
   const buildingOwners = useWorldStore((s) => s.buildingOwners);
   const attackLines = useWorldStore((s) => s.attackLines);
@@ -38,27 +42,214 @@ export function WorldCanvas() {
   const prevPositionsRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const isPaintingRef = useRef(false);
   const lastPaintRef = useRef<string | null>(null);
-  const missingTilesetsRef = useRef(false);
   const teamColors = ["#ef4444", "#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#eab308", "#64748b"];
 
-  const getSprite = (group: "terrain" | "features" | "entities", id: number) => {
-    const mapping = assetSpec?.mappings?.[group]?.[String(id)];
-    if (!mapping) return null;
-    const tileset = assetSpec?.tilesets.find((t) => t.name === mapping.tileset);
-    const image = tileset ? tilesetImages[tileset.name] : undefined;
-    if (!tileset || !image) return null;
-    const w = mapping.w ?? tileset.tile_size;
-    const h = mapping.h ?? tileset.tile_size;
-    let x = mapping.x ?? 0;
-    let y = mapping.y ?? 0;
-    if (typeof mapping.tile_index === "number") {
-      const spacing = tileset.spacing ?? 0;
-      const stride = tileset.tile_size + spacing;
-      const cols = tileset.columns;
-      x = (mapping.tile_index % cols) * stride;
-      y = Math.floor(mapping.tile_index / cols) * stride;
+  const atlas = useMemo<SpriteAtlas>(() => {
+    const tileSize = 16;
+    const cols = 8;
+    const rows = 4;
+    const canvas = document.createElement("canvas");
+    canvas.width = cols * tileSize;
+    canvas.height = rows * tileSize;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return { image: canvas, tileSize, mapping: {} };
     }
-    return { image, tileset, mapping: { ...mapping, x, y }, w, h };
+    ctx.imageSmoothingEnabled = false;
+
+    const drawTile = (
+      col: number,
+      row: number,
+      draw: (c: CanvasRenderingContext2D, x: number, y: number) => void
+    ) => {
+      const x = col * tileSize;
+      const y = row * tileSize;
+      ctx.clearRect(x, y, tileSize, tileSize);
+      draw(ctx, x, y);
+    };
+
+    const mapping: SpriteAtlas["mapping"] = {
+      "terrain.0": { x: 0, y: 0, w: tileSize, h: tileSize }, // grass
+      "terrain.1": { x: 16, y: 0, w: tileSize, h: tileSize }, // plains
+      "terrain.2": { x: 32, y: 0, w: tileSize, h: tileSize }, // sand
+      "terrain.3": { x: 48, y: 0, w: tileSize, h: tileSize }, // tundra
+      "terrain.4": { x: 64, y: 0, w: tileSize, h: tileSize }, // snow
+      "terrain.5": { x: 80, y: 0, w: tileSize, h: tileSize }, // water
+      "terrain.6": { x: 96, y: 0, w: tileSize, h: tileSize }, // ocean
+      "terrain.7": { x: 112, y: 0, w: tileSize, h: tileSize }, // peak
+      "terrain.8": { x: 0, y: 16, w: tileSize, h: tileSize }, // lava
+      "features.100": { x: 16, y: 16, w: tileSize, h: tileSize }, // forest
+      "features.110": { x: 32, y: 16, w: tileSize, h: tileSize }, // fire
+      "entities.200": { x: 48, y: 16, w: tileSize, h: tileSize }, // scout
+      "entities.201": { x: 64, y: 16, w: tileSize, h: tileSize }, // worker
+      "entities.202": { x: 80, y: 16, w: tileSize, h: tileSize }, // archer
+      "entities.203": { x: 96, y: 16, w: tileSize, h: tileSize }, // axeman
+      "entities.204": { x: 112, y: 16, w: tileSize, h: tileSize }, // swordsman
+      "entities.300": { x: 0, y: 32, w: tileSize, h: tileSize } // house
+    };
+
+    const dot = (c: CanvasRenderingContext2D, x: number, y: number, r: number, color: string) => {
+      c.fillStyle = color;
+      c.beginPath();
+      c.arc(x, y, r, 0, Math.PI * 2);
+      c.fill();
+    };
+    const strokeRect = (c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string) => {
+      c.strokeStyle = color;
+      c.lineWidth = 1;
+      c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    };
+
+    // terrain
+    drawTile(0, 0, (c, x, y) => {
+      c.fillStyle = "#4ade80";
+      c.fillRect(x, y, tileSize, tileSize);
+      dot(c, x + 4, y + 5, 1, "rgba(0,0,0,0.15)");
+      dot(c, x + 11, y + 10, 1, "rgba(0,0,0,0.12)");
+      dot(c, x + 7, y + 12, 1, "rgba(0,0,0,0.1)");
+      strokeRect(c, x, y, tileSize, tileSize, "rgba(0,0,0,0.08)");
+    });
+    drawTile(1, 0, (c, x, y) => {
+      c.fillStyle = "#fbbf24";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "rgba(0,0,0,0.12)";
+      c.fillRect(x + 2, y + 3, 5, 3);
+      c.fillRect(x + 9, y + 10, 4, 3);
+      strokeRect(c, x, y, tileSize, tileSize, "rgba(0,0,0,0.1)");
+    });
+    drawTile(2, 0, (c, x, y) => {
+      c.fillStyle = "#f59e0b";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "rgba(255,255,255,0.2)";
+      c.fillRect(x + 3, y + 4, 4, 2);
+      c.fillRect(x + 9, y + 10, 3, 2);
+      dot(c, x + 6, y + 12, 1, "rgba(0,0,0,0.15)");
+    });
+    drawTile(3, 0, (c, x, y) => {
+      c.fillStyle = "#9ca3af";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "rgba(255,255,255,0.25)";
+      c.fillRect(x + 3, y + 3, 6, 4);
+      c.fillRect(x + 8, y + 9, 5, 3);
+      strokeRect(c, x, y, tileSize, tileSize, "rgba(0,0,0,0.08)");
+    });
+    drawTile(4, 0, (c, x, y) => {
+      c.fillStyle = "#e5e7eb";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "rgba(0,0,0,0.06)";
+      c.fillRect(x + 2, y + 2, 5, 2);
+      c.fillRect(x + 9, y + 9, 4, 2);
+      strokeRect(c, x, y, tileSize, tileSize, "rgba(0,0,0,0.06)");
+    });
+    drawTile(5, 0, (c, x, y) => {
+      c.fillStyle = "#3b82f6";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "rgba(255,255,255,0.35)";
+      c.fillRect(x + 2, y + 6, 11, 2);
+      c.fillRect(x + 4, y + 11, 8, 1);
+    });
+    drawTile(6, 0, (c, x, y) => {
+      c.fillStyle = "#1d4ed8";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "rgba(255,255,255,0.25)";
+      c.fillRect(x + 3, y + 5, 10, 2);
+      c.fillRect(x + 2, y + 11, 7, 1);
+    });
+    drawTile(7, 0, (c, x, y) => {
+      c.fillStyle = "#4b5563";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "#9ca3af";
+      c.beginPath();
+      c.moveTo(x + 3, y + 13);
+      c.lineTo(x + 8, y + 3);
+      c.lineTo(x + 13, y + 13);
+      c.closePath();
+      c.fill();
+      c.fillStyle = "#6b7280";
+      c.fillRect(x + 6, y + 11, 4, 3);
+    });
+    drawTile(0, 1, (c, x, y) => {
+      c.fillStyle = "#ef4444";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "rgba(0,0,0,0.2)";
+      c.beginPath();
+      c.arc(x + 8, y + 9, 5, 0, Math.PI * 2);
+      c.fill();
+      dot(c, x + 6, y + 6, 2, "rgba(255,255,255,0.35)");
+    });
+
+    // features
+    drawTile(1, 1, (c, x, y) => {
+      c.fillStyle = "#22c55e";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "#064e3b";
+      c.beginPath();
+      c.arc(x + 8, y + 7, 5, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#7c3e1d";
+      c.fillRect(x + 7, y + 10, 2, 4);
+      dot(c, x + 5, y + 6, 1, "rgba(255,255,255,0.25)");
+    });
+    drawTile(2, 1, (c, x, y) => {
+      c.fillStyle = "#1f2937";
+      c.fillRect(x, y, tileSize, tileSize);
+      c.fillStyle = "#f97316";
+      c.beginPath();
+      c.arc(x + 7, y + 8, 4, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#facc15";
+      c.beginPath();
+      c.arc(x + 10, y + 6, 3, 0, Math.PI * 2);
+      c.fill();
+    });
+
+    // entities
+    const drawUnit = (col: number, row: number, color: string, mark: string) => {
+      drawTile(col, row, (c, x, y) => {
+        c.fillStyle = "rgba(0,0,0,0)";
+        c.fillRect(x, y, tileSize, tileSize);
+        c.fillStyle = color;
+        c.beginPath();
+        c.arc(x + 8, y + 6, 3, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#111827";
+        c.fillRect(x + 6, y + 9, 4, 5);
+        c.fillStyle = "#fff";
+        c.font = "7px sans-serif";
+        c.fillText(mark, x + 5, y + 15);
+      });
+    };
+    drawUnit(3, 1, "#60a5fa", "S");
+    drawUnit(4, 1, "#8b5a2b", "W");
+    drawUnit(5, 1, "#10b981", "A");
+    drawUnit(6, 1, "#f97316", "X");
+    drawUnit(7, 1, "#a855f7", "M");
+
+    // house
+    drawTile(0, 2, (c, x, y) => {
+      c.fillStyle = "#7c4a2d";
+      c.fillRect(x + 2, y + 7, 12, 7);
+      c.fillStyle = "#5a2e12";
+      c.beginPath();
+      c.moveTo(x + 2, y + 7);
+      c.lineTo(x + 8, y + 3);
+      c.lineTo(x + 14, y + 7);
+      c.closePath();
+      c.fill();
+      c.fillStyle = "#fef3c7";
+      c.fillRect(x + 7, y + 10, 2, 3);
+      c.fillStyle = "#a16207";
+      c.fillRect(x + 4, y + 10, 2, 2);
+    });
+
+    return { image: canvas, tileSize, mapping };
+  }, []);
+
+  const getSprite = (group: "terrain" | "features" | "entities", id: number) => {
+    const key = `${group}.${id}`;
+    const mapping = atlas.mapping[key];
+    if (!mapping) return null;
+    return { image: atlas.image, mapping, w: mapping.w, h: mapping.h };
   };
 
   useEffect(() => {
@@ -77,26 +268,11 @@ export function WorldCanvas() {
       const now = performance.now();
       const t = Math.min(1, Math.max(0, (now - lastTickTimeRef.current) / Math.max(1, tickIntervalMs)));
 
-      if (assetSpec) {
-        const missing = assetSpec.tilesets.filter((ts) => !tilesetImages[ts.name]);
-        if (missing.length > 0) {
-          if (!missingTilesetsRef.current) {
-            console.error(`Missing tileset images: ${missing.map((m) => m.name).join(", ")}`);
-            missingTilesetsRef.current = true;
-          }
-          ctx.setTransform(1, 0, 0, 1, 0, 0);
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = "#111";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          return;
-        }
-      }
-
       ctx.setTransform(camera.scale, 0, 0, camera.scale, camera.x, camera.y);
       ctx.clearRect(-camera.x / camera.scale, -camera.y / camera.scale, canvas.width / camera.scale, canvas.height / camera.scale);
 
       const explored = buffers?.explored as Uint8Array | undefined;
-      const isExplored = (idx: number) => !explored || (explored[idx] & 1) !== 0;
+      const isExplored = (idx: number) => !explored || explored[idx] !== 0;
 
       for (let y = 0; y < height; y += 1) {
         for (let x = 0; x < width; x += 1) {
@@ -280,27 +456,14 @@ export function WorldCanvas() {
           const faction = buffers.entities.faction_id as Uint8Array | undefined;
           const teamColor = faction ? teamColors[faction[i] % teamColors.length] : "#ffffff";
           const idx = (Math.floor(targetY) * width) + Math.floor(targetX);
-          if (explored && (explored[idx] & 1) === 0) {
+          if (explored && explored[idx] === 0) {
             continue;
           }
           if (types && (types[i] === 201 || types[i] === 200 || types[i] === 202 || types[i] === 203 || types[i] === 204)) {
             const sprite = getSprite("entities", types[i]);
             if (sprite) {
               const { image, mapping, w, h } = sprite;
-              const anim = buffers.entities.animation_frame as Uint8Array | undefined;
-              const frame = anim ? anim[i] % 2 : 0;
-              const spacing = sprite.tileset.spacing ?? 0;
-              ctx.drawImage(
-                image,
-                mapping.x + frame * (w + spacing),
-                mapping.y,
-                w,
-                h,
-                px,
-                py,
-                tileSize,
-                tileSize
-              );
+              ctx.drawImage(image, mapping.x, mapping.y, w, h, px, py, tileSize, tileSize);
             } else {
               ctx.fillStyle = "#7c4a2d";
               ctx.beginPath();
@@ -370,7 +533,7 @@ export function WorldCanvas() {
     };
     draw();
     return () => cancelAnimationFrame(raf);
-  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, attackLines, godTool, hover, tilesetImages, assetSpec, camera, tickIntervalMs, selectedEntityId]);
+  }, [spec, terrain, buffers, unitBehaviorSpec, paths, buildingOwners, attackLines, godTool, hover, camera, tickIntervalMs, selectedEntityId]);
 
   useEffect(() => {
     lastTickTimeRef.current = performance.now();

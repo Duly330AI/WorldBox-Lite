@@ -28,6 +28,6 @@
 - `log`: telemetry entries.
 - `error`: fatal error string.
 
-## Planned Message Types
+## Worker Message Types
 - `ai_tick`: run AI plan generation for one or more factions.
 - `sim_tick`: advance simulation by one tick.

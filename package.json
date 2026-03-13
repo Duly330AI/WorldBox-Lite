@@ -8,9 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "postinstall": "tsx scripts/setupAssets.ts",
-    "detect-tileset": "node scripts/detectTileset.cjs"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "ajv": "^8.12.0",
@@ -23,10 +21,6 @@
     "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.2.1",
     "@vitest/coverage-v8": "^2.1.8",
-    "adm-zip": "^0.5.16",
-    "axios": "^1.13.6",
-    "pngjs": "^7.0.0",
-    "tsx": "^4.21.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.0",
     "vitest": "^2.1.8"

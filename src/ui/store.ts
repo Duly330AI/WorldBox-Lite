@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { AssetSpec, LoggingSpec, SimulationSpec, TechSpec, UnitBehaviorSpec, WorldSpec } from "../engine/io/specLoader";
+import type { LoggingSpec, SimulationSpec, TechSpec, UnitBehaviorSpec, WorldSpec } from "../engine/io/specLoader";
 import type { StateBuffers } from "../engine/worker";
 
 export type WorldState = {
@@ -8,8 +8,6 @@ export type WorldState = {
   loggingSpec: LoggingSpec | null;
   simulationSpec: SimulationSpec | null;
   techSpec: TechSpec | null;
-  assetSpec: AssetSpec | null;
-  tilesetImages: Record<string, HTMLImageElement>;
   minimapBuffer: Uint8ClampedArray | null;
   cameraTarget: { x: number; y: number } | null;
   terrain: Uint8Array | null;
@@ -49,8 +47,7 @@ export type WorldState = {
     unitBehaviorSpec: UnitBehaviorSpec | null,
     loggingSpec: LoggingSpec | null,
     simulationSpec: SimulationSpec | null,
-    techSpec: TechSpec | null,
-    assetSpec: AssetSpec | null
+    techSpec: TechSpec | null
   ) => void;
   addEvents: (entries: Array<Record<string, unknown>>) => void;
   setPaths: (paths: Array<{ entity_id: number; path: Array<[number, number]> }>) => void;
@@ -77,8 +74,6 @@ export type WorldState = {
   setKnowledge: (data: Record<number, Record<string, number>>) => void;
   setResearch: (data: Record<number, { current: string | null; progress: number; cost: number; known: string[] }>) => void;
   setChronicles: (data: Record<number, { battle_win_loss_ratio: number }>) => void;
-  setTilesetImages: (images: Record<string, HTMLImageElement>) => void;
-  setAssetSpec: (spec: AssetSpec | null) => void;
   setTick: (tick: number) => void;
   setTickIntervalMs: (ms: number) => void;
   setMinimapBuffer: (buf: Uint8ClampedArray | null) => void;
@@ -97,8 +92,6 @@ export const useWorldStore = create<WorldState>((set) => ({
   loggingSpec: null,
   simulationSpec: null,
   techSpec: null,
-  assetSpec: null,
-  tilesetImages: {},
   minimapBuffer: null,
   cameraTarget: null,
   terrain: null,
@@ -120,7 +113,7 @@ export const useWorldStore = create<WorldState>((set) => ({
   tick: 0,
   tickIntervalMs: 500,
   error: null,
-  setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec, assetSpec) =>
+  setWorld: (spec, terrain, buffers, unitBehaviorSpec, loggingSpec, simulationSpec, techSpec) =>
     set((state) => ({
       spec,
       terrain,
@@ -129,7 +122,6 @@ export const useWorldStore = create<WorldState>((set) => ({
       loggingSpec,
       simulationSpec,
       techSpec,
-      assetSpec: assetSpec ?? state.assetSpec,
       error: null
     })),
   addEvents: (entries) =>
@@ -149,8 +141,6 @@ export const useWorldStore = create<WorldState>((set) => ({
   setKnowledge: (data) => set({ knowledge: data }),
   setResearch: (data) => set({ research: data }),
   setChronicles: (data) => set({ chronicles: data }),
-  setTilesetImages: (images: Record<string, HTMLImageElement>) => set({ tilesetImages: images }),
-  setAssetSpec: (spec) => set({ assetSpec: spec }),
   setTick: (tick) => set({ tick }),
   setTickIntervalMs: (ms) => set({ tickIntervalMs: ms }),
   setMinimapBuffer: (buf) => set({ minimapBuffer: buf }),

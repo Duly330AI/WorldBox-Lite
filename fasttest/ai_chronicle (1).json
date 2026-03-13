@@ -1,0 +1,5062 @@
+{
+  "spec_id": "export_v1",
+  "version": "1.0",
+  "format": "json_structured",
+  "world_metadata": {
+    "dimensions": {
+      "width": 80,
+      "height": 80
+    },
+    "seed": 42,
+    "tech_tree_version": "1.1"
+  },
+  "faction_chronicles": {
+    "0": {
+      "tech_order": [
+        "mining"
+      ],
+      "total_resources_gathered": {
+        "wood": 84,
+        "food": 89
+      },
+      "battle_win_loss_ratio": 0,
+      "produced_units": {}
+    },
+    "1": {
+      "tech_order": [],
+      "total_resources_gathered": {
+        "wood": 93,
+        "food": 68
+      },
+      "battle_win_loss_ratio": 0,
+      "produced_units": {}
+    }
+  },
+  "event_stream": {
+    "decisions": [
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPLORATION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 50,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "WANDER"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPLORATION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 50,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "WANDER"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 50,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 50,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 50,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 50,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.6024096385542169,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.6024096385542169,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.5319148936170213,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.4878048780487805,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.47619047619047616,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.47619047619047616,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.47619047619047616,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.4878048780487805,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.4878048780487805,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.4830917874396135,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.4830917874396135,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.4065040650406504,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.37593984962406013,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.37453183520599254,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.46296296296296297,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.44052863436123346,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.44052863436123346,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3472222222222222,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.44052863436123346,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.44052863436123346,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.44052863436123346,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.4132231404958678,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.4132231404958678,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.4132231404958678,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.4132231404958678,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.4132231404958678,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.4132231404958678,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.4132231404958678,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.4132231404958678,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3952569169960474,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3460207612456747,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3952569169960474,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3952569169960474,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3333333333333333,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3333333333333333,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.39215686274509803,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3333333333333333,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.39215686274509803,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.39215686274509803,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3333333333333333,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.390625,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.390625,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.390625,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 0,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 26.01,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 26.01,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 27.04,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 27.04,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 28.09,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 28.09,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 29.16,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 29.16,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 30.25,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 30.25,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 31.36,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 31.36,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 32.49,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.37174721189591076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 33.64,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 33.64,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 33.64,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.37037037037037035,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 34.81,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 34.81,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.37037037037037035,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 36,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 37.21,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.36496350364963503,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 38.44,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 38.44,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 39.69,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.33222591362126247,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 40.96,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.32051282051282054,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 40.96,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3597122302158273,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 42.25,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3597122302158273,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 43.56,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.32051282051282054,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 43.56,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3597122302158273,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 46.24,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.32051282051282054,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 46.24,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.32051282051282054,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 47.61,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3194888178913738,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 47.61,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3597122302158273,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 49,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.35714285714285715,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 50.41,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3194888178913738,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 53.29,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3194888178913738,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 54.76,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3194888178913738,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "GATHERING",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 57.76,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.3194888178913738,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "CHOP_WOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 57.76,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.3194888178913738,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 57.76,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.23923444976076555,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 1,
+        "goal": "NUTRITION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 62.41,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.31446540880503143,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "GATHER_FOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 62.41,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.2053388090349076,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 64,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.31446540880503143,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "CHOP_WOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 2,
+        "goal": "NUTRITION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 65.61,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.31446540880503143,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "GATHER_FOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "EXPANSION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 65.61,
+          "wood_curve": 0,
+          "expansion_curve": 80,
+          "exploration_curve": 0.19646365422396855,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 65
+        },
+        "plan": [
+          "BUILD_HOUSE"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 3,
+        "goal": "NUTRITION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 68.89,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.18450184501845018,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "GATHER_FOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 0,
+        "goal": "NUTRITION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 70.56,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.31446540880503143,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "GATHER_FOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 4,
+        "goal": "NUTRITION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 75.69,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.17825311942959002,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "GATHER_FOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "BUILD_HOUSE",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "AI_PLAN_CHANGE",
+        "level": "DECISION",
+        "entity_id": 5,
+        "goal": "NUTRITION",
+        "utilities": {
+          "danger_curve": 0,
+          "health_curve": 0,
+          "hunger_curve": 79.21,
+          "wood_curve": 60,
+          "expansion_curve": 0,
+          "exploration_curve": 0.17482517482517482,
+          "defense_curve": 0,
+          "aggression_curve": 0,
+          "storage_curve": 0
+        },
+        "plan": [
+          "GATHER_FOOD"
+        ],
+        "reason": "utility_top_goal"
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 3
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 5
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 0
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 2
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 4
+      },
+      {
+        "event_type": "UNIT_ACTION",
+        "level": "INFO",
+        "action": "GATHER_FOOD",
+        "entity_id": 1
+      }
+    ],
+    "combat": [],
+    "victory_milestones": []
+  },
+  "final_knowledge_state": {
+    "0": {
+      "AI_PLAN_CHANGE": 61,
+      "UNIT_ACTION:CHOP_WOOD": 84,
+      "ECONOMY_UPDATE": 201,
+      "UNIT_ACTION:BUILD_HOUSE": 28,
+      "TECH_UNLOCKED": 1,
+      "UNIT_ACTION:GATHER_FOOD": 89
+    },
+    "1": {
+      "AI_PLAN_CHANGE": 65,
+      "UNIT_ACTION:CHOP_WOOD": 93,
+      "ECONOMY_UPDATE": 192,
+      "UNIT_ACTION:BUILD_HOUSE": 31,
+      "UNIT_ACTION:GATHER_FOOD": 68
+    }
+  }
+}

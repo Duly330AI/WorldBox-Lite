@@ -12,6 +12,7 @@ CivWorldBox is a simulation that combines WorldBox-style cellular dynamics with 
 - AI/GOAP: `docs/ai.md`
 - Telemetry: `docs/telemetry.md`
 - Rendering: `docs/rendering.md`
+- Cities & Economy: `docs/cities_economy.md`
 
 ## Source of Truth
 - Specs live in `specs/` and are mirrored in `public/specs/` for browser loading.
