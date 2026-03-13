@@ -44,6 +44,7 @@ export function App() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [tick, setTick] = useState(0);
   const [speed, setSpeed] = useState(500);
+  const [assetSpecStatus, setAssetSpecStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
   const workerRef = useRef<Worker | null>(null);
   const timerRef = useRef<number | null>(null);
 
@@ -152,9 +153,11 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
+    setAssetSpecStatus("loading");
     const specTimeout = window.setTimeout(() => {
       if (!cancelled) {
         setError("asset_spec did not load (timeout)");
+        setAssetSpecStatus("error");
       }
     }, 3000);
     loadAssetSpec("/specs/asset_spec.json")
@@ -162,6 +165,7 @@ export function App() {
         if (cancelled) return;
         window.clearTimeout(specTimeout);
         setAssetSpec(spec);
+        setAssetSpecStatus("loaded");
         const images: Record<string, HTMLImageElement> = {};
         const loaders = spec.tilesets.map(
           (ts) =>
@@ -222,6 +226,7 @@ export function App() {
         if (!cancelled) {
           console.error(err);
           setError("Failed to load asset_spec.json");
+          setAssetSpecStatus("error");
         }
       });
     return () => {
@@ -441,7 +446,7 @@ export function App() {
             fontWeight: 600
           }}
         >
-          Loading sprites… ({assetProgress})
+          Loading sprites… ({assetProgress}, assetSpec: {assetSpecStatus})
         </div>
       ) : null}
       <VictoryPanel />
