@@ -168,6 +168,11 @@ export function App() {
                   return;
                 }
                 const blob = await res.blob();
+                if (blob.size === 0) {
+                  setError(`Tileset image empty: ${ts.image}`);
+                  resolve();
+                  return;
+                }
                 const img = new Image();
                 const url = URL.createObjectURL(blob);
                 const timeout = window.setTimeout(() => {
@@ -194,7 +199,11 @@ export function App() {
               }
             })
         );
+        const watchdog = window.setTimeout(() => {
+          setError("Sprite load timeout");
+        }, 3000);
         Promise.all(loaders).then(() => {
+          window.clearTimeout(watchdog);
           if (cancelled) return;
           setTilesetImages(images);
           const missing = spec.tilesets.filter((ts) => !images[ts.name]);
@@ -268,6 +277,9 @@ export function App() {
   const assetsReady = assetSpec
     ? assetSpec.tilesets.every((ts) => tilesetImages[ts.name])
     : false;
+  const assetProgress = assetSpec
+    ? `${Object.keys(tilesetImages).length}/${assetSpec.tilesets.length}`
+    : "0/0";
 
   return (
     <div style={{ padding: 16, fontFamily: "'IBM Plex Sans', sans-serif" }}>
@@ -422,7 +434,7 @@ export function App() {
             fontWeight: 600
           }}
         >
-          Loading sprites…
+          Loading sprites… ({assetProgress})
         </div>
       ) : null}
       <VictoryPanel />
