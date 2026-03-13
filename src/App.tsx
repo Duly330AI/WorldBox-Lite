@@ -5,6 +5,7 @@ import { Minimap } from "./ui/components/Minimap";
 import { TechTree } from "./ui/components/TechTree";
 import { UnitInspector } from "./ui/components/UnitInspector";
 import { VictoryPanel } from "./ui/components/VictoryPanel";
+import { TileMapper } from "./ui/components/TileMapper";
 import { useWorldStore } from "./ui/store";
 import { loadAssetSpec } from "./engine/io/specLoader";
 
@@ -430,6 +431,8 @@ export function App() {
           </div>
           <div style={{ height: 12 }} />
           <TechTree />
+          <div style={{ height: 12 }} />
+          <TileMapper />
         </div>
       </div>
       {!assetsReady && !error ? (
