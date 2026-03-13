@@ -454,6 +454,23 @@ export function WorldCanvas() {
     }
   };
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const delta = event.deltaY > 0 ? -0.1 : 0.1;
+      setCamera((prev) => {
+        const nextScale = Math.min(3, Math.max(0.5, prev.scale + delta));
+        return { ...prev, scale: nextScale };
+      });
+    };
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      canvas.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
+
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
       <canvas
@@ -471,14 +488,6 @@ export function WorldCanvas() {
           lastPaintRef.current = null;
           if (dragRef.current) dragRef.current.dragging = false;
           setHover(null);
-        }}
-        onWheel={(event) => {
-          event.preventDefault();
-          const delta = event.deltaY > 0 ? -0.1 : 0.1;
-          setCamera((prev) => {
-            const nextScale = Math.min(3, Math.max(0.5, prev.scale + delta));
-            return { ...prev, scale: nextScale };
-          });
         }}
         style={{
           width: "100%",
