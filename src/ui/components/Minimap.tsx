@@ -22,7 +22,12 @@ export function Minimap() {
     if (!spec || !terrain) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const size = 64;
+    const size = minimapBuffer
+      ? Math.round(Math.sqrt(minimapBuffer.length / 4))
+      : 64;
+    if (minimapBuffer && size * size * 4 !== minimapBuffer.length) {
+      return;
+    }
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext("2d");
@@ -55,7 +60,7 @@ export function Minimap() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const size = 64;
+    const size = canvas.width || 64;
     const x = Math.floor(((event.clientX - rect.left) / rect.width) * size);
     const y = Math.floor(((event.clientY - rect.top) / rect.height) * size);
     const worldX = Math.floor((x / size) * spec.config.dimensions.width);
