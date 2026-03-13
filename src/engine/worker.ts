@@ -744,6 +744,34 @@ function isCityEntity(typeId: number) {
   return typeId === CITY_ENTITY_TYPE;
 }
 
+function isScoutType(typeId: number) {
+  return typeId === (entitySpecRef?.units.scout.type_id ?? 200);
+}
+
+function isWorkerType(typeId: number) {
+  return typeId === (entitySpecRef?.units.worker.type_id ?? 201);
+}
+
+function isActionAllowedForType(actionName: string, typeId: number) {
+  if (isCityEntity(typeId)) return false;
+  if (isScoutType(typeId)) {
+    return actionName === "WANDER" || actionName === "ATTACK" || actionName === "FLEE" || actionName === "HEAL";
+  }
+  if (isWorkerType(typeId)) {
+    return (
+      actionName === "WANDER" ||
+      actionName === "CHOP_WOOD" ||
+      actionName === "GATHER_FOOD" ||
+      actionName === "BUILD_HOUSE" ||
+      actionName === "DELIVER" ||
+      actionName === "FOUND_CITY" ||
+      actionName === "FLEE" ||
+      actionName === "HEAL"
+    );
+  }
+  return true;
+}
+
 function countFactionCities(factionId: number) {
   if (!stateViewRef) return 0;
   const view = stateViewRef;
@@ -1154,7 +1182,13 @@ function tickAction(entityIndex: number) {
   const actionMeta = actionById.get(actionId);
   const progressStep = actionMeta?.progress_step ?? 0;
   if (!actionMeta) return;
-  if (isCityEntity(view.getEntityType(entityIndex))) return;
+  const typeId = view.getEntityType(entityIndex);
+  if (isCityEntity(typeId)) return;
+  if (!isActionAllowedForType(actionMeta.name, typeId)) {
+    view.setEntityActionId(entityIndex, 0);
+    view.setEntityActionProgress(entityIndex, 0);
+    return;
+  }
 
   const isWalkable = (tx: number, ty: number) => view.isWalkable(tx, ty);
 
@@ -1792,9 +1826,8 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
     if (!unitBehaviorSpecRef) return;
     const { factionId, inputs, stateFacts } = ev.data as AiTickMessage;
     const utilities = computeUtilities(unitBehaviorSpecRef, inputs);
-    const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef.actions).map(
-      ([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff })
-    );
+    const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef.actions)
+      .map(([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff }));
     const { goalKey, goalEffect, plan } = pickGoalWithPlan(
       unitBehaviorSpecRef,
       utilities,
@@ -1974,12 +2007,33 @@ self.onmessage = async (ev: MessageEvent<InitMessage>) => {
         view.setEntityPlanLock(idx, view.getEntityPlanLock(idx) - 1);
       }
       updateExploration(idx, width);
+      const faction = view.getEntityFaction(idx);
+      const wood = view.getEntityWood(idx);
+      if (wood >= 3 && countFactionCities(faction) > 0) {
+        const deliverId = actionIdByName.get("DELIVER") ?? 0;
+        if (deliverId > 0 && view.getEntityActionId(idx) !== deliverId && isWorkerType(view.getEntityType(idx))) {
+          view.setEntityActionId(idx, deliverId);
+          view.setEntityPlanLock(idx, 5);
+          logEvent({
+            event_type: "AI_PLAN_CHANGE",
+            level: "DECISION",
+            entity_id: idx,
+            goal: "STORE_RESOURCES",
+            utilities: {},
+            plan: ["DELIVER"],
+            reason: "force_deliver"
+          });
+          lastDecision.set(idx, { goal: "STORE_RESOURCES", plan: ["DELIVER"], utilities: {} });
+          tickAction(idx);
+          continue;
+        }
+      }
       if (view.getEntityPlanLock(idx) === 0) {
         const inputs = computeInputs(idx, width);
         const utilities = computeUtilities(unitBehaviorSpecRef!, inputs);
-        const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef!.actions).map(
-          ([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff })
-        );
+        const actions: ActionDef[] = Object.entries(unitBehaviorSpecRef!.actions)
+          .filter(([name]) => isActionAllowedForType(name, view.getEntityType(idx)))
+          .map(([name, def]) => ({ name, cost: def.cost, pre: def.pre, eff: def.eff }));
         const stateFacts = new Set(buildStateFacts(idx, width, height));
         const { goalKey, goalEffect, plan } = pickGoalWithPlan(
           unitBehaviorSpecRef!,

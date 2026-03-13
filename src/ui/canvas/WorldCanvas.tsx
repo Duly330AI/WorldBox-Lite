@@ -416,7 +416,6 @@ export function WorldCanvas() {
         for (let x = 0; x < width; x += 1) {
           const idx = y * width + x;
           const owner = ownership[idx];
-          if (owner === 0) continue;
           if (!isExplored(idx)) continue;
           const color = teamColors[owner % teamColors.length];
           ctx.strokeStyle = color;
@@ -424,6 +423,20 @@ export function WorldCanvas() {
           const py = y * tileSize;
           const rightIdx = x + 1 < width ? idx + 1 : -1;
           const downIdx = y + 1 < height ? idx + width : -1;
+          const leftIdx = x - 1 >= 0 ? idx - 1 : -1;
+          const upIdx = y - 1 >= 0 ? idx - width : -1;
+          if (leftIdx === -1 || ownership[leftIdx] !== owner) {
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px, py + tileSize);
+            ctx.stroke();
+          }
+          if (upIdx === -1 || ownership[upIdx] !== owner) {
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px + tileSize, py);
+            ctx.stroke();
+          }
           if (x === 0) {
             ctx.beginPath();
             ctx.moveTo(px, py);

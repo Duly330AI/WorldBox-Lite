@@ -12,6 +12,8 @@ Telemetry is designed for post-hoc analysis and training. Logs must be rich enou
 - `UNIT_DIED`: combat death.
 - `MATCH_OVER`: victory milestone.
 - `WORLD_EVENT`: fire/lava/tree growth events.
+- `CITY_FOUNDED`: city placed.
+- `CITY_GROWTH`: city size increased.
 
 ## Required Fields (All Events)
 - `ts` (timestamp)

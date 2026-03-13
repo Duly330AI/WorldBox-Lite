@@ -13,6 +13,10 @@ The AI uses Utility to select the top goal, then GOAP to generate an action plan
 - Planner searches for a sequence that satisfies the selected goal.
 - Plans are recomputed when a new goal is selected or when goal lock expires.
 
+## Unit Roles (Current)
+- Workers: gather, build, deliver, found cities.
+- Scouts: explore and engage (no harvesting).
+
 ## Anti-Oscillation
 - Goal lock for N ticks (`plan_lock_ticks`).
 
