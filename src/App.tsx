@@ -152,9 +152,15 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
+    const specTimeout = window.setTimeout(() => {
+      if (!cancelled) {
+        setError("asset_spec did not load (timeout)");
+      }
+    }, 3000);
     loadAssetSpec("/specs/asset_spec.json")
       .then((spec) => {
         if (cancelled) return;
+        window.clearTimeout(specTimeout);
         setAssetSpec(spec);
         const images: Record<string, HTMLImageElement> = {};
         const loaders = spec.tilesets.map(
@@ -220,6 +226,7 @@ export function App() {
       });
     return () => {
       cancelled = true;
+      window.clearTimeout(specTimeout);
     };
   }, [setTilesetImages, setAssetSpec]);
 
