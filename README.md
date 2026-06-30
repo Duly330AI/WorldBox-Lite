@@ -1,50 +1,54 @@
-# CivWorldBox / WorldBox-Lite
+# WorldBox-Lite
 
-**CivWorldBox** is an experimental 2D sandbox simulation prototype built with **Vite**, **React**, **TypeScript**, and **Canvas 2D**.
+**WorldBox-Lite** is an experimental 2D sandbox/world simulation prototype built as a browser-based portfolio project.
 
-The project explores a mix of **WorldBox-style cellular world simulation** and **Civilization-style faction strategy**. It is focused on grid-based world generation, terrain editing, simple entities, simulation ticks, and an early spec-driven architecture.
-
-This is not a finished game. It is a prototype and learning project for experimenting with sandbox simulation mechanics, AI behavior concepts, and data-driven game rules.
+The project explores grid-based world simulation, terrain interaction, simple entity behavior, spec-driven rules, and editor-style controls. It is an early prototype focused on experimentation rather than a finished game.
 
 ## Status
 
-**Prototype / experimental sandbox**
+**Experimental 2D sandbox simulation prototype**
 
-The current version demonstrates the foundation of a world simulation, editor-style interaction, and early architecture ideas. Advanced AI behavior, deep faction strategy, long-term simulation balance, and complete gameplay loops are not fully implemented yet.
+The project is useful as a portfolio piece for showing simulation-style UI, world-state rendering, Web Worker experiments, and early systems design. It is not a finished game and should not be compared in scope to commercial sandbox or strategy games.
 
 ## Features
 
 * Grid-based world map
 * Canvas 2D rendering
 * Terrain types such as grass, water, sand, forest, lava, and mountain-like areas
-* Entity placement such as humans, trees, wolves, and test workers
+* Entity placement and simple entity simulation
 * Simulation tick/day counter
 * Pause/resume controls
-* Basic editor-style UI
+* Editor-style UI
 * Early save/load/reset controls
-* Early event log and inspector panels
-* Experimental spec-driven rule structure
+* Event log and inspector panels
+* Experimental JSON/spec-driven rule structure
+* Web Worker simulation experiments
+* AJV-based spec validation
 
-## Vision
+## Experimental / Planned Concepts
 
-The long-term idea was to combine:
+The repository includes early experiments and documentation around larger simulation concepts. These should be treated as prototype systems and design experiments, not complete gameplay.
 
-* emergent cellular simulation such as fire, lava, forests, and neutral predators
-* simple faction behavior and resource interaction
-* spec-driven rules that can be changed through JSON
-* early AI autonomy concepts such as GOAP and utility-based decision making
+* Faction behavior experiments
+* JSON rule/spec validation
+* GOAP or utility-style behavior concepts
+* City, combat, economy, and tech-tree specs
+* More advanced simulation rules
 
-Not all of these systems are complete in the current prototype.
+## Screenshots
+
+<img width="1880" height="860" alt="Screenshot 2026-03-13 012229" src="https://github.com/user-attachments/assets/77a40eea-c821-4fa6-8a49-22153f356f3d" />
 
 ## Tech Stack
 
-* Vite
 * React
 * TypeScript
+* Vite
 * Canvas 2D
-* Web Worker for simulation loop experiments
-* AJV for JSON Schema validation
-* Zustand for UI state
+* Web Worker
+* AJV
+* Zustand
+* Vitest
 
 ## Architecture
 
@@ -60,26 +64,38 @@ Not all of these systems are complete in the current prototype.
 * `specs/tech_spec.json`
 * `specs/unit_behavior_spec.json`
 
-## Screenshots
-
-Add screenshots here, for example:
-
-```md
-<img width="1880" height="860" alt="Screenshot 2026-03-13 012229" src="https://github.com/user-attachments/assets/77a40eea-c821-4fa6-8a49-22153f356f3d" />
-
-```
-
 ## Getting Started
+
+### Install dependencies
 
 ```bash
 npm install
+```
+
+### Run locally
+
+```bash
 npm run dev
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+### Run tests
+
+```bash
+npm run test
 ```
 
 ## Documentation
 
-See `docs/README.md` for the extended documentation.
+See `docs/README.md` for extended documentation.
 
 ## Notes
 
-This repository is kept as an experimental prototype. It demonstrates early work on simulation architecture, grid-based world interaction, spec-driven rules, and sandbox-style UI tooling.
+This is an experimental portfolio prototype for exploring world simulation, canvas rendering, and system-design ideas.
+
+This project is an unofficial learning/portfolio implementation and is not affiliated with WorldBox, Civilization, or their rights holders.
